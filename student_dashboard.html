@@ -56,10 +56,10 @@
         <nav class="flex-1 py-8 px-4 space-y-6 overflow-y-auto scrollbar-hide">
             <div>
                 <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] mb-4">Core Portal</p>
-                <a onclick="switchGlobalView('schedules')" id="navSched" class="sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2 cursor-pointer">
+                <a onclick="switchGlobalView('schedules'); closeMobileMenu();" id="navSched" class="sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2 cursor-pointer">
                     <i class="fa-solid fa-calendar-day text-xs"></i> <span class="uppercase">Schedules</span>
                 </a>
-                <a onclick="switchGlobalView('grades')" id="navGrades" class="sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2 cursor-pointer">
+                <a onclick="switchGlobalView('grades'); closeMobileMenu();" id="navGrades" class="sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2 cursor-pointer">
                     <i class="fa-solid fa-file-invoice text-xs"></i> <span class="uppercase">Records</span>
                 </a>
             </div>
@@ -108,13 +108,11 @@
 
                 <div id="printArea">
                     <div class="print-watermark hidden"><img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
-                    
                     <div id="printHeader" class="hidden flex-col items-center text-center w-full mb-8">
                         <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="w-16 mb-2">
                         <h2 class="text-xl font-black text-black">CENTRAL MINDANAO COMPUTER SCHOOL</h2>
                         <p class="text-[9px] text-black uppercase font-bold">Poblacion, Tulunan, Cotabato</p>
                         <p class="w-full border-t-2 border-black mt-4 pt-2 font-black text-black uppercase tracking-widest text-sm" id="lblReportType"></p>
-                        
                         <div class="grid grid-cols-2 gap-x-12 mt-6 text-left w-full border-b border-black pb-4 text-black text-[10pt]">
                             <div class="space-y-1">
                                 <p class="font-bold">Student: <span id="pName" class="font-normal uppercase"></span></p>
@@ -198,7 +196,7 @@
             const nav = document.getElementById('subjectNavItems');
             nav.innerHTML = '';
             programs.forEach(p => {
-                nav.innerHTML += `<a onclick="switchSubjectView(${JSON.stringify(p).replace(/"/g, '&quot;')})" id="nav-${p.code}" class="subj-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[11px] font-black cursor-pointer uppercase"><i class="fa-solid fa-book-open text-xs"></i> ${p.code}</a>`;
+                nav.innerHTML += `<a onclick="switchSubjectView(${JSON.stringify(p).replace(/"/g, '&quot;')}); closeMobileMenu();" id="nav-${p.code}" class="subj-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[11px] font-black cursor-pointer uppercase"><i class="fa-solid fa-book-open text-xs"></i> ${p.code}</a>`;
             });
         }
 
@@ -220,6 +218,7 @@
             document.getElementById('headerContext').innerHTML = `
                 <span class="bg-blue-600 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase"><i class="fa-solid fa-calendar mr-1"></i> ${p.schedule}</span>
                 <span class="bg-white/10 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase"><i class="fa-solid fa-clock mr-1"></i> ${t12(p.startTime)} - ${t12(p.endTime)}</span>
+                <span class="bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-lg text-[9px] font-black uppercase"><i class="fa-solid fa-user-tie mr-1"></i> ${p.teacher}</span>
             `;
             document.getElementById('subjectToggles').classList.remove('hidden');
             switchSubTab('attendance');
@@ -275,7 +274,6 @@
             document.getElementById('pID').innerText = currentStudent.studentId;
             document.getElementById('pCourse').innerText = currentStudent.course;
             document.getElementById('pYearSem').innerText = `YEAR ${currentStudent.year} - SEM ${currentStudent.semester}`;
-            
             document.getElementById('printHeader').classList.replace('hidden', 'flex');
             document.querySelector('.print-watermark').classList.remove('hidden');
             window.print();
@@ -301,6 +299,10 @@
         window.toggleMobileMenu = () => { 
             document.getElementById('sidebar').classList.toggle('-translate-x-full'); 
             document.getElementById('sidebarOverlay').classList.toggle('hidden'); 
+        };
+        window.closeMobileMenu = () => { 
+            document.getElementById('sidebar').classList.add('-translate-x-full'); 
+            document.getElementById('sidebarOverlay').classList.add('hidden'); 
         };
         window.logout = () => signOut(auth).then(() => window.location.href = "login.html");
     </script>
