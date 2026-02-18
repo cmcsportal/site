@@ -7,11 +7,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <style>
+    <style>
         body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; margin: 0; padding: 0; }
         .logo-watermark { position: fixed; inset: 0; z-index: -1; display: flex; justify-content: center; align-items: center; opacity: 0.04; pointer-events: none; }
         .logo-watermark img { height: 75%; filter: grayscale(1) brightness(0.5); }
-        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1rem; }
+        
+        /* Preserved Original Border Radius */
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.5rem; }
+        
         .sidebar { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
         .sidebar-btn, .subj-btn { transition: all 0.3s ease; color: #94a3b8; border: 1px solid transparent; }
         .sidebar-btn:hover, .subj-btn:hover { background: rgba(255, 255, 255, 0.05); color: white; }
@@ -19,16 +22,21 @@
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         input { background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; outline: none !important; }
 
-        /* Fix for Table Scroll on Mobile */
+        /* Mobile Tightening & Horizontal Scroll */
         .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        table { min-width: 600px; width: 100%; } /* Ensures content doesn't squish too much */
+        table { min-width: 600px; width: 100%; }
 
         @media (max-width: 768px) {
-            .glass-card { border-radius: 0.75rem; }
-            th, td { padding-left: 1rem !important; padding-right: 1rem !important; padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
-            #workspace { padding: 1rem !important; }
+            #workspace { padding: 0.75rem !important; }
+            .main-content-area { padding: 0.5rem !important; }
+            .glass-card { padding: 0.75rem !important; }
+            th, td { padding: 0.75rem 0.5rem !important; }
+            header { padding: 0.75rem 1rem !important; }
+            .grid { gap: 0.5rem !important; }
+            table { min-width: 500px; }
         }
 
+        /* Fixed Print Output Layout */
         @media print {
             @page { margin: 1cm; }
             body { background: white !important; color: black !important; }
@@ -37,15 +45,14 @@
             #printArea { position: absolute; left: 0; top: 0; width: 100%; background: white !important; }
             .no-print, .logo-watermark { display: none !important; }
             #tableBody td, #tableBody span, #tableBody div { color: black !important; opacity: 1 !important; }
-            .glass-card { border: none !important; background: transparent !important; border-radius: 0 !important; overflow: visible !important; }
-            table { min-width: 100% !important; width: 100% !important; border-collapse: collapse !important; border: 1.5pt solid black !important; }
+            .glass-card { border: none !important; background: transparent !important; border-radius: 0 !important; overflow: visible !important; padding: 0 !important; }
+            table { width: 100% !important; border-collapse: collapse !important; border: 1.5pt solid black !important; min-width: 100% !important; }
             th, td { border: 1pt solid black !important; padding: 10px !important; color: black !important; font-size: 9pt !important; }
             thead { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
             .print-watermark { display: flex !important; position: fixed; inset: 0; justify-content: center; align-items: center; opacity: 0.05 !important; z-index: -1; }
             .print-watermark img { width: 400px; filter: grayscale(1); }
         }
     </style>
-
 </head>
 <body class="h-screen flex flex-col md:flex-row overflow-hidden">
 
@@ -94,7 +101,7 @@
 
     <div id="sidebarOverlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[80] hidden md:hidden"></div>
 
-        <main class="flex-1 flex flex-col h-full overflow-hidden">
+    <main class="flex-1 flex flex-col h-full overflow-hidden">
         <header class="h-auto py-4 md:py-6 flex flex-col md:flex-row items-start md:items-center justify-between px-4 md:px-10 border-b border-white/5 no-print gap-4">
             <div class="flex flex-col">
                 <h1 id="headerTitle" class="text-[11px] md:text-sm font-black uppercase tracking-widest text-white leading-none">DASHBOARD</h1>
@@ -103,17 +110,17 @@
             
             <div class="flex items-center gap-3 w-full md:w-auto">
                 <div id="subjectToggles" class="hidden glass-card !rounded-xl p-1 flex flex-1 md:flex-none">
-                    <button id="btnAtt" onclick="switchSubTab('attendance')" class="flex-1 md:flex-none px-3 py-1.5 text-[9px] font-black uppercase rounded-lg active-nav">Attendance</button>
-                    <button id="btnMat" onclick="switchSubTab('materials')" class="flex-1 md:flex-none px-3 py-1.5 text-[9px] font-black uppercase rounded-lg text-gray-400">Materials</button>
+                    <button id="btnAtt" onclick="switchSubTab('attendance')" class="flex-1 md:flex-none px-4 py-2 text-[9px] font-black uppercase rounded-lg active-nav">Attendance</button>
+                    <button id="btnMat" onclick="switchSubTab('materials')" class="flex-1 md:flex-none px-4 py-2 text-[9px] font-black uppercase rounded-lg text-gray-400">Materials</button>
                 </div>
                 <div id="exportGroup" class="flex gap-2">
-                    <button onclick="exportCSV()" class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase">CSV</button>
-                    <button onclick="exportPDF()" class="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-[9px] font-black uppercase">PDF</button>
+                    <button onclick="exportCSV()" class="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase">CSV</button>
+                    <button onclick="exportPDF()" class="px-3 py-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-[9px] font-black uppercase">PDF</button>
                 </div>
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4 md:p-10 scrollbar-hide">
+        <div class="flex-1 overflow-y-auto p-4 md:p-10 scrollbar-hide main-content-area">
             <div id="workspace" class="space-y-4 md:space-y-8">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 no-print" id="infoSummary"></div>
 
@@ -140,7 +147,7 @@
 
                     <div class="glass-card overflow-hidden">
                         <div class="table-container scrollbar-hide">
-                            <table class="text-left border-collapse">
+                            <table class="w-full text-left border-collapse">
                                 <thead id="tableHead" class="bg-white/5 text-[9px] uppercase font-black text-gray-400"></thead>
                                 <tbody id="tableBody" class="divide-y divide-white/5 text-xs"></tbody>
                             </table>
@@ -150,175 +157,3 @@
             </div>
         </div>
     </main>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-        const firebaseConfig = { 
-            apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ", authDomain: "svls-289ee.firebaseapp.com", projectId: "svls-289ee",
-            storageBucket: "svls-289ee.firebasestorage.app", messagingSenderId: "500705386198", appId: "1:500705386198:web:96f189662bc2aa99cf7377"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        let currentStudent = null, programs = [], activeSubj = null, currentMode = 'schedules';
-
-        function t12(t) {
-            if (!t) return "";
-            let [h, m] = t.split(':');
-            h = parseInt(h);
-            const p = h >= 12 ? 'PM' : 'AM';
-            h = h % 12 || 12;
-            return `${h}:${m} ${p}`;
-        }
-
-        onAuthStateChanged(auth, async user => {
-            if (user) {
-                const snap = await getDoc(doc(db, "users", user.uid));
-                if (snap.exists() && snap.data().role === 'student') {
-                    currentStudent = { uid: user.uid, ...snap.data() };
-                    initUI();
-                    await fetchSubjects();
-                    switchGlobalView('schedules');
-                } else { window.location.href = "login.html"; }
-            } else { window.location.href = "login.html"; }
-        });
-
-        function initUI() {
-            document.getElementById('adminName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
-            document.getElementById('adminInitial').innerText = currentStudent.firstname[0] + currentStudent.lastname[0];
-            document.getElementById('studentIdDisplay').innerText = `ID: ${currentStudent.studentId}`;
-            
-            document.getElementById('infoSummary').innerHTML = `
-                <div class="glass-card p-6 border-white/5"><p class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">PROGRAM</p><p class="text-xs font-black text-white uppercase truncate">${currentStudent.course}</p></div>
-                <div class="glass-card p-6 border-white/5"><p class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">YEAR/SEM</p><p class="text-xs font-black text-white uppercase">Y${currentStudent.year} - ${currentStudent.semester}</p></div>
-                <div class="glass-card p-6 border-white/5"><p class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">STATUS</p><p class="text-xs font-black text-emerald-400 uppercase">ENROLLED</p></div>
-                <div class="glass-card p-6 border-white/5"><p class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">SCHOOL YEAR</p><p class="text-xs font-black text-blue-400 uppercase">2025-2026</p></div>
-            `;
-        }
-
-        async function fetchSubjects() {
-            const codes = currentStudent.assignedPrograms || [];
-            if(!codes.length) return;
-            const q = query(collection(db, "programs"), where("code", "in", codes));
-            const snap = await getDocs(q);
-            programs = snap.docs.map(d => d.data());
-            const nav = document.getElementById('subjectNavItems');
-            nav.innerHTML = '';
-            programs.forEach(p => {
-                nav.innerHTML += `<a onclick="switchSubjectView(${JSON.stringify(p).replace(/"/g, '&quot;')}); closeMobileMenu();" id="nav-${p.code}" class="subj-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[11px] font-black cursor-pointer uppercase"><i class="fa-solid fa-book-open text-xs"></i> ${p.code}</a>`;
-            });
-        }
-
-        window.switchGlobalView = (mode) => {
-            currentMode = mode; activeSubj = null;
-            document.querySelectorAll('.sidebar-btn, .subj-btn').forEach(b => b.classList.remove('active-nav'));
-            document.getElementById(mode === 'schedules' ? 'navSched' : 'navGrades').classList.add('active-nav');
-            document.getElementById('headerTitle').innerText = mode === 'schedules' ? "CLASS SCHEDULES" : "SCHOLASTIC RECORDS";
-            document.getElementById('headerContext').innerHTML = '';
-            document.getElementById('subjectToggles').classList.add('hidden');
-            renderTable();
-        };
-
-        window.switchSubjectView = (p) => {
-            activeSubj = p; currentMode = 'attendance';
-            document.querySelectorAll('.sidebar-btn, .subj-btn').forEach(b => b.classList.remove('active-nav'));
-            document.getElementById(`nav-${p.code}`).classList.add('active-nav');
-            document.getElementById('headerTitle').innerText = p.name;
-            document.getElementById('headerContext').innerHTML = `
-                <span class="bg-blue-600 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase"><i class="fa-solid fa-calendar mr-1"></i> ${p.schedule}</span>
-                <span class="bg-white/10 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase"><i class="fa-solid fa-clock mr-1"></i> ${t12(p.startTime)} - ${t12(p.endTime)}</span>
-                <span class="bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-lg text-[9px] font-black uppercase"><i class="fa-solid fa-user-tie mr-1"></i> ${p.teacher}</span>
-            `;
-            document.getElementById('subjectToggles').classList.remove('hidden');
-            switchSubTab('attendance');
-        };
-
-        window.switchSubTab = (tab) => {
-            currentMode = tab;
-            document.getElementById('btnAtt').className = tab === 'attendance' ? 'flex-1 px-5 py-2 text-[10px] font-black uppercase rounded-lg active-nav' : 'flex-1 px-5 py-2 text-[10px] font-black uppercase rounded-lg text-gray-500';
-            document.getElementById('btnMat').className = tab === 'materials' ? 'flex-1 px-5 py-2 text-[10px] font-black uppercase rounded-lg active-nav' : 'flex-1 px-5 py-2 text-[10px] font-black uppercase rounded-lg text-gray-500';
-            document.getElementById('exportGroup').classList.toggle('hidden', tab === 'materials');
-            renderTable();
-        };
-
-        async function renderTable() {
-            const head = document.getElementById('tableHead');
-            const body = document.getElementById('tableBody');
-            body.innerHTML = '';
-
-            if (currentMode === 'schedules') {
-                head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject</th><th class="px-8 py-5">Schedule</th><th class="px-8 py-5">Instructor</th></tr>`;
-                programs.forEach(p => {
-                    body.innerHTML += `<tr><td class="px-8 py-5 font-black text-white">${p.code}</td><td class="px-8 py-5 font-bold text-white uppercase">${p.name}</td><td class="px-8 py-5 text-white font-bold">${p.schedule} <br><span class="text-[9px] text-gray-500">${t12(p.startTime)} - ${t12(p.endTime)}</span></td><td class="px-8 py-5 text-gray-400 font-bold uppercase">${p.teacher}</td></tr>`;
-                });
-            } else if (currentMode === 'grades') {
-                head.innerHTML = `<tr><th class="px-8 py-5">Subject</th><th class="px-8 py-5 text-center">PRE</th><th class="px-8 py-5 text-center">MID</th><th class="px-8 py-5 text-center">FIN</th><th class="px-8 py-5 text-right">POINT</th></tr>`;
-                programs.forEach(p => {
-                    const g = currentStudent.grades?.[p.code] || { prelim:'-', midterm:'-', final:'-', point:'-' };
-                    body.innerHTML += `<tr><td class="px-8 py-5 font-bold text-white uppercase">${p.name}</td><td class="text-center font-black">${g.prelim}</td><td class="text-center font-black">${g.midterm}</td><td class="text-center font-black">${g.final}</td><td class="text-right px-8 font-black text-blue-400">${g.point}</td></tr>`;
-                });
-            } else if (currentMode === 'attendance') {
-                head.innerHTML = `<tr><th class="px-8 py-5">Date</th><th class="px-8 py-5 text-center">Status</th></tr>`;
-                const att = currentStudent.attendance?.[activeSubj.code] || {};
-                Object.keys(att).sort().reverse().forEach(d => {
-                    const color = att[d] === 'P' ? 'text-emerald-400' : 'text-red-500';
-                    body.innerHTML += `<tr><td class="px-8 py-5 font-black text-white">${d}</td><td class="text-center font-black ${color}">${att[d] === 'P' ? 'PRESENT' : 'ABSENT'}</td></tr>`;
-                });
-            } else if (currentMode === 'materials') {
-                head.innerHTML = `<tr><th class="px-8 py-5">Resource Name</th><th class="px-8 py-5 text-right">Action</th></tr>`;
-                const q = query(collection(db, "materials"), where("subjectCode", "==", activeSubj.code));
-                const snap = await getDocs(q);
-                snap.forEach(d => {
-                    const m = d.data();
-                    body.innerHTML += `<tr><td class="px-8 py-5 font-bold text-white uppercase">${m.name}</td><td class="px-8 py-5 text-right"><a href="${m.link}" target="_blank" class="bg-white text-black px-4 py-2 rounded-lg text-[9px] font-black uppercase">Open</a></td></tr>`;
-                });
-            }
-        }
-
-        window.exportPDF = () => {
-            const now = new Date();
-            document.getElementById('pGenDate').innerText = now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-            document.getElementById('lblReportType').innerText = currentMode === 'schedules' ? "CERTIFICATE OF MATRICULATION" : "SCHOLASTIC PERFORMANCE RECORD";
-            document.getElementById('pName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
-            document.getElementById('pID').innerText = currentStudent.studentId;
-            document.getElementById('pCourse').innerText = currentStudent.course;
-            document.getElementById('pYearSem').innerText = `YEAR ${currentStudent.year} - SEM ${currentStudent.semester}`;
-            document.getElementById('printHeader').classList.replace('hidden', 'flex');
-            document.querySelector('.print-watermark').classList.remove('hidden');
-            window.print();
-            document.getElementById('printHeader').classList.replace('flex', 'hidden');
-            document.querySelector('.print-watermark').classList.add('hidden');
-        };
-
-        window.exportCSV = () => {
-            let csv = "Subject Data Export\n\n";
-            const rows = document.querySelectorAll("#tableBody tr");
-            rows.forEach(row => {
-                const cols = row.querySelectorAll("td");
-                let rowData = [];
-                cols.forEach(col => rowData.push('"' + col.innerText.replace(/\n/g, ' ').replace(/"/g, '""') + '"'));
-                csv += rowData.join(",") + "\n";
-            });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `${currentMode}_export.csv`; a.click();
-        };
-
-        window.toggleMobileMenu = () => { 
-            document.getElementById('sidebar').classList.toggle('-translate-x-full'); 
-            document.getElementById('sidebarOverlay').classList.toggle('hidden'); 
-        };
-        window.closeMobileMenu = () => { 
-            document.getElementById('sidebar').classList.add('-translate-x-full'); 
-            document.getElementById('sidebarOverlay').classList.add('hidden'); 
-        };
-        window.logout = () => signOut(auth).then(() => window.location.href = "login.html");
-    </script>
-</body>
-</html>
-
-
