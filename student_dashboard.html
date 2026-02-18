@@ -8,9 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; }
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; margin: 0; padding: 0; }
         .logo-watermark { position: fixed; inset: 0; z-index: -1; display: flex; justify-content: center; align-items: center; opacity: 0.04; pointer-events: none; }
-        .logo-watermark img { height: 75%; max-width: none; object-fit: contain; filter: grayscale(1) brightness(0.5); }
+        .logo-watermark img { height: 75%; filter: grayscale(1) brightness(0.5); }
         
         .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.5rem; }
         .sidebar { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
@@ -22,46 +22,51 @@
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         input { background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; outline: none !important; }
 
-        /* MOBILE FIXES */
+        /* MOBILE OVERLAP & SCROLL FIX */
         @media (max-width: 768px) {
-            .main-content { height: calc(100vh - 64px); } /* Adjust based on mobile nav height */
-            .tight-padding { padding: 1.5rem !important; }
+            .mobile-header { height: 64px; }
+            .content-area { height: calc(100vh - 64px); }
         }
 
-        /* PRINT OUTPUT - REVERTED & FIXED TABLE CLIPPING */
+        /* PRINT OUTPUT - WHITE BACKGROUND & SHARP CORNERS */
         @media print {
+            @page { margin: 0.5cm; }
+            body { background: white !important; color: black !important; }
             body * { visibility: hidden; }
             #printArea, #printArea * { visibility: visible; }
-            #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 0; color: black !important; }
+            #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 0; background: white !important; }
+            
             .no-print { display: none !important; }
             
-            /* Remove rounding but keep border integrity for print */
-            .glass-card, .rounded-xl, table, thead, tbody, tr, td, th { 
-                border-radius: 0 !important; 
+            /* Sharp Table Corners Preservation */
+            .glass-card { 
                 background: transparent !important; 
-                backdrop-filter: none !important;
+                backdrop-filter: none !important; 
+                border: none !important; 
+                border-radius: 0 !important;
+                box-shadow: none !important;
                 overflow: visible !important;
-                border-collapse: collapse !important;
             }
-            
-            table { border: 1.5pt solid black !important; width: 100% !important; }
-            th, td { border: 1pt solid black !important; padding: 8px 12px !important; color: black !important; font-size: 9pt !important; }
-            thead { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
 
-            /* Watermark for Print */
+            table { border-collapse: collapse !important; width: 100% !important; border: 1.5pt solid black !important; background: white !important; }
+            th, td { border: 1pt solid black !important; padding: 8px 12px !important; color: black !important; font-size: 9pt !important; background: white !important; }
+            thead { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
+            
+            #printHeader { display: flex !important; flex-direction: column !important; align-items: center !important; text-align: center !important; width: 100%; }
+            .print-header-info { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px; text-align: left; width: 100%; border-bottom: 2px solid black; padding-bottom: 15px; }
+            
+            /* PDF Watermark Setup */
             .print-watermark {
                 display: flex !important;
                 position: fixed;
                 inset: 0;
                 justify-content: center;
                 align-items: center;
-                opacity: 0.06 !important;
+                opacity: 0.07 !important;
                 z-index: -1;
+                pointer-events: none;
             }
             .print-watermark img { width: 450px; }
-            
-            #printHeader { display: flex !important; flex-direction: column !important; align-items: center !important; text-align: center !important; width: 100%; }
-            .print-header-info { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px; text-align: left; width: 100%; border-bottom: 2px solid black; padding-bottom: 15px; }
         }
     </style>
 </head>
@@ -69,12 +74,14 @@
 
     <div class="logo-watermark"><img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
 
-    <div class="md:hidden sidebar p-4 flex justify-between items-center z-50 shadow-md no-print h-16">
+    <div class="md:hidden sidebar p-4 flex justify-between items-center z-[70] shadow-md no-print mobile-header">
         <div class="font-black text-sm tracking-tighter flex items-center gap-2 uppercase">CMCS <span class="text-gray-500">VLS</span></div>
         <button onclick="toggleMobileMenu()" class="text-white p-2"><i class="fa-solid fa-bars-staggered"></i></button>
     </div>
 
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-[60] w-72 sidebar transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col no-print md:relative">
+    <div id="sidebarOverlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[80] hidden md:hidden"></div>
+
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-[90] w-72 sidebar transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col no-print md:relative">
         <div class="h-20 hidden md:flex items-center px-8 border-b border-white/5">
             <div class="flex items-center gap-3">
                 <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="h-8 brightness-125">
@@ -111,16 +118,14 @@
         </div>
     </aside>
 
-    <div id="sidebarOverlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[55] hidden md:hidden"></div>
-
-    <main class="flex-1 flex flex-col h-full overflow-hidden main-content">
-        <header class="h-auto py-4 flex flex-col md:flex-row items-start md:items-center justify-between px-6 md:px-10 border-b border-white/5 no-print gap-4">
+    <main class="flex-1 flex flex-col h-full overflow-hidden content-area">
+        <header class="h-auto py-4 flex flex-col md:flex-row items-start md:items-center justify-between px-6 md:px-10 border-b border-white/5 no-print gap-6">
             <div class="flex flex-col">
                 <h1 id="headerTitle" class="text-sm font-black uppercase tracking-widest text-white leading-none">STUDENT PORTAL</h1>
                 <div id="headerContext" class="flex flex-wrap items-center gap-3 mt-3"></div>
             </div>
             
-            <div class="flex items-center gap-4 w-full md:w-auto">
+            <div class="flex items-center gap-6 w-full md:w-auto">
                 <div id="subjectToggles" class="hidden glass-card !rounded-xl p-1 flex flex-1 md:flex-none">
                     <button id="btnAtt" onclick="switchSubTab('attendance')" class="flex-1 md:flex-none px-5 py-2 text-[10px] font-black uppercase rounded-lg transition-all active-nav">Attendance</button>
                     <button id="btnMat" onclick="switchSubTab('materials')" class="flex-1 md:flex-none px-5 py-2 text-[10px] font-black uppercase rounded-lg transition-all text-gray-500">Materials</button>
@@ -132,7 +137,7 @@
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto tight-padding p-6 md:p-10 scrollbar-hide">
+        <div class="flex-1 overflow-y-auto p-6 md:p-10 scrollbar-hide">
             <div id="workspace" class="space-y-8">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 no-print" id="infoSummary"></div>
 
@@ -142,9 +147,8 @@
                 </div>
 
                 <div id="printArea">
-                    <div class="print-watermark hidden">
-                        <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png">
-                    </div>
+                    <div class="print-watermark hidden"><img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
+                    
                     <div id="printHeader" class="hidden">
                         <div class="flex flex-col items-center">
                             <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="w-20 h-20 mb-2">
@@ -219,10 +223,9 @@
             document.getElementById('adminInitial').innerText = currentStudent.firstname[0] + currentStudent.lastname[0];
             document.getElementById('studentIdDisplay').innerText = `ID: ${currentStudent.studentId}`;
             
-            // Standard Header Context (Hidden on Global, Shown on Subject)
             document.getElementById('headerContext').innerHTML = `
-                <span class="bg-white/10 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter border border-white/5">${currentStudent.course}</span>
-                <span class="bg-white/5 text-gray-400 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter">Year ${currentStudent.year}</span>
+                <span class="bg-white/10 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase border border-white/5">${currentStudent.course}</span>
+                <span class="bg-white/5 text-gray-400 px-3 py-1 rounded-lg text-[10px] font-black uppercase">Year ${currentStudent.year}</span>
             `;
 
             document.getElementById('infoSummary').innerHTML = `
@@ -267,7 +270,6 @@
         window.switchSubjectView = (p) => {
             activeSubj = p; currentMode = 'attendance';
             document.querySelectorAll('.sidebar-btn, .subj-btn').forEach(b => b.classList.remove('active-nav'));
-            
             const target = document.getElementById(`nav-${p.code}`);
             if(target) target.classList.add('active-nav');
             
@@ -297,9 +299,9 @@
             if (currentMode === 'schedules') {
                 head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject Details</th><th class="px-8 py-5">Schedule</th><th class="px-8 py-5">Instructor</th></tr>`;
                 programs.filter(p => p.name.toLowerCase().includes(term) || p.code.toLowerCase().includes(term)).forEach(p => {
-                    body.innerHTML += `<tr class="hover:bg-white/[0.02] transition-colors">
+                    body.innerHTML += `<tr class="hover:bg-white/[0.02]">
                         <td class="px-8 py-5 font-black text-white">${p.code}</td>
-                        <td class="px-8 py-5 font-bold uppercase text-white">${p.name}<div class="text-[9px] text-gray-500">S.Y. 2025-2026</div></td>
+                        <td class="px-8 py-5 font-bold uppercase text-white">${p.name}</td>
                         <td class="px-8 py-5"><span class="text-[10px] font-black block text-white">${p.schedule}</span><span class="text-[9px] text-gray-500">${formatTime(p.startTime)} - ${formatTime(p.endTime)}</span></td>
                         <td class="px-8 py-5 text-[10px] font-black uppercase text-gray-400">${p.teacher}</td>
                     </tr>`;
@@ -334,6 +336,23 @@
                 });
             }
         }
+
+        window.exportCSV = () => {
+            let csv = [];
+            const rows = document.querySelectorAll("table tr");
+            rows.forEach(row => {
+                const cols = row.querySelectorAll("td, th");
+                let rowData = [];
+                cols.forEach(col => rowData.push('"' + col.innerText.replace(/"/g, '""') + '"'));
+                csv.push(rowData.join(","));
+            });
+            const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.setAttribute("href", url);
+            a.setAttribute("download", `${currentMode}_export.csv`);
+            a.click();
+        };
 
         window.exportPDF = () => {
             document.getElementById('lblReportType').innerText = currentMode === 'schedules' ? "CERTIFICATE OF MATRICULATION / SCHEDULE" : "OFFICIAL STUDENT SCHOLASTIC RECORD";
