@@ -13,7 +13,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; overflow: hidden; }
         .logo-watermark { position: fixed; inset: 0; z-index: -1; display: flex; justify-content: center; align-items: center; opacity: 0.06; pointer-events: none; }
-        .logo-watermark img { height: 80%; filter: grayscale(1) brightness(0.5); }
+        .logo-watermark img { height: 80%; max-width: none; object-fit: contain; filter: grayscale(1) brightness(0.5); }
         .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.5rem; }
         .nav-link { transition: all 0.3s ease; border: 1px solid transparent; }
         .nav-link:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); }

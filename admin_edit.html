@@ -17,7 +17,7 @@
         
         /* Watermark */
         .logo-watermark { position: fixed; inset: 0; z-index: -1; display: flex; justify-content: center; align-items: center; opacity: 0.04; pointer-events: none; }
-        .logo-watermark img { height: 80%; filter: grayscale(1) brightness(0.5); }
+        .logo-watermark img { height: 80%; max-width: none; object-fit: contain; filter: grayscale(1) brightness(0.5); }
 
         /* Custom Elements */
         .loader { border: 2px solid rgba(255,255,255,0.2); border-top: 2px solid white; border-radius: 50%; width: 14px; height: 14px; animation: spin 1s linear infinite; display: inline-block; }

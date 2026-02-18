@@ -15,7 +15,7 @@
         .input-field:focus { border-color: rgba(99, 102, 241, 0.5) !important; background: rgba(255, 255, 255, 0.08) !important; outline: none; }
         
         .logo-watermark { position: fixed; inset: 0; z-index: -1; display: flex; justify-content: center; align-items: center; opacity: 0.04; pointer-events: none; }
-        .logo-watermark img { height: 80%; filter: grayscale(1) brightness(0.5); }
+        .logo-watermark img { height: 80%; max-width: none; object-fit: contain; filter: grayscale(1) brightness(0.5); }
 
         .loader { border: 2px solid rgba(255,255,255,0.2); border-top: 2px solid #6366f1; border-radius: 50%; width: 14px; height: 14px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
