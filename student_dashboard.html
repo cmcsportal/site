@@ -7,17 +7,27 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
+        <style>
         body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; margin: 0; padding: 0; }
         .logo-watermark { position: fixed; inset: 0; z-index: -1; display: flex; justify-content: center; align-items: center; opacity: 0.04; pointer-events: none; }
         .logo-watermark img { height: 75%; filter: grayscale(1) brightness(0.5); }
-        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.5rem; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1rem; }
         .sidebar { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
         .sidebar-btn, .subj-btn { transition: all 0.3s ease; color: #94a3b8; border: 1px solid transparent; }
         .sidebar-btn:hover, .subj-btn:hover { background: rgba(255, 255, 255, 0.05); color: white; }
         .active-nav { background: white !important; color: black !important; font-weight: 800; border-radius: 12px !important; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         input { background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; outline: none !important; }
+
+        /* Fix for Table Scroll on Mobile */
+        .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { min-width: 600px; width: 100%; } /* Ensures content doesn't squish too much */
+
+        @media (max-width: 768px) {
+            .glass-card { border-radius: 0.75rem; }
+            th, td { padding-left: 1rem !important; padding-right: 1rem !important; padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+            #workspace { padding: 1rem !important; }
+        }
 
         @media print {
             @page { margin: 1cm; }
@@ -28,13 +38,14 @@
             .no-print, .logo-watermark { display: none !important; }
             #tableBody td, #tableBody span, #tableBody div { color: black !important; opacity: 1 !important; }
             .glass-card { border: none !important; background: transparent !important; border-radius: 0 !important; overflow: visible !important; }
-            table { width: 100% !important; border-collapse: collapse !important; border: 1.5pt solid black !important; }
+            table { min-width: 100% !important; width: 100% !important; border-collapse: collapse !important; border: 1.5pt solid black !important; }
             th, td { border: 1pt solid black !important; padding: 10px !important; color: black !important; font-size: 9pt !important; }
             thead { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
             .print-watermark { display: flex !important; position: fixed; inset: 0; justify-content: center; align-items: center; opacity: 0.05 !important; z-index: -1; }
             .print-watermark img { width: 400px; filter: grayscale(1); }
         }
     </style>
+
 </head>
 <body class="h-screen flex flex-col md:flex-row overflow-hidden">
 
@@ -308,3 +319,4 @@
     </script>
 </body>
 </html>
+
