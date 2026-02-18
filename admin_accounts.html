@@ -1,0 +1,393 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounts Management | CMCS VLS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+    /* 1. Prevent layout shift by reserving scrollbar space */
+    html {
+        scrollbar-gutter: stable;
+    }
+
+    body { 
+        font-family: 'Inter', sans-serif; 
+        background-color: #050505; 
+        color: white; 
+        /* Ensure no horizontal movement, allow vertical if needed */
+        overflow-x: hidden; 
+        height: 100vh;
+    }
+
+    /* 2. Brand Watermark */
+    .logo-watermark { 
+        position: fixed; 
+        inset: 0; 
+        z-index: -1; 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        opacity: 0.04; 
+        pointer-events: none; 
+    }
+    .logo-watermark img { height: 75%; max-width: none; filter: grayscale(1) brightness(0.5); }
+
+    /* 3. Glassmorphism Components */
+    .glass-card { 
+        background: rgba(255, 255, 255, 0.03); 
+        backdrop-filter: blur(24px); 
+        -webkit-backdrop-filter: blur(24px); 
+        border: 1px solid rgba(255, 255, 255, 0.08); 
+        border-radius: 1.5rem; 
+    }
+
+    /* 4. Navigation Styling */
+    .sidebar { 
+        background: rgba(0, 0, 0, 0.3); 
+        backdrop-filter: blur(20px); 
+        border-right: 1px solid rgba(255, 255, 255, 0.05); 
+    }
+    .nav-link { 
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        border: 1px solid transparent; 
+    }
+    .nav-link:hover { 
+        background: rgba(255, 255, 255, 0.05); 
+        border-color: rgba(255, 255, 255, 0.1); 
+    }
+    .nav-link.active { 
+        background: white !important; 
+        color: black !important; 
+        box-shadow: 0 10px 20px -5px rgba(255,255,255,0.1);
+    }
+
+    /* 5. Custom Form Elements */
+    select, input { 
+        appearance: none; 
+        background: rgba(255, 255, 255, 0.05) !important; 
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+    select:focus, input:focus { 
+        border-color: rgba(255, 255, 255, 0.3) !important; 
+        background: rgba(255, 255, 255, 0.08) !important; 
+    }
+    select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.4)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1em;
+    }
+    
+    /* 6. Utility: Global Scrollbar Styling */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { 
+        background: rgba(255, 255, 255, 0.1); 
+        border-radius: 10px; 
+    }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* 7. Status Badges */
+    .badge-active { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .badge-blocked { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+    .badge-pending { background: #ef4444; color: white; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+
+    /* 8. Interaction Fixes */
+    .action-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    .action-btn:hover { transform: translateY(-2px); }
+</style>
+</head>
+<body class="h-screen flex">
+
+    <div class="logo-watermark">
+        <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" alt="CMCS Logo">
+    </div>
+
+     <aside class="w-72 sidebar flex flex-col z-20">
+        <div class="h-20 flex items-center px-8 border-b border-white/5">
+            <div class="flex items-center gap-3">
+                <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="h-8 brightness-125">
+                <span class="font-black text-lg tracking-tighter uppercase">CMCS <span class="text-gray-500">VLS</span></span>
+            </div>
+        </div>
+
+        <nav class="flex-1 py-8 px-4 space-y-2 overflow-y-auto">
+            <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] mb-4">Main Menu</p>
+            <a href="admin_dashboard.html" class="nav-link flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold text-gray-400">
+                <i class="fa-solid fa-chart-line text-base"></i> Dashboard
+            </a>
+            <a href="admin_approval.html" class="nav-link flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold text-gray-400">
+                <i class="fa-solid fa-check-to-slot text-base"></i> Approvals
+            </a>
+            <a href="admin_setup.html" class="nav-link flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold text-gray-400">
+                <i class="fa-solid fa-school text-base"></i> Academic Setup
+            </a>
+            <a href="admin_class.html" class="nav-link flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold text-gray-400">
+                <i class="fa-solid fa-chalkboard-user text-base"></i> Class Assignment
+            </a>
+            <a href="admin_records.html" class="nav-link flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold text-gray-400">
+                <i class="fa-solid fa-folder-open text-base"></i> Master Record
+            </a>
+            <a href="admin_accounts.html" class="nav-link active flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold">
+                <i class="fa-solid fa-users-gear text-base"></i> Accounts
+            </a>
+        </nav>
+
+        <div class="p-6 border-t border-white/5">
+            <a href="admin_edit.html" class="glass-card p-4 flex items-center gap-3 mb-4 block hover:border-white/20 transition-all">
+                <div id="adminInitial" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-xs font-bold text-black uppercase">AD</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold truncate uppercase text-white" id="adminName">Loading...</p>
+                    <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Administrator</p>
+                </div>
+            </a>
+            <button onclick="logout()" class="w-full py-3 rounded-xl bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all">
+                Sign Out
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-hidden">
+        <header class="h-20 flex items-center justify-between px-10 border-b border-white/5">
+            <h1 class="text-sm font-bold uppercase tracking-[0.2em] text-gray-400">Security <span class="text-white">& Accounts</span></h1>
+            <div class="flex items-center gap-6">
+                <div class="text-right">
+                    <p id="clock" class="text-sm font-black tracking-widest text-white">--:--</p>
+                    <p id="currentDate" class="text-[10px] font-bold text-gray-500 uppercase">--- --, ----</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-10 space-y-8">
+            <div class="glass-card p-6">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="w-full md:w-64">
+                        <label class="block text-[9px] font-black text-gray-500 uppercase mb-3 tracking-widest">Filter by Access</label>
+                        <select id="roleFilter" class="w-full rounded-xl px-4 py-3 text-xs font-black uppercase">
+                            <option value="ALL">ALL ACCESS LEVELS</option>
+                            <option value="student">STUDENTS</option>
+                            <option value="teacher">FACULTY / STAFF</option>
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-[9px] font-black text-gray-500 uppercase mb-3 tracking-widest">Directory Search</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                            <input type="text" id="userSearch" class="w-full pl-12 pr-4 py-3 rounded-xl text-xs font-black uppercase" placeholder="SEARCH BY NAME, EMAIL, OR ID...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-white/[0.02] border-b border-white/5 text-[9px] font-black text-gray-500 uppercase tracking-widest">
+                            <tr>
+                                <th class="px-8 py-5">Identity / Role</th>
+                                <th class="px-8 py-5">Legal Name</th>
+                                <th class="px-8 py-5">Communication</th>
+                                <th class="px-8 py-5">Department</th>
+                                <th class="px-8 py-5">Status</th>
+                                <th class="px-8 py-5 text-right">Management</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody" class="divide-y divide-white/5 text-xs"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="notifModal" class="fixed inset-0 bg-black/90 backdrop-blur-xl hidden items-center justify-center z-[100] p-4">
+        <div class="glass-card w-full max-w-sm p-8 text-center border-white/20">
+            <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6">
+                <i class="fa-solid fa-shield-halved text-2xl text-white"></i>
+            </div>
+            <h3 class="text-lg font-black uppercase tracking-tighter mb-2">Security Action</h3>
+            <p id="notifMessage" class="text-xs text-gray-400 leading-relaxed mb-8"></p>
+            
+            <div id="confirmActions" class="hidden grid grid-cols-2 gap-3">
+                <button id="btnYes" class="py-3 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Confirm</button>
+                <button onclick="closeModal('notifModal')" class="py-3 rounded-xl bg-white/5 text-white text-[10px] font-black uppercase tracking-widest">Cancel</button>
+            </div>
+            
+            <div id="alertActions" class="flex">
+                <button onclick="closeModal('notifModal')" class="w-full py-3 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest">Acknowledge</button>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, query, doc, updateDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ",
+        authDomain: "svls-289ee.firebaseapp.com",
+        projectId: "svls-289ee",
+        storageBucket: "svls-289ee.firebasestorage.app",
+        messagingSenderId: "500705386198",
+        appId: "1:500705386198:web:96f189662bc2aa99cf7377"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let allUsers = [];
+
+    window.showNotif = (msg, isConfirm = false, onYes = null) => {
+        document.getElementById('notifMessage').innerText = msg;
+        const confirmDiv = document.getElementById('confirmActions');
+        const alertDiv = document.getElementById('alertActions');
+        
+        if (isConfirm) {
+            confirmDiv.classList.remove('hidden');
+            alertDiv.classList.add('hidden');
+            document.getElementById('btnYes').onclick = () => { onYes(); closeModal('notifModal'); };
+        } else {
+            confirmDiv.classList.add('hidden');
+            alertDiv.classList.remove('hidden');
+        }
+        document.getElementById('notifModal').classList.replace('hidden', 'flex');
+    };
+
+    window.closeModal = (id) => {
+        document.getElementById(id).classList.replace('flex', 'hidden');
+    };
+
+    onAuthStateChanged(auth, async user => {
+        if (user) {
+            const snap = await getDoc(doc(db, "users", user.uid));
+            if (snap.exists() && snap.data().role === 'admin') {
+                const ud = snap.data();
+                document.getElementById('adminName').innerText = `${ud.lastname}, ${ud.firstname}`.toUpperCase();
+                document.getElementById('adminInitial').innerText = ud.firstname.charAt(0).toUpperCase();
+                syncUsers();
+            } else { window.location.href = "login.html"; }
+        } else { window.location.href = "login.html"; }
+    });
+
+    function syncUsers() {
+        onSnapshot(collection(db, "users"), (snap) => {
+            allUsers = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+            renderTable();
+        });
+    }
+
+    function renderTable() {
+        const role = document.getElementById('roleFilter').value;
+        const search = document.getElementById('userSearch').value.toUpperCase();
+        const tbody = document.getElementById('userTableBody');
+        
+        const filtered = allUsers.filter(u => {
+            const matchRole = role === 'ALL' || u.role === role;
+            const fullName = `${u.lastname} ${u.firstname}`.toUpperCase();
+            const matchSearch = fullName.includes(search) || u.studentId?.includes(search) || u.email?.toUpperCase().includes(search);
+            return matchRole && matchSearch && u.role !== 'admin';
+        });
+
+        tbody.innerHTML = filtered.map(u => {
+            let statusClass = 'badge-active';
+            let statusText = 'VERIFIED';
+            
+            if (u.status === 'disabled') {
+                statusClass = 'badge-blocked';
+                statusText = 'RESTRICTED';
+            } else if (u.status === 'pending') {
+                statusClass = 'badge-pending';
+                statusText = 'ENROLLMENT PENDING';
+            }
+
+            return `
+                <tr class="hover:bg-white/[0.02] transition-all border-b border-white/5">
+                    <td class="px-8 py-5">
+                        <div class="font-black text-white text-[11px] mb-1">${u.studentId || 'NO ID'}</div>
+                        <div class="text-[9px] text-blue-400 font-black uppercase tracking-widest">${u.role}</div>
+                    </td>
+                    <td class="px-8 py-5 font-black uppercase text-white">${u.lastname}, ${u.firstname}</td>
+                    <td class="px-8 py-5 text-[10px] text-gray-500 font-medium">${u.email}</td>
+                    <td class="px-8 py-5 text-[9px] font-black text-gray-500 uppercase tracking-widest">${u.role === 'student' ? (u.course || '---') : 'FACULTY'}</td>
+                    <td class="px-8 py-5">
+                        <span class="px-3 py-1.5 rounded-full text-[8px] font-black tracking-[0.1em] ${statusClass}">
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td class="px-8 py-5 text-right">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="handleEdit('${u.uid}', '${u.role}')" class="p-2.5 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black transition-all" title="Edit Profile">
+                                <i class="fa-solid fa-pen-nib text-[10px]"></i>
+                            </button>
+                            <button onclick="handleBlock('${u.uid}', '${u.status}')" class="p-2.5 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-orange-500 hover:border-orange-500 transition-all" title="Toggle Access">
+                                <i class="fa-solid ${u.status === 'approved' ? 'fa-user-slash' : 'fa-user-check'} text-[10px]"></i>
+                            </button>
+                            <button onclick="handleDelete('${u.uid}')" class="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all" title="Delete Account">
+                                <i class="fa-solid fa-trash-can text-[10px]"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+        }).join('');
+    }
+
+    window.handleBlock = (uid, status) => {
+        const willBlock = status === 'approved';
+        const msg = willBlock ? "Restrict user access? This will prevent them from logging into the portal." : "Grant system access to this user?";
+        showNotif(msg, true, async () => {
+            await updateDoc(doc(db, "users", uid), { status: willBlock ? 'disabled' : 'approved' });
+        });
+    };
+
+    window.handleDelete = (uid) => {
+        showNotif("Destroy this account permanently? This will purge the record. The Auth credentials will self-destruct upon their next login attempt.", true, async () => {
+            try {
+                await deleteDoc(doc(db, "users", uid));
+                showNotif("Record successfully purged from database.");
+            } catch (err) {
+                showNotif("Error deleting record: " + err.message);
+            }
+        });
+    };
+
+    window.handleEdit = (uid, role) => {
+        const page = role === 'student' ? 'enroll.html' : 'enroll_teacher.html';
+        window.open(`${page}?edit=${uid}`, '_blank');
+    };
+
+    document.getElementById('roleFilter').onchange = renderTable;
+    document.getElementById('userSearch').oninput = renderTable;
+    window.logout = () => signOut(auth).then(() => window.location.href = "login.html");
+
+     setInterval(() => {
+        const clock = document.getElementById('clock');
+        if (clock) clock.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    }, 1000);
+
+    const updateDate = () => {
+    const el = document.getElementById('currentDate');
+    if (el) {
+        el.innerText = new Date().toLocaleDateString(undefined, { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric' 
+        });
+    }
+};
+
+// Run immediately on load
+updateDate();
+
+// Optional: Refresh every hour just to be safe for day-changes
+setInterval(updateDate, 3600000);
+</script>
+</body>
+</html>
