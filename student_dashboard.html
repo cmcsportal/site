@@ -9,34 +9,28 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; margin: 0; padding: 0; }
-        
         .logo-watermark { position: fixed; inset: 0; z-index: -1; display: flex; justify-content: center; align-items: center; opacity: 0.04; pointer-events: none; }
         .logo-watermark img { height: 75%; filter: grayscale(1) brightness(0.5); }
-        
         .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.5rem; }
         .sidebar { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
-        
         .sidebar-btn, .subj-btn { transition: all 0.3s ease; color: #94a3b8; border: 1px solid transparent; }
         .sidebar-btn:hover, .subj-btn:hover { background: rgba(255, 255, 255, 0.05); color: white; }
         .active-nav { background: white !important; color: black !important; font-weight: 800; border-radius: 12px !important; }
-
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         input { background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; outline: none !important; }
 
         @media print {
-            @page { margin: 0.5cm; }
+            @page { margin: 1cm; }
             body { background: white !important; color: black !important; }
             body * { visibility: hidden; }
             #printArea, #printArea * { visibility: visible; }
             #printArea { position: absolute; left: 0; top: 0; width: 100%; background: white !important; }
             .no-print, .logo-watermark { display: none !important; }
-            
             #tableBody td, #tableBody span, #tableBody div { color: black !important; opacity: 1 !important; }
             .glass-card { border: none !important; background: transparent !important; border-radius: 0 !important; overflow: visible !important; }
             table { width: 100% !important; border-collapse: collapse !important; border: 1.5pt solid black !important; }
-            th, td { border: 1pt solid black !important; padding: 10px !important; color: black !important; font-size: 10pt !important; }
+            th, td { border: 1pt solid black !important; padding: 10px !important; color: black !important; font-size: 9pt !important; }
             thead { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
-
             .print-watermark { display: flex !important; position: fixed; inset: 0; justify-content: center; align-items: center; opacity: 0.05 !important; z-index: -1; }
             .print-watermark img { width: 400px; filter: grayscale(1); }
         }
@@ -46,7 +40,7 @@
 
     <div class="logo-watermark no-print"><img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
 
-    <div class="md:hidden sidebar p-4 flex justify-between items-center z-[70] no-print">
+    <div class="md:hidden sidebar p-4 flex justify-between items-center z-[70] no-print h-16">
         <div class="font-black text-sm tracking-tighter uppercase">CMCS <span class="text-gray-500">VLS</span></div>
         <button onclick="toggleMobileMenu()" class="text-white p-2"><i class="fa-solid fa-bars-staggered"></i></button>
     </div>
@@ -116,18 +110,21 @@
                     <div class="print-watermark hidden"><img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
                     
                     <div id="printHeader" class="hidden flex-col items-center text-center w-full mb-8">
-                        <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="w-20 mb-2">
+                        <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="w-16 mb-2">
                         <h2 class="text-xl font-black text-black">CENTRAL MINDANAO COMPUTER SCHOOL</h2>
-                        <p class="text-[10px] text-black uppercase font-bold">Poblacion, Tulunan, Cotabato</p>
-                        <p class="w-full border-t-2 border-black mt-4 pt-2 font-black text-black uppercase tracking-widest" id="lblReportType"></p>
-                        <div class="grid grid-cols-2 gap-4 mt-6 text-left w-full border-b border-black pb-4 text-black text-xs">
+                        <p class="text-[9px] text-black uppercase font-bold">Poblacion, Tulunan, Cotabato</p>
+                        <p class="w-full border-t-2 border-black mt-4 pt-2 font-black text-black uppercase tracking-widest text-sm" id="lblReportType"></p>
+                        
+                        <div class="grid grid-cols-2 gap-x-12 mt-6 text-left w-full border-b border-black pb-4 text-black text-[10pt]">
                             <div class="space-y-1">
-                                <p>STUDENT: <span id="pName" class="font-normal"></span></p>
-                                <p>ID NUMBER: <span id="pID" class="font-normal"></span></p>
+                                <p class="font-bold">Student: <span id="pName" class="font-normal uppercase"></span></p>
+                                <p class="font-bold">ID Number: <span id="pID" class="font-normal"></span></p>
+                                <p class="font-bold">Course: <span id="pCourse" class="font-normal uppercase"></span></p>
                             </div>
-                            <div class="space-y-1 text-right">
-                                <p>COURSE: <span id="pCourse" class="font-normal"></span></p>
-                                <p>YEAR/SEM: <span id="pYearSem" class="font-normal"></span></p>
+                            <div class="space-y-1">
+                                <p class="font-bold">Year/Sem: <span id="pYearSem" class="font-normal uppercase"></span></p>
+                                <p class="font-bold">School Year: <span class="font-normal">2025-2026</span></p>
+                                <p class="font-bold italic">Date Generated: <span id="pGenDate" class="font-normal not-italic"></span></p>
                             </div>
                         </div>
                     </div>
@@ -157,6 +154,15 @@
         const auth = getAuth(app);
 
         let currentStudent = null, programs = [], activeSubj = null, currentMode = 'schedules';
+
+        function t12(t) {
+            if (!t) return "";
+            let [h, m] = t.split(':');
+            h = parseInt(h);
+            const p = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return `${h}:${m} ${p}`;
+        }
 
         onAuthStateChanged(auth, async user => {
             if (user) {
@@ -203,7 +209,6 @@
             document.getElementById('headerTitle').innerText = mode === 'schedules' ? "CLASS SCHEDULES" : "SCHOLASTIC RECORDS";
             document.getElementById('headerContext').innerHTML = '';
             document.getElementById('subjectToggles').classList.add('hidden');
-            document.getElementById('exportGroup').classList.remove('hidden');
             renderTable();
         };
 
@@ -214,7 +219,7 @@
             document.getElementById('headerTitle').innerText = p.name;
             document.getElementById('headerContext').innerHTML = `
                 <span class="bg-blue-600 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase"><i class="fa-solid fa-calendar mr-1"></i> ${p.schedule}</span>
-                <span class="bg-white/10 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase"><i class="fa-solid fa-clock mr-1"></i> ${p.startTime} - ${p.endTime}</span>
+                <span class="bg-white/10 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase"><i class="fa-solid fa-clock mr-1"></i> ${t12(p.startTime)} - ${t12(p.endTime)}</span>
             `;
             document.getElementById('subjectToggles').classList.remove('hidden');
             switchSubTab('attendance');
@@ -236,7 +241,7 @@
             if (currentMode === 'schedules') {
                 head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject</th><th class="px-8 py-5">Schedule</th><th class="px-8 py-5">Instructor</th></tr>`;
                 programs.forEach(p => {
-                    body.innerHTML += `<tr><td class="px-8 py-5 font-black text-white">${p.code}</td><td class="px-8 py-5 font-bold text-white uppercase">${p.name}</td><td class="px-8 py-5 text-white font-bold">${p.schedule} <br><span class="text-[9px] text-gray-500">${p.startTime} - ${p.endTime}</span></td><td class="px-8 py-5 text-gray-400 font-bold uppercase">${p.teacher}</td></tr>`;
+                    body.innerHTML += `<tr><td class="px-8 py-5 font-black text-white">${p.code}</td><td class="px-8 py-5 font-bold text-white uppercase">${p.name}</td><td class="px-8 py-5 text-white font-bold">${p.schedule} <br><span class="text-[9px] text-gray-500">${t12(p.startTime)} - ${t12(p.endTime)}</span></td><td class="px-8 py-5 text-gray-400 font-bold uppercase">${p.teacher}</td></tr>`;
                 });
             } else if (currentMode === 'grades') {
                 head.innerHTML = `<tr><th class="px-8 py-5">Subject</th><th class="px-8 py-5 text-center">PRE</th><th class="px-8 py-5 text-center">MID</th><th class="px-8 py-5 text-center">FIN</th><th class="px-8 py-5 text-right">POINT</th></tr>`;
@@ -263,11 +268,14 @@
         }
 
         window.exportPDF = () => {
+            const now = new Date();
+            document.getElementById('pGenDate').innerText = now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
             document.getElementById('lblReportType').innerText = currentMode === 'schedules' ? "CERTIFICATE OF MATRICULATION" : "SCHOLASTIC PERFORMANCE RECORD";
             document.getElementById('pName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
             document.getElementById('pID').innerText = currentStudent.studentId;
             document.getElementById('pCourse').innerText = currentStudent.course;
             document.getElementById('pYearSem').innerText = `YEAR ${currentStudent.year} - SEM ${currentStudent.semester}`;
+            
             document.getElementById('printHeader').classList.replace('hidden', 'flex');
             document.querySelector('.print-watermark').classList.remove('hidden');
             window.print();
@@ -276,12 +284,12 @@
         };
 
         window.exportCSV = () => {
-            let csv = "Data Export\n\n";
+            let csv = "Subject Data Export\n\n";
             const rows = document.querySelectorAll("#tableBody tr");
             rows.forEach(row => {
                 const cols = row.querySelectorAll("td");
                 let rowData = [];
-                cols.forEach(col => rowData.push(col.innerText.replace(/\n/g, ' ')));
+                cols.forEach(col => rowData.push('"' + col.innerText.replace(/\n/g, ' ').replace(/"/g, '""') + '"'));
                 csv += rowData.join(",") + "\n";
             });
             const blob = new Blob([csv], { type: 'text/csv' });
