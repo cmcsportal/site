@@ -102,6 +102,11 @@
     /* 8. Interaction Fixes */
     .action-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
     .action-btn:hover { transform: translateY(-2px); }
+
+         /* UNIVERSAL DROPDOWN FIX */
+    select { appearance: none; background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; cursor: pointer; }
+    select option { background-color: #121212 !important; color: white !important; }
+    input { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
 </style>
 </head>
 <body class="h-screen flex">
@@ -391,3 +396,4 @@ setInterval(updateDate, 3600000);
 </script>
 </body>
 </html>
+
