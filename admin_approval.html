@@ -22,6 +22,22 @@
         .action-btn:hover { transform: translateY(-2px); }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        /* Universal Dark Dropdown Styling */
+        select {
+            appearance: none; /* Removes default browser styling */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+            padding-right: 2.5rem;
+        }
+        
+        /* This targets the actual dropdown menu items */
+        select option {
+            background-color: #1a1a1a !important; /* Deep charcoal background */
+            color: white !important;               /* Pure white text */
+            padding: 10px;
+        }
     </style>
 </head>
 <body class="h-screen flex">
@@ -361,3 +377,4 @@ setInterval(updateDate, 3600000);
     </script>
 </body>
 </html>
+
