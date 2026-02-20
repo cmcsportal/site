@@ -93,86 +93,86 @@
             <p id="currentDate" class="text-[9px] font-black text-gray-600 uppercase tracking-widest"></p>
         </footer>
     </div>
+   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, query, where, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+const firebaseConfig = {
+    apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ",
+    authDomain: "svls-289ee.firebaseapp.com",
+    projectId: "svls-289ee",
+    storageBucket: "svls-289ee.firebasestorage.app",
+    messagingSenderId: "500705386198",
+    appId: "1:500705386198:web:96f189662bc2aa99cf7377"
+};
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ",
-            authDomain: "svls-289ee.firebaseapp.com",
-            projectId: "svls-289ee",
-            storageBucket: "svls-289ee.firebasestorage.app",
-            messagingSenderId: "500705386198",
-            appId: "1:500705386198:web:96f189662bc2aa99cf7377"
-        };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+async function checkSystemState() {
+    const loader = document.getElementById('loader');
+    const container = document.getElementById('setup-container');
 
-        // Date Handling
-        const updateDate = () => {
-            const el = document.getElementById('currentDate');
-            if (el) el.innerText = new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-        };
-        updateDate();
+    try {
+        // We only look for ONE admin doc.
+        const q = query(collection(db, "users"), where("role", "==", "admin"));
+        const snap = await getDocs(q);
 
-        // Admin Presence Check
-        async function initSystem() {
-            try {
-                const querySnapshot = await getDocs(collection(db, "users"));
-                let adminExists = false;
-                querySnapshot.forEach((doc) => {
-                    if(doc.data().role === 'admin') adminExists = true;
-                });
-
-                if (adminExists) {
-                    window.location.href = "login.html";
-                } else {
-                    document.getElementById('loader').classList.add('hidden');
-                    const container = document.getElementById('setup-container');
-                    container.classList.remove('hidden');
-                    setTimeout(() => container.classList.replace('opacity-0', 'opacity-100'), 50);
-                }
-            } catch (err) {
-                console.error("Initialization Failed:", err);
+        if (!snap.empty) {
+            // Admin exists -> System is initialized
+            window.location.href = "login.html";
+        } else {
+            // No admin found -> Show Setup UI
+            if(loader) loader.classList.add('hidden');
+            if(container) {
+                container.classList.remove('hidden');
+                setTimeout(() => container.classList.replace('opacity-0', 'opacity-100'), 50);
             }
         }
+    } catch (err) {
+        // If Permission Denied (403), it means an Admin exists 
+        // and the Security Rules have locked the 'users' collection.
+        console.log("System Secured. Redirecting...");
+        window.location.href = "login.html";
+    }
+}
 
-        initSystem();
+// Run on load
+checkSystemState();
 
-        document.getElementById('adminRegForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitBtn = document.getElementById('submitBtn');
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('pw').value;
+// Handle Registration
+document.getElementById('adminRegForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('pw').value;
 
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Provisioning...";
+    btn.disabled = true;
+    btn.innerText = "Deploying System...";
 
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                await setDoc(doc(db, "users", user.uid), {
-                    lastname: document.getElementById('ln').value.toUpperCase(),
-                    firstname: document.getElementById('fn').value.toUpperCase(),
-                    designation: "System Administrator",
-                    email: email,
-                    role: "admin",
-                    status: "approved"
-                });
-
-                alert("System Administrator Created. Redirecting to Terminal...");
-                window.location.href = "login.html";
-            } catch (error) {
-                alert("Critical Error: " + error.message);
-                submitBtn.disabled = false;
-                submitBtn.innerText = "Deploy Administrator";
-            }
+    try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "users", cred.user.uid), {
+            lastname: document.getElementById('ln').value.toUpperCase(),
+            firstname: document.getElementById('fn').value.toUpperCase(),
+            designation: "System Administrator",
+            email: email,
+            role: "admin",
+            status: "approved",
+            createdAt: new Date()
         });
-    </script>
+
+        alert("Root Administrator Provisioned successfully.");
+        window.location.href = "login.html";
+    } catch (error) {
+        alert("Setup Failed: " + error.message);
+        btn.disabled = false;
+        btn.innerText = "Deploy Administrator";
+    }
+});
+   </script>
 </body>
+
 </html>
