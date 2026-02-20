@@ -8,30 +8,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; min-height: 100-vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .logo-watermark { position: fixed; inset: 0; z-index: -1; display: flex; justify-content: center; align-items: center; opacity: 0.04; pointer-events: none; }
         .logo-watermark img { height: 60%; max-width: none; object-fit: contain; filter: grayscale(1) brightness(0.5); }
-
         .glass-panel { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 2rem; width: 100%; max-width: 450px; position: relative; overflow: hidden; }
-        
-        /* Input Styling */
-        input { 
-            background: rgba(255, 255, 255, 0.05) !important; 
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
-            outline: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        input:focus { border-color: rgba(255, 255, 255, 0.4) !important; background: rgba(255, 255, 255, 0.08) !important; box-shadow: 0 0 20px rgba(255,255,255,0.05); }
+        input { background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; outline: none; transition: all 0.3s ease; }
+        input:focus { border-color: rgba(255, 255, 255, 0.4) !important; background: rgba(255, 255, 255, 0.08) !important; }
         input::placeholder { color: rgba(255, 255, 255, 0.2); font-size: 10px; text-transform: uppercase; letter-spacing: 2px; }
-
         .btn-init { background: white; color: black; font-weight: 900; letter-spacing: 0.15em; transition: all 0.4s ease; text-transform: uppercase; }
-        .btn-init:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,255,255,0.2); filter: brightness(0.9); }
-        .btn-init:disabled { opacity: 0.5; cursor: not-allowed; }
-
+        .btn-init:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,255,255,0.2); }
         #loader { background: #050505; position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; }
-        
         .setup-label { font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-left: 0.5rem; margin-bottom: 0.25rem; display: block; }
     </style>
 </head>
@@ -93,7 +79,8 @@
             <p id="currentDate" class="text-[9px] font-black text-gray-600 uppercase tracking-widest"></p>
         </footer>
     </div>
-  <script type="module">
+
+<script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, query, where, getDocs, setDoc, doc, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -120,23 +107,22 @@
         const container = document.getElementById('setup-container');
 
         try {
-            // Optimized query: Look for exactly one admin. 
-            // If rules allow 'list', this proceeds. If an admin exists, rules block 'list', 
-            // triggering the 'catch' block immediately.
+            // This query matches exactly what is allowed in the rules
             const q = query(collection(db, "users"), where("role", "==", "admin"), limit(1));
             const snap = await getDocs(q);
 
             if (!snap.empty) {
+                // Admin exists, system is initialized
                 window.location.href = "login.html";
             } else {
-                // No admin: Start Setup
+                // No admin exists, show the setup form
                 loader?.classList.add('hidden');
                 container?.classList.remove('hidden');
                 setTimeout(() => container?.classList.replace('opacity-0', 'opacity-100'), 50);
             }
         } catch (err) {
-            // "Missing or insufficient permissions" means the system is ALREADY secure.
-            console.warn("Security active: Admin already exists.");
+            // If rules block the query, it's because the "initialization window" is closed
+            console.warn("Security check failed:", err.message);
             window.location.href = "login.html";
         }
     }
@@ -174,6 +160,4 @@
     });
 </script>
 </body>
-
 </html>
-
