@@ -103,26 +103,27 @@ const auth = getAuth(app);
 const elDate = document.getElementById('currentDate');
 if(elDate) elDate.innerText = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-// --- Check if admin exists ---
+// --- Check system initialization ---
 async function checkSystemState() {
     const loader = document.getElementById('loader');
     const container = document.getElementById('setup-container');
 
     try {
-        // Try fetching a known admin document with fixed ID
-        const adminDoc = await getDoc(doc(db, "users", "admin"));
-        if (adminDoc.exists()) {
-            // Admin exists, redirect to login
+        // Read the init document
+        const initDoc = await getDoc(doc(db, "system", "init"));
+        const initialized = initDoc.exists() && initDoc.data().initialized === true;
+
+        if (initialized) {
+            // Already initialized → redirect to login
             window.location.href = "login.html";
         } else {
-            // No admin yet, show setup form
+            // Not initialized → show setup
             loader?.classList.add('hidden');
             container?.classList.remove('hidden');
             setTimeout(() => container?.classList.replace('opacity-0', 'opacity-100'), 50);
         }
     } catch (err) {
-        console.warn("Firestore check failed:", err.message);
-        // Show setup form anyway if the read fails
+        console.warn("Failed to read system init doc, assuming first-time setup:", err.message);
         loader?.classList.add('hidden');
         container?.classList.remove('hidden');
         setTimeout(() => container?.classList.replace('opacity-0', 'opacity-100'), 50);
@@ -145,10 +146,10 @@ document.getElementById('adminRegForm')?.addEventListener('submit', async (e) =>
     btn.innerText = "Provisioning Terminal...";
 
     try {
-        // Create Firebase Auth user
+        // 1. Create Firebase Auth user
         const cred = await createUserWithEmailAndPassword(auth, email, password);
 
-        // Save Firestore user doc with fixed ID "admin"
+        // 2. Save user document with fixed ID "admin"
         await setDoc(doc(db, "users", "admin"), {
             uid: cred.user.uid,
             lastname: lastname,
@@ -159,6 +160,9 @@ document.getElementById('adminRegForm')?.addEventListener('submit', async (e) =>
             status: "approved",
             createdAt: new Date()
         });
+
+        // 3. Mark system as initialized
+        await setDoc(doc(db, "system", "init"), { initialized: true });
 
         alert("System Initialized. Redirecting to Management Console...");
         window.location.href = "login.html";
@@ -172,4 +176,5 @@ document.getElementById('adminRegForm')?.addEventListener('submit', async (e) =>
 </script>
 </body>
 </html>
+
 
