@@ -85,7 +85,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// --- Firebase config ---
 const firebaseConfig = {
     apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ",
     authDomain: "svls-289ee.firebaseapp.com",
@@ -99,82 +98,57 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// --- Set UI Date ---
-const elDate = document.getElementById('currentDate');
-if(elDate) elDate.innerText = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+const setupContainer = document.getElementById('setup-container');
 
-// --- Check system initialization ---
-async function checkSystemState() {
-    const loader = document.getElementById('loader');
-    const container = document.getElementById('setup-container');
-
+async function checkAdmin() {
     try {
-        // Read the init document
         const initDoc = await getDoc(doc(db, "system", "init"));
-        const initialized = initDoc.exists() && initDoc.data().initialized === true;
-
-        if (initialized) {
-            // Already initialized → redirect to login
+        if (initDoc.exists() && initDoc.data().initialized === true) {
+            // Admin already exists
+            alert("Admin already registered. Redirecting to login.");
             window.location.href = "login.html";
         } else {
-            // Not initialized → show setup
-            loader?.classList.add('hidden');
-            container?.classList.remove('hidden');
-            setTimeout(() => container?.classList.replace('opacity-0', 'opacity-100'), 50);
+            // Show setup form
+            setupContainer.classList.remove('hidden');
         }
     } catch (err) {
-        console.warn("Failed to read system init doc, assuming first-time setup:", err.message);
-        loader?.classList.add('hidden');
-        container?.classList.remove('hidden');
-        setTimeout(() => container?.classList.replace('opacity-0', 'opacity-100'), 50);
+        console.warn("Could not read system init doc, assuming first-time setup:", err.message);
+        setupContainer.classList.remove('hidden');
     }
 }
 
-checkSystemState();
+checkAdmin();
 
-// --- Handle admin registration ---
-document.getElementById('adminRegForm')?.addEventListener('submit', async (e) => {
+document.getElementById('adminRegForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-
-    const btn = document.getElementById('submitBtn');
     const email = document.getElementById('email').value;
     const password = document.getElementById('pw').value;
-    const lastname = document.getElementById('ln').value.toUpperCase();
-    const firstname = document.getElementById('fn').value.toUpperCase();
-
-    btn.disabled = true;
-    btn.innerText = "Provisioning Terminal...";
 
     try {
-        // 1. Create Firebase Auth user
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        // Create Firebase Auth user
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-        // 2. Save user document with fixed ID "admin"
-        await setDoc(doc(db, "users", "admin"), {
-            uid: cred.user.uid,
-            lastname: lastname,
-            firstname: firstname,
-            designation: "System Administrator",
+        // Save user document
+        await setDoc(doc(db, "users", user.uid), {
+            lastname: document.getElementById('ln').value,
+            firstname: document.getElementById('fn').value,
+            designation: "Admin Staff",
             email: email,
             role: "admin",
             status: "approved",
             createdAt: new Date()
         });
 
-        // 3. Mark system as initialized
+        // Mark system as initialized
         await setDoc(doc(db, "system", "init"), { initialized: true });
 
-        alert("System Initialized. Redirecting to Management Console...");
+        alert("Admin Created Successfully!");
         window.location.href = "login.html";
-
     } catch (error) {
-        alert("Provisioning Failed: " + error.message);
-        btn.disabled = false;
-        btn.innerText = "Deploy Administrator";
+        alert(error.message);
     }
 });
 </script>
 </body>
 </html>
-
-
