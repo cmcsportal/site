@@ -120,36 +120,40 @@
             }
         }
 
+        /* UNIVERSAL PDF/PRINT FIX */
         @media print {
             @page {
-                margin: 1cm;
-                size: auto;
+                margin: 1.5cm;
+                size: portrait;
             }
 
+            html,
             body {
                 background: white !important;
                 color: black !important;
+                height: auto !important;
+                overflow: visible !important;
             }
 
-            body * {
-                visibility: hidden;
+            /* Hide everything EXCEPT the print area */
+            body>*:not(#printAreaWrapper) {
+                display: none !important;
             }
 
-            #printArea,
-            #printArea * {
-                visibility: visible;
+            #printAreaWrapper {
+                display: block !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
             }
 
             #printArea {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
+                display: block !important;
                 background: white !important;
             }
 
-            .no-print,
-            .logo-watermark {
+            .no-print {
                 display: none !important;
             }
 
@@ -157,31 +161,36 @@
                 border: none !important;
                 background: transparent !important;
                 border-radius: 0 !important;
-                overflow: visible !important;
+                backdrop-filter: none !important;
                 padding: 0 !important;
             }
 
+            /* Boxy Table Styles */
             table {
                 width: 100% !important;
                 border-collapse: collapse !important;
                 border: 1.5pt solid black !important;
                 min-width: 100% !important;
                 margin-top: 20px;
+                table-layout: auto;
             }
 
             th {
                 border: 1pt solid black !important;
-                background-color: #eeeeee !important;
+                background-color: #f2f2f2 !important;
                 color: black !important;
                 -webkit-print-color-adjust: exact;
-                font-weight: 800 !important;
+                padding: 10px !important;
+                font-size: 9pt !important;
+                text-transform: uppercase;
             }
 
             td {
                 border: 1pt solid black !important;
                 padding: 8px !important;
                 color: black !important;
-                font-size: 10pt !important;
+                font-size: 9pt !important;
+                background: transparent !important;
             }
 
             #tableBody td,
@@ -189,6 +198,15 @@
             #tableBody div {
                 color: black !important;
                 opacity: 1 !important;
+                font-weight: normal !important;
+            }
+
+            #printHeader {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+                margin-bottom: 20px !important;
             }
 
             .print-watermark {
@@ -251,72 +269,77 @@
     </aside>
     <div id="sidebarOverlay" onclick="toggleMobileMenu()"
         class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[80] hidden md:hidden"></div>
-    <main class="flex-1 flex flex-col h-full overflow-hidden">
-        <header
-            class="h-auto py-4 md:py-6 flex flex-col md:flex-row items-start md:items-center justify-between px-4 md:px-10 border-b border-white/5 no-print gap-4">
-            <div class="flex flex-col">
-                <h1 id="headerTitle"
-                    class="text-[11px] md:text-sm font-black uppercase tracking-widest text-white leading-none">
-                    DASHBOARD</h1>
-                <div id="headerContext" class="flex flex-wrap items-center gap-2 mt-2"></div>
-            </div>
-            <div class="flex items-center gap-3 w-full md:w-auto">
-                <div id="subjectToggles" class="hidden glass-card !rounded-xl p-1 flex flex-1 md:flex-none"> <button
-                        id="btnAtt" onclick="switchSubTab('attendance')"
-                        class="flex-1 md:flex-none px-4 py-2 text-[9px] font-black uppercase rounded-lg active-nav">Attendance</button>
-                    <button id="btnMat" onclick="switchSubTab('materials')"
-                        class="flex-1 md:flex-none px-4 py-2 text-[9px] font-black uppercase rounded-lg text-gray-400">Materials</button>
+
+    <div id="printAreaWrapper">
+        <main class="flex-1 flex flex-col h-full overflow-hidden no-print-main">
+            <header
+                class="h-auto py-4 md:py-6 flex flex-col md:flex-row items-start md:items-center justify-between px-4 md:px-10 border-b border-white/5 no-print gap-4">
+                <div class="flex flex-col">
+                    <h1 id="headerTitle"
+                        class="text-[11px] md:text-sm font-black uppercase tracking-widest text-white leading-none">
+                        DASHBOARD</h1>
+                    <div id="headerContext" class="flex flex-wrap items-center gap-2 mt-2"></div>
                 </div>
-                <div id="exportGroup" class="flex gap-2"> <button onclick="exportCSV()"
-                        class="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase">CSV</button>
-                    <button onclick="exportPDF()"
-                        class="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-[9px] font-black uppercase">PDF</button>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div id="subjectToggles" class="hidden glass-card !rounded-xl p-1 flex flex-1 md:flex-none"> <button
+                            id="btnAtt" onclick="switchSubTab('attendance')"
+                            class="flex-1 md:flex-none px-4 py-2 text-[9px] font-black uppercase rounded-lg active-nav">Attendance</button>
+                        <button id="btnMat" onclick="switchSubTab('materials')"
+                            class="flex-1 md:flex-none px-4 py-2 text-[9px] font-black uppercase rounded-lg text-gray-400">Materials</button>
+                    </div>
+                    <div id="exportGroup" class="flex gap-2"> <button onclick="exportCSV()"
+                            class="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase">CSV</button>
+                        <button onclick="exportPDF()"
+                            class="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-[9px] font-black uppercase">PDF</button>
+                    </div>
                 </div>
-            </div>
-        </header>
-        <div class="flex-1 overflow-y-auto p-4 md:p-10 scrollbar-hide main-content-area">
-            <div id="workspace" class="space-y-4 md:space-y-8">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 no-print" id="infoSummary"></div>
-                <div id="printArea">
-                    <div class="print-watermark hidden"><img
-                            src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
-                    <div id="printHeader" class="hidden flex-col items-center text-center w-full mb-8"> <img
-                            src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="w-16 mb-2">
-                        <h2 class="text-xl font-black text-black">CENTRAL MINDANAO COMPUTER SCHOOL</h2>
-                        <p class="text-[9px] text-black uppercase font-bold">Poblacion, Tulunan, Cotabato</p>
-                        <p class="w-full border-t-2 border-black mt-4 pt-2 font-black text-black uppercase tracking-widest text-sm"
-                            id="lblReportType"></p>
-                        <div
-                            class="grid grid-cols-2 gap-x-12 mt-6 text-left w-full border-b border-black pb-4 text-black text-[10pt]">
-                            <div class="space-y-1">
-                                <p class="font-bold">Student: <span id="pName" class="font-normal uppercase"></span></p>
-                                <p class="font-bold">ID Number: <span id="pID" class="font-normal"></span></p>
-                                <p class="font-bold">Course: <span id="pCourse" class="font-normal uppercase"></span>
-                                </p>
+            </header>
+            <div class="flex-1 overflow-y-auto p-4 md:p-10 scrollbar-hide main-content-area">
+                <div id="workspace" class="space-y-4 md:space-y-8">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 no-print" id="infoSummary"></div>
+                    <div id="printArea">
+                        <div class="print-watermark hidden"><img
+                                src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
+                        <div id="printHeader" class="hidden flex-col items-center text-center w-full mb-8"> <img
+                                src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="w-16 mb-2">
+                            <h2 class="text-xl font-black text-black">CENTRAL MINDANAO COMPUTER SCHOOL</h2>
+                            <p class="text-[9px] text-black uppercase font-bold">Poblacion, Tulunan, Cotabato</p>
+                            <p class="w-full border-t-2 border-black mt-4 pt-2 font-black text-black uppercase tracking-widest text-sm"
+                                id="lblReportType"></p>
+                            <div
+                                class="grid grid-cols-2 gap-x-12 mt-6 text-left w-full border-b border-black pb-4 text-black text-[10pt]">
+                                <div class="space-y-1">
+                                    <p class="font-bold">Student: <span id="pName" class="font-normal uppercase"></span>
+                                    </p>
+                                    <p class="font-bold">ID Number: <span id="pID" class="font-normal"></span></p>
+                                    <p class="font-bold">Course: <span id="pCourse"
+                                            class="font-normal uppercase"></span></p>
+                                </div>
+                                <div class="space-y-1">
+                                    <p class="font-bold">Year/Sem: <span id="pYearSem"
+                                            class="font-normal uppercase"></span></p>
+                                    <p class="font-bold">School Year: <span id="pSY"
+                                            class="font-normal">2025-2026</span></p>
+                                    <p class="font-bold italic">Date Generated: <span id="pGenDate"
+                                            class="font-normal not-italic"></span></p>
+                                </div>
                             </div>
-                            <div class="space-y-1">
-                                <p class="font-bold">Year/Sem: <span id="pYearSem" class="font-normal uppercase"></span>
-                                </p>
-                                <p class="font-bold">School Year: <span id="pSY" class="font-normal">2025-2026</span>
-                                </p>
-                                <p class="font-bold italic">Date Generated: <span id="pGenDate"
-                                        class="font-normal not-italic"></span></p>
+                        </div>
+                        <div class="glass-card overflow-hidden">
+                            <div class="table-container scrollbar-hide">
+                                <table class="w-full text-left border-collapse" id="mainTable">
+                                    <thead id="tableHead"
+                                        class="bg-white/5 text-[9px] uppercase font-black text-gray-400"></thead>
+                                    <tbody id="tableBody" class="divide-y divide-white/5 text-xs"></tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
-                    <div class="glass-card overflow-hidden">
-                        <div class="table-container scrollbar-hide">
-                            <table class="w-full text-left border-collapse" id="mainTable">
-                                <thead id="tableHead" class="bg-white/5 text-[9px] uppercase font-black text-gray-400">
-                                </thead>
-                                <tbody id="tableBody" class="divide-y divide-white/5 text-xs"></tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
+
     <script
         type="module">        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"; import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
             const firebaseConfig = { apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ", authDomain: "svls-289ee.firebaseapp.com", projectId: "svls-289ee", storageBucket: "svls-289ee.firebasestorage.app", messagingSenderId: "500705386198", appId: "1:500705386198:web:96f189662bc2aa99cf7377" }; const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
