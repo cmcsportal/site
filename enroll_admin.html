@@ -93,86 +93,87 @@
             <p id="currentDate" class="text-[9px] font-black text-gray-600 uppercase tracking-widest"></p>
         </footer>
     </div>
-   <script type="module">
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs, setDoc, doc, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ",
-    authDomain: "svls-289ee.firebaseapp.com",
-    projectId: "svls-289ee",
-    storageBucket: "svls-289ee.firebasestorage.app",
-    messagingSenderId: "500705386198",
-    appId: "1:500705386198:web:96f189662bc2aa99cf7377"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ",
+        authDomain: "svls-289ee.firebaseapp.com",
+        projectId: "svls-289ee",
+        storageBucket: "svls-289ee.firebasestorage.app",
+        messagingSenderId: "500705386198",
+        appId: "1:500705386198:web:96f189662bc2aa99cf7377"
+    };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-async function checkSystemState() {
-    const loader = document.getElementById('loader');
-    const container = document.getElementById('setup-container');
+    // Set UI Date
+    const elDate = document.getElementById('currentDate');
+    if(elDate) elDate.innerText = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-    try {
-        // We only look for ONE admin doc.
-        const q = query(collection(db, "users"), where("role", "==", "admin"));
-        const snap = await getDocs(q);
+    async function checkSystemState() {
+        const loader = document.getElementById('loader');
+        const container = document.getElementById('setup-container');
 
-        if (!snap.empty) {
-            // Admin exists -> System is initialized
-            window.location.href = "login.html";
-        } else {
-            // No admin found -> Show Setup UI
-            if(loader) loader.classList.add('hidden');
-            if(container) {
-                container.classList.remove('hidden');
-                setTimeout(() => container.classList.replace('opacity-0', 'opacity-100'), 50);
+        try {
+            // Optimized query: Look for exactly one admin. 
+            // If rules allow 'list', this proceeds. If an admin exists, rules block 'list', 
+            // triggering the 'catch' block immediately.
+            const q = query(collection(db, "users"), where("role", "==", "admin"), limit(1));
+            const snap = await getDocs(q);
+
+            if (!snap.empty) {
+                window.location.href = "login.html";
+            } else {
+                // No admin: Start Setup
+                loader?.classList.add('hidden');
+                container?.classList.remove('hidden');
+                setTimeout(() => container?.classList.replace('opacity-0', 'opacity-100'), 50);
             }
+        } catch (err) {
+            // "Missing or insufficient permissions" means the system is ALREADY secure.
+            console.warn("Security active: Admin already exists.");
+            window.location.href = "login.html";
         }
-    } catch (err) {
-        // If Permission Denied (403), it means an Admin exists 
-        // and the Security Rules have locked the 'users' collection.
-        console.log("System Secured. Redirecting...");
-        window.location.href = "login.html";
     }
-}
 
-// Run on load
-checkSystemState();
+    checkSystemState();
 
-// Handle Registration
-document.getElementById('adminRegForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('submitBtn');
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('pw').value;
+    document.getElementById('adminRegForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('pw').value;
 
-    btn.disabled = true;
-    btn.innerText = "Deploying System...";
+        btn.disabled = true;
+        btn.innerText = "Provisioning Terminal...";
 
-    try {
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db, "users", cred.user.uid), {
-            lastname: document.getElementById('ln').value.toUpperCase(),
-            firstname: document.getElementById('fn').value.toUpperCase(),
-            designation: "System Administrator",
-            email: email,
-            role: "admin",
-            status: "approved",
-            createdAt: new Date()
-        });
+        try {
+            const cred = await createUserWithEmailAndPassword(auth, email, password);
+            await setDoc(doc(db, "users", cred.user.uid), {
+                lastname: document.getElementById('ln').value.toUpperCase(),
+                firstname: document.getElementById('fn').value.toUpperCase(),
+                designation: "System Administrator",
+                email: email,
+                role: "admin",
+                status: "approved",
+                createdAt: new Date()
+            });
 
-        alert("Root Administrator Provisioned successfully.");
-        window.location.href = "login.html";
-    } catch (error) {
-        alert("Setup Failed: " + error.message);
-        btn.disabled = false;
-        btn.innerText = "Deploy Administrator";
-    }
-});
-   </script>
+            alert("System Initialized. Redirecting to Management Console...");
+            window.location.href = "login.html";
+        } catch (error) {
+            alert("Provisioning Failed: " + error.message);
+            btn.disabled = false;
+            btn.innerText = "Deploy Administrator";
+        }
+    });
+</script>
 </body>
 
 </html>
+
