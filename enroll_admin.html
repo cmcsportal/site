@@ -81,83 +81,95 @@
     </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs, setDoc, doc, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ",
-        authDomain: "svls-289ee.firebaseapp.com",
-        projectId: "svls-289ee",
-        storageBucket: "svls-289ee.firebasestorage.app",
-        messagingSenderId: "500705386198",
-        appId: "1:500705386198:web:96f189662bc2aa99cf7377"
-    };
+// --- Firebase config ---
+const firebaseConfig = {
+    apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ",
+    authDomain: "svls-289ee.firebaseapp.com",
+    projectId: "svls-289ee",
+    storageBucket: "svls-289ee.firebasestorage.app",
+    messagingSenderId: "500705386198",
+    appId: "1:500705386198:web:96f189662bc2aa99cf7377"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-    // Set UI Date
-    const elDate = document.getElementById('currentDate');
-    if(elDate) elDate.innerText = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+// --- Set UI Date ---
+const elDate = document.getElementById('currentDate');
+if(elDate) elDate.innerText = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-    async function checkSystemState() {
-        const loader = document.getElementById('loader');
-        const container = document.getElementById('setup-container');
+// --- Check if admin exists ---
+async function checkSystemState() {
+    const loader = document.getElementById('loader');
+    const container = document.getElementById('setup-container');
 
-        try {
-            // This query matches exactly what is allowed in the rules
-            const q = query(collection(db, "users"), where("role", "==", "admin"), limit(1));
-            const snap = await getDocs(q);
-
-            if (!snap.empty) {
-                // Admin exists, system is initialized
-                window.location.href = "login.html";
-            } else {
-                // No admin exists, show the setup form
-                loader?.classList.add('hidden');
-                container?.classList.remove('hidden');
-                setTimeout(() => container?.classList.replace('opacity-0', 'opacity-100'), 50);
-            }
-        } catch (err) {
-            // If rules block the query, it's because the "initialization window" is closed
-            console.warn("Security check failed:", err.message);
+    try {
+        // Try fetching a known admin document with fixed ID
+        const adminDoc = await getDoc(doc(db, "users", "admin"));
+        if (adminDoc.exists()) {
+            // Admin exists, redirect to login
             window.location.href = "login.html";
+        } else {
+            // No admin yet, show setup form
+            loader?.classList.add('hidden');
+            container?.classList.remove('hidden');
+            setTimeout(() => container?.classList.replace('opacity-0', 'opacity-100'), 50);
         }
+    } catch (err) {
+        console.warn("Firestore check failed:", err.message);
+        // Show setup form anyway if the read fails
+        loader?.classList.add('hidden');
+        container?.classList.remove('hidden');
+        setTimeout(() => container?.classList.replace('opacity-0', 'opacity-100'), 50);
     }
+}
 
-    checkSystemState();
+checkSystemState();
 
-    document.getElementById('adminRegForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('submitBtn');
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('pw').value;
+// --- Handle admin registration ---
+document.getElementById('adminRegForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-        btn.disabled = true;
-        btn.innerText = "Provisioning Terminal...";
+    const btn = document.getElementById('submitBtn');
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('pw').value;
+    const lastname = document.getElementById('ln').value.toUpperCase();
+    const firstname = document.getElementById('fn').value.toUpperCase();
 
-        try {
-            const cred = await createUserWithEmailAndPassword(auth, email, password);
-            await setDoc(doc(db, "users", cred.user.uid), {
-                lastname: document.getElementById('ln').value.toUpperCase(),
-                firstname: document.getElementById('fn').value.toUpperCase(),
-                designation: "System Administrator",
-                email: email,
-                role: "admin",
-                status: "approved",
-                createdAt: new Date()
-            });
+    btn.disabled = true;
+    btn.innerText = "Provisioning Terminal...";
 
-            alert("System Initialized. Redirecting to Management Console...");
-            window.location.href = "login.html";
-        } catch (error) {
-            alert("Provisioning Failed: " + error.message);
-            btn.disabled = false;
-            btn.innerText = "Deploy Administrator";
-        }
-    });
+    try {
+        // Create Firebase Auth user
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+        // Save Firestore user doc with fixed ID "admin"
+        await setDoc(doc(db, "users", "admin"), {
+            uid: cred.user.uid,
+            lastname: lastname,
+            firstname: firstname,
+            designation: "System Administrator",
+            email: email,
+            role: "admin",
+            status: "approved",
+            createdAt: new Date()
+        });
+
+        alert("System Initialized. Redirecting to Management Console...");
+        window.location.href = "login.html";
+
+    } catch (error) {
+        alert("Provisioning Failed: " + error.message);
+        btn.disabled = false;
+        btn.innerText = "Deploy Administrator";
+    }
+});
 </script>
 </body>
 </html>
+
