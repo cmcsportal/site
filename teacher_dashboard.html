@@ -15,12 +15,10 @@
         .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.5rem; }
         .sidebar { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
         
-        /* Nav Styling */
         .nav-link { transition: all 0.3s ease; border: 1px solid transparent; color: #94a3b8; }
         .nav-link:hover { background: rgba(255, 255, 255, 0.05); color: white; }
         .active-nav { background: white !important; color: black !important; font-weight: 800; border-radius: 12px; }
 
-        /* Form Controls Fix */
         input, select, textarea { 
             background: rgba(255, 255, 255, 0.05) !important; 
             border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -39,21 +37,56 @@
 
         .print-val { display: none; }
 
-        /* TRADITIONAL PRINT PRESERVATION */
+        /* UNIVERSAL PRINT RESET - WHITE BACKGROUND FIX */
         @media print {
+            @page { margin: 1cm; size: portrait; }
+            
+            /* Force white background and black text on all levels */
+            html, body { 
+                background: white !important; 
+                color: black !important; 
+                height: auto !important; 
+                overflow: visible !important; 
+            }
+
             body * { visibility: hidden; }
             #printArea, #printArea * { visibility: visible; }
-            #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 0; color: black !important; }
+            
+            #printArea { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                padding: 0; 
+                color: black !important; 
+                background: white !important;
+            }
+
+            .glass-card { 
+                background: transparent !important; 
+                border: none !important; 
+                backdrop-filter: none !important; 
+                padding: 0 !important;
+            }
+
             .no-print { display: none !important; }
-            table { border-collapse: collapse !important; width: 100% !important; border: 1.5pt solid black !important; }
-            th, td { border: 1pt solid black !important; padding: 6px 10px !important; color: black !important; font-size: 10pt !important; }
+            
+            /* Traditional Boxy Table */
+            table { border-collapse: collapse !important; width: 100% !important; border: 1.5pt solid black !important; background: white !important; }
+            th { border: 1pt solid black !important; background-color: #eeeeee !important; color: black !important; padding: 8px !important; -webkit-print-color-adjust: exact; }
+            td { border: 1pt solid black !important; padding: 6px 10px !important; color: black !important; font-size: 10pt !important; background: white !important; }
+            
+            /* Ensure text inside table is visible */
+            #tableBody td, #tableBody span, #tableBody div { color: black !important; opacity: 1 !important; }
+
             .print-val { display: inline-block !important; color: black !important; }
+            #pt_pt { color: black !important; } /* Grade point color override */
         }
     </style>
 </head>
 <body class="h-screen flex">
 
-    <div class="logo-watermark">
+    <div class="logo-watermark no-print">
         <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" alt="CMCS Logo">
     </div>
 
@@ -76,7 +109,7 @@
 
         <nav class="flex-1 py-8 px-4 space-y-2 overflow-y-auto" id="subjectNav">
             <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] mb-4">Subject Loads</p>
-            </nav>
+        </nav>
 
         <div class="p-6 border-t border-white/5">
             <a href="teacher_edit.html" class="glass-card p-4 flex items-center gap-3 mb-4 block hover:border-white/20 transition-all">
@@ -151,18 +184,18 @@
                         <h2 class="text-2xl font-black uppercase text-black text-center">Central Mindanao Computer School</h2>
                         <p class="text-[11px] font-bold uppercase tracking-widest border-b border-black pb-1 mb-2" id="lblReportType"></p>
                         <div class="grid grid-cols-2 gap-x-8 text-[10px] font-bold uppercase w-full max-w-lg">
-                            <div>COURSE: <span id="lblCourse" class="font-normal underline"></span></div>
-                            <div>YEAR/SEM: <span id="lblYear" class="font-normal underline"></span></div>
-                            <div>SUBJECT: <span id="lblSubj" class="font-normal underline"></span></div>
-                            <div>FACULTY: <span id="lblFaculty" class="font-normal underline"></span></div>
+                            <div class="text-black">COURSE: <span id="lblCourse" class="font-normal underline"></span></div>
+                            <div class="text-black">YEAR/SEM: <span id="lblYear" class="font-normal underline"></span></div>
+                            <div class="text-black">SUBJECT: <span id="lblSubj" class="font-normal underline"></span></div>
+                            <div class="text-black">FACULTY: <span id="lblFaculty" class="font-normal underline"></span></div>
                         </div>
-                        <p class="text-[8px] italic mt-4">Date Generated: <span id="lblTime"></span></p>
+                        <p class="text-[8px] italic mt-4 text-black">Date Generated: <span id="lblTime"></span></p>
                     </div>
 
                     <div class="glass-card overflow-hidden !border-white/5">
-                        <div id="tableHeader" class="px-8 py-5 border-b border-white/5 bg-white/[0.02] no-print"></div>
+                        <div id="tableHeader" class="px-8 py-5 border-b border-white/5 bg-white/[0.02] no-print text-gray-500 font-bold uppercase text-[10px]"></div>
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left">
+                            <table class="w-full text-left" id="mainTable">
                                 <thead id="tableHead" class="bg-white/[0.02] text-gray-500 text-[9px] uppercase font-black tracking-widest border-b border-white/5"></thead>
                                 <tbody id="tableBody" class="divide-y divide-white/5 text-xs"></tbody>
                             </table>
@@ -193,7 +226,6 @@
 
     let currentTeacherName = "", activeSubj = "", currentView = 'attendance', roster = [], subjContext = null, searchTerm = "";
 
-    // MODAL SYSTEM
     window.showAlert = (title, message, type = 'success', onConfirm = null) => {
         const overlay = document.getElementById('modalOverlay');
         const icon = document.getElementById('modalIcon');
@@ -222,7 +254,6 @@
 
     window.closeModal = () => document.getElementById('modalOverlay').classList.add('hidden');
 
-    // TIME FORMATTER
     function formatTimeAMPM(time24) {
         if(!time24) return "";
         let [hours, minutes] = time24.split(':');
@@ -267,19 +298,14 @@
     async function selectSubject(s) {
         subjContext = s;
         activeSubj = s.code;
-        
         const startTime = formatTimeAMPM(s.startTime);
         const endTime = formatTimeAMPM(s.endTime);
-
         document.getElementById('activeSubjectTitle').innerText = s.name;
-        document.getElementById('subjectSubDetails').innerText = 
-            `${s.course} ${s.year} | ${s.schedule} | ${startTime} - ${endTime} | ${s.semester}`;
-
+        document.getElementById('subjectSubDetails').innerText = `${s.course} ${s.year} | ${s.schedule} | ${startTime} - ${endTime} | ${s.semester}`;
         document.getElementById('placeholder').classList.add('hidden');
         document.getElementById('workspace').classList.remove('hidden');
         document.getElementById('viewToggles').classList.remove('hidden');
         document.getElementById('saveBtn').classList.remove('hidden');
-
         onSnapshot(query(collection(db, "users"), where("assignedPrograms", "array-contains", activeSubj)), snap => {
             roster = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             renderTable();
@@ -335,7 +361,7 @@
                 const status = s.attendance?.[activeSubj]?.[dateVal] || "P";
                 body.innerHTML += `<tr class="hover:bg-white/[0.02]">
                     <td class="px-8 py-5 font-black uppercase text-white text-[11px]">${s.lastname}, ${s.firstname}<div class="text-[9px] text-gray-500 font-mono mt-1">${s.studentId || '-'}</div></td>
-                    <td class="px-8 py-5">
+                    <td class="px-8 py-5 text-center">
                         <div class="radio-group flex justify-center gap-6 text-[10px] font-black no-print">
                             <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="att_${s.id}" value="P" ${status==='P'?'checked':''}> PRESENT</label>
                             <label class="flex items-center gap-2 cursor-pointer hover:text-orange-400"><input type="radio" name="att_${s.id}" value="L" ${status==='L'?'checked':''}> LATE</label>
@@ -362,7 +388,6 @@
 
     document.getElementById('masterSearch').addEventListener('input', (e) => { searchTerm = e.target.value.toLowerCase(); renderTable(); });
 
-    // CALCULATION LOGIC
     window.calcPt = (id) => {
         const p = parseFloat(document.getElementById(`pre_${id}`).value || 0);
         const m = parseFloat(document.getElementById(`mid_${id}`).value || 0);
@@ -374,7 +399,6 @@
         el.className = parseFloat(pt) > 3.0 ? "px-8 py-5 text-right font-black text-xs text-red-500" : "px-8 py-5 text-right font-black text-xs text-blue-400";
     };
 
-    // CLOUD SYNC
     window.saveCurrentWork = async () => {
         const btn = document.getElementById('saveBtn');
         const date = document.getElementById('attDate')?.value || new Date().toISOString().split('T')[0];
@@ -401,7 +425,6 @@
         btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Sync Data';
     };
 
-    // MATERIALS LOGIC
     document.getElementById('materialForm').onsubmit = async (e) => {
         e.preventDefault();
         const mid = document.getElementById('editMatId').value;
@@ -447,7 +470,6 @@
         });
     };
 
-    // EXPORTS
     window.exportCSV = () => {
         let csv = "Student ID,Name,";
         if (currentView === 'attendance') {
