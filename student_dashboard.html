@@ -18,6 +18,12 @@
             overflow-x: hidden;
         }
 
+        /* Modern Scrollbar Universal Logic */
+        ::-webkit-scrollbar { width: 6px; height: 6px; display: block; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+
         .logo-watermark {
             position: fixed;
             inset: 0;
@@ -29,10 +35,7 @@
             pointer-events: none;
         }
 
-        .logo-watermark img {
-            height: 75%;
-            filter: grayscale(1) brightness(0.5);
-        }
+        .logo-watermark img { height: 75%; filter: grayscale(1) brightness(0.5); }
 
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
@@ -42,106 +45,59 @@
             border-radius: 1.5rem;
         }
 
-        .transparent-table-card {
-            background: rgba(255, 255, 255, 0.01) !important;
-            backdrop-filter: blur(8px);
-        }
+        .transparent-table-card { background: rgba(255, 255, 255, 0.01) !important; backdrop-filter: blur(8px); }
 
-        .sidebar {
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }
+        .sidebar { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
 
-        .sidebar-btn, .subj-btn {
-            transition: all 0.3s ease;
-            color: #94a3b8;
-            border: 1px solid transparent;
-        }
+        .sidebar-btn, .subj-btn { transition: all 0.3s ease; color: #94a3b8; border: 1px solid transparent; }
+        .sidebar-btn:hover, .subj-btn:hover { background: rgba(255, 255, 255, 0.05); color: white; }
 
-        .sidebar-btn:hover, .subj-btn:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-        }
+        .active-nav { background: white !important; color: black !important; font-weight: 800; border-radius: 12px !important; }
 
-        .active-nav {
-            background: white !important;
-            color: black !important;
-            font-weight: 800;
-            border-radius: 12px !important;
-        }
-
-        /* Modern Scrollbar */
-        .table-container::-webkit-scrollbar {
-            height: 6px;
-            width: 6px;
-        }
-
-        .table-container::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .table-container::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 100px;
-        }
-
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.4);
-        }
-
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            cursor: grab;
-        }
-
+        .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; cursor: grab; }
         .table-container:active { cursor: grabbing; }
-
-        table {
-            min-width: 800px;
-            width: 100%;
-        }
+        table { min-width: 800px; width: 100%; }
 
         @media (max-width: 768px) {
             header { flex-direction: column !important; align-items: stretch !important; }
             .header-actions { flex-direction: column !important; width: 100% !important; gap: 0.75rem !important; }
             #subjectToggles { width: 100% !important; display: flex !important; }
-            #exportGroup { width: 100% !important; justify-content: space-between; display: flex; }
+            #exportGroup { width: 100% !important; justify-content: space-between; }
             #exportGroup button { flex: 1; }
         }
 
+        /* Universal PDF/Print Fix */
         @media print {
             @page { margin: 1.5cm; size: portrait; }
             html, body { background: white !important; color: black !important; height: auto !important; overflow: visible !important; }
             body>*:not(#printAreaWrapper) { display: none !important; }
             #printAreaWrapper { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
-            #printArea { display: block !important; background: white !important; }
             .no-print { display: none !important; }
             
-            /* Print Watermark Visibility Fix */
-            .print-watermark {
-                display: flex !important;
-                position: fixed;
-                inset: 0;
-                justify-content: center;
-                align-items: center;
-                opacity: 0.08 !important;
-                z-index: -1;
+            /* Print Watermark Visibility Behind Table */
+            .print-watermark { 
+                display: flex !important; 
+                position: fixed !important; 
+                inset: 0 !important; 
+                justify-content: center !important; 
+                align-items: center !important; 
+                opacity: 0.08 !important; 
+                z-index: -1 !important; 
                 pointer-events: none;
             }
-            .print-watermark img { height: 60%; filter: grayscale(1); }
+            .print-watermark img { width: 70%; filter: grayscale(1); }
 
+            .glass-card { border: none !important; background: transparent !important; border-radius: 0 !important; backdrop-filter: none !important; padding: 0 !important; }
             table { 
                 width: 100% !important; 
                 border-collapse: collapse !important; 
-                border: 1pt solid black !important; 
+                border: 1.5pt solid black !important; 
                 min-width: 100% !important; 
-                background: rgba(255, 255, 255, 0.5) !important; /* Allow watermark to show */
+                margin-top: 20px; 
+                background-color: rgba(255,255,255,0.5) !important; /* Slight transparency for watermark */
             }
-            th { border: 1pt solid black !important; background-color: rgba(240, 240, 240, 0.8) !important; color: black !important; -webkit-print-color-adjust: exact; padding: 10px !important; font-size: 9pt !important; }
-            td { border: 1pt solid black !important; padding: 8px !important; color: black !important; font-size: 9pt !important; background: transparent !important; -webkit-print-color-adjust: exact; }
+            th { border: 1pt solid black !important; background-color: #f2f2f2 !important; color: black !important; padding: 10px !important; font-size: 9pt !important; text-transform: uppercase; }
+            td { border: 1pt solid black !important; padding: 8px !important; color: black !important; font-size: 9pt !important; }
             #printHeader { display: flex !important; flex-direction: column !important; align-items: center !important; text-align: center !important; margin-bottom: 20px !important; }
         }
     </style>
@@ -162,7 +118,7 @@
                 <span class="font-black text-lg tracking-tighter uppercase">CMCS <span class="text-gray-500">VLS</span></span>
             </div>
         </div>
-        <nav class="flex-1 py-8 px-4 space-y-6 overflow-y-auto scrollbar-hide">
+        <nav class="flex-1 py-8 px-4 space-y-6 overflow-y-auto">
             <div>
                 <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] mb-4">Core Portal</p>
                 <a onclick="switchGlobalView('schedules'); closeMobileMenu();" id="navSched" class="sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2 cursor-pointer">
@@ -185,9 +141,7 @@
                     <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest" id="studentIdDisplay">Student</p>
                 </div>
             </a>
-            <button onclick="logout()" class="w-full py-3 rounded-xl bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all">
-                Sign Out
-            </button>
+            <button onclick="logout()" class="w-full py-3 rounded-xl bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all">Sign Out</button>
         </div>
     </aside>
 
@@ -255,10 +209,7 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ", authDomain: "svls-289ee.firebaseapp.com", projectId: "svls-289ee", storageBucket: "svls-289ee.firebasestorage.app", messagingSenderId: "500705386198", appId: "1:500705386198:web:96f189662bc2aa99cf7377" };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
+        const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
         let currentStudent = null, programs = [], activeSubj = null, currentMode = 'schedules';
 
         function t12(t) { if (!t) return ""; let [h, m] = t.split(':'); h = parseInt(h); const p = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${m} ${p}`; }
@@ -268,9 +219,7 @@
                 const snap = await getDoc(doc(db, "users", user.uid));
                 if (snap.exists() && snap.data().role === 'student') {
                     currentStudent = { uid: user.uid, ...snap.data() };
-                    initUI();
-                    await fetchSubjects();
-                    switchGlobalView('schedules');
+                    initUI(); await fetchSubjects(); switchGlobalView('schedules');
                 } else { window.location.href = "login.html"; }
             } else { window.location.href = "login.html"; }
         });
@@ -291,48 +240,39 @@
             const slider = document.getElementById('scrollContainer');
             let isDown = false, startX, scrollLeft;
             slider.addEventListener('mousedown', (e) => { isDown = true; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
-            slider.addEventListener('mouseleave', () => { isDown = false; });
-            slider.addEventListener('mouseup', () => { isDown = false; });
+            slider.addEventListener('mouseleave', () => isDown = false);
+            slider.addEventListener('mouseup', () => isDown = false);
             slider.addEventListener('mousemove', (e) => { if(!isDown) return; e.preventDefault(); const x = e.pageX - slider.offsetLeft; const walk = (x - startX) * 2; slider.scrollLeft = scrollLeft - walk; });
         }
 
         async function fetchSubjects() {
-            const codes = currentStudent.assignedPrograms || [];
-            if (!codes.length) return;
+            const codes = currentStudent.assignedPrograms || []; if (!codes.length) return;
             const q = query(collection(db, "programs"), where("code", "in", codes));
-            const snap = await getDocs(q);
-            programs = snap.docs.map(d => d.data());
-            const nav = document.getElementById('subjectNavItems');
-            nav.innerHTML = '';
+            const snap = await getDocs(q); programs = snap.docs.map(d => d.data());
+            const nav = document.getElementById('subjectNavItems'); nav.innerHTML = '';
             programs.forEach(p => {
-                const a = document.createElement('a');
-                a.className = "subj-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[11px] font-black cursor-pointer uppercase mb-1";
-                a.id = `nav-${p.code}`;
+                const a = document.createElement('a'); a.id = `nav-${p.code}`; a.className = "subj-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[11px] font-black cursor-pointer uppercase mb-1";
                 a.onclick = () => { switchSubjectView(p); closeMobileMenu(); };
-                a.innerHTML = `<i class="fa-solid fa-book-open text-xs"></i> ${p.code}`;
-                nav.appendChild(a);
+                a.innerHTML = `<i class="fa-solid fa-book-open text-xs"></i> ${p.code}`; nav.appendChild(a);
             });
         }
 
         window.switchGlobalView = (mode) => {
-            currentMode = mode;
-            activeSubj = null;
+            currentMode = mode; activeSubj = null;
             document.querySelectorAll('.sidebar-btn, .subj-btn').forEach(b => b.classList.remove('active-nav'));
             const navId = mode === 'schedules' ? 'navSched' : 'navGrades';
             if(document.getElementById(navId)) document.getElementById(navId).classList.add('active-nav');
             document.getElementById('headerTitle').innerText = mode === 'schedules' ? "OFFICIAL CLASS SCHEDULES" : "SCHOLASTIC PERFORMANCE RECORD";
             document.getElementById('headerContext').innerHTML = '';
-            document.getElementById('subjectToggles').classList.add('hidden');
+            document.getElementById('subjectToggles').classList.add('hidden'); // HIDE TABS ON GLOBAL VIEWS
             document.getElementById('exportGroup').classList.remove('hidden');
             renderTable();
         };
 
         window.switchSubjectView = (p) => {
-            activeSubj = p;
-            currentMode = 'attendance';
+            activeSubj = p; currentMode = 'attendance';
             document.querySelectorAll('.sidebar-btn, .subj-btn').forEach(b => b.classList.remove('active-nav'));
-            const navEl = document.getElementById(`nav-${p.code}`);
-            if (navEl) navEl.classList.add('active-nav');
+            const navEl = document.getElementById(`nav-${p.code}`); if (navEl) navEl.classList.add('active-nav');
             document.getElementById('headerTitle').innerText = p.name;
             document.getElementById('headerContext').innerHTML = `
                 <span class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-calendar mr-1"></i> ${p.schedule}</span>
@@ -351,69 +291,45 @@
         };
 
         async function renderTable() {
-            const head = document.getElementById('tableHead');
-            const body = document.getElementById('tableBody');
-            body.innerHTML = '';
+            const head = document.getElementById('tableHead'); const body = document.getElementById('tableBody'); body.innerHTML = '';
             if (currentMode === 'schedules') {
                 head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject</th><th class="px-8 py-5">Schedule</th><th class="px-8 py-5">Instructor</th></tr>`;
-                programs.forEach(p => {
-                    body.innerHTML += `<tr><td class="px-8 py-6 font-black text-white">${p.code}</td><td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td><td class="px-8 py-6 text-white font-bold">${p.schedule} <br><span class="text-[10px] text-gray-500">${t12(p.startTime)} - ${t12(p.endTime)}</span></td><td class="px-8 py-6 text-gray-400 font-bold uppercase">${p.teacher}</td></tr>`;
-                });
+                programs.forEach(p => { body.innerHTML += `<tr><td class="px-8 py-6 font-black text-white">${p.code}</td><td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td><td class="px-8 py-6 text-white font-bold">${p.schedule} <br><span class="text-[10px] text-gray-500">${t12(p.startTime)} - ${t12(p.endTime)}</span></td><td class="px-8 py-6 text-gray-400 font-bold uppercase">${p.teacher}</td></tr>`; });
             } else if (currentMode === 'grades') {
                 head.innerHTML = `<tr><th class="px-8 py-5">Subject</th><th class="px-8 py-5 text-center">PRE</th><th class="px-8 py-5 text-center">MID</th><th class="px-8 py-5 text-center">FIN</th><th class="px-8 py-5 text-right">POINT</th></tr>`;
-                programs.forEach(p => {
-                    const g = currentStudent.grades?.[p.code] || { prelim: '-', midterm: '-', final: '-', point: '-' };
-                    body.innerHTML += `<tr><td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td><td class="text-center font-black">${g.prelim}</td><td class="text-center font-black">${g.midterm}</td><td class="text-center font-black">${g.final}</td><td class="text-right px-8 font-black text-blue-400">${g.point}</td></tr>`;
-                });
+                programs.forEach(p => { const g = currentStudent.grades?.[p.code] || { prelim: '-', midterm: '-', final: '-', point: '-' };
+                    body.innerHTML += `<tr><td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td><td class="text-center font-black">${g.prelim}</td><td class="text-center font-black">${g.midterm}</td><td class="text-center font-black">${g.final}</td><td class="text-right px-8 font-black text-blue-400">${g.point}</td></tr>`; });
             } else if (currentMode === 'attendance') {
                 head.innerHTML = `<tr><th class="px-8 py-5">Date</th><th class="px-8 py-5 text-center">Status</th></tr>`;
                 const att = currentStudent.attendance?.[activeSubj.code] || {};
-                Object.keys(att).sort().reverse().forEach(d => {
-                    const color = att[d] === 'P' ? 'text-emerald-400' : 'text-red-500';
-                    body.innerHTML += `<tr><td class="px-8 py-6 font-black text-white">${d}</td><td class="text-center font-black ${color}">${att[d] === 'P' ? 'PRESENT' : 'ABSENT'}</td></tr>`;
-                });
+                Object.keys(att).sort().reverse().forEach(d => { const color = att[d] === 'P' ? 'text-emerald-400' : 'text-red-500';
+                    body.innerHTML += `<tr><td class="px-8 py-6 font-black text-white">${d}</td><td class="text-center font-black ${color}">${att[d] === 'P' ? 'PRESENT' : 'ABSENT'}</td></tr>`; });
             } else if (currentMode === 'materials') {
                 head.innerHTML = `<tr><th class="px-8 py-5">Resource Name</th><th class="px-8 py-5 text-right">Action</th></tr>`;
                 const q = query(collection(db, "materials"), where("subjectCode", "==", activeSubj.code));
                 const snap = await getDocs(q);
-                snap.forEach(d => {
-                    const m = d.data();
-                    body.innerHTML += `<tr><td class="px-8 py-6 font-bold text-white uppercase">${m.name}</td><td class="px-8 py-6 text-right"><a href="${m.link}" target="_blank" class="bg-white text-black px-4 py-2 rounded-lg text-[10px] font-black uppercase">Open</a></td></tr>`;
-                });
+                snap.forEach(d => { const m = d.data(); body.innerHTML += `<tr><td class="px-8 py-6 font-bold text-white uppercase">${m.name}</td><td class="px-8 py-6 text-right"><a href="${m.link}" target="_blank" class="bg-white text-black px-4 py-2 rounded-lg text-[10px] font-black uppercase">Open</a></td></tr>`; });
             }
         }
 
         window.exportCSV = () => {
             let csv = "STUDENT NAME," + currentStudent.lastname + " " + currentStudent.firstname + "\nID," + currentStudent.studentId + "\nCOURSE," + currentStudent.course + "\n\n";
             if (currentMode === 'schedules') {
-                csv += "CODE,SUBJECT,SCHEDULE,TIME,TEACHER\n";
-                programs.forEach(p => csv += `${p.code},${p.name},${p.schedule},${p.startTime}-${p.endTime},${p.teacher}\n`);
+                csv += "CODE,SUBJECT,SCHEDULE,TIME,TEACHER\n"; programs.forEach(p => csv += `${p.code},${p.name},${p.schedule},${p.startTime}-${p.endTime},${p.teacher}\n`);
             } else if (currentMode === 'grades') {
-                csv += "SUBJECT,PRELIM,MIDTERM,FINAL,GPA\n";
-                programs.forEach(p => {
-                    const g = currentStudent.grades?.[p.code] || {};
-                    csv += `"${p.name}",${g.prelim || '-'},${g.midterm || '-'},${g.final || '-'},${g.point || '-'}\n`;
-                });
+                csv += "SUBJECT,PRELIM,MIDTERM,FINAL,GPA\n"; programs.forEach(p => { const g = currentStudent.grades?.[p.code] || {}; csv += `"${p.name}",${g.prelim || '-'},${g.midterm || '-'},${g.final || '-'},${g.point || '-'}\n`; });
             } else if (currentMode === 'attendance') {
-                csv += "DATE,STATUS\n";
-                const att = currentStudent.attendance?.[activeSubj.code] || {};
-                Object.keys(att).sort().reverse().forEach(d => csv += `${d},${att[d] === 'P' ? 'PRESENT' : 'ABSENT'}\n`);
+                csv += "DATE,STATUS\n"; const att = currentStudent.attendance?.[activeSubj.code] || {}; Object.keys(att).sort().reverse().forEach(d => csv += `${d},${att[d] === 'P' ? 'PRESENT' : 'ABSENT'}\n`);
             }
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${currentStudent.lastname}_${currentMode}.csv`;
-            a.click();
+            const blob = new Blob([csv], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `${currentStudent.lastname}_${currentMode}.csv`; a.click();
         };
 
         window.exportPDF = () => {
-            const now = new Date();
-            document.getElementById('pGenDate').innerText = now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+            const now = new Date(); document.getElementById('pGenDate').innerText = now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
             document.getElementById('lblReportType').innerText = currentMode === 'schedules' ? "CERTIFICATE OF MATRICULATION / SCHEDULE" : "OFFICIAL STUDENT SCHOLASTIC RECORD";
             document.getElementById('pName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
-            document.getElementById('pID').innerText = currentStudent.studentId;
-            document.getElementById('pCourse').innerText = currentStudent.course;
+            document.getElementById('pID').innerText = currentStudent.studentId; document.getElementById('pCourse').innerText = currentStudent.course;
             document.getElementById('pYearSem').innerText = `YEAR ${currentStudent.year} - ${currentStudent.semester}`;
             document.getElementById('printHeader').classList.replace('hidden', 'flex');
             document.querySelector('.print-watermark').classList.remove('hidden');
@@ -422,14 +338,8 @@
             document.querySelector('.print-watermark').classList.add('hidden');
         };
 
-        window.toggleMobileMenu = () => {
-            document.getElementById('sidebar').classList.toggle('-translate-x-full');
-            document.getElementById('sidebarOverlay').classList.toggle('hidden');
-        };
-        window.closeMobileMenu = () => {
-            document.getElementById('sidebar').classList.add('-translate-x-full');
-            document.getElementById('sidebarOverlay').classList.add('hidden');
-        };
+        window.toggleMobileMenu = () => { document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('sidebarOverlay').classList.toggle('hidden'); };
+        window.closeMobileMenu = () => { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sidebarOverlay').classList.add('hidden'); };
         window.logout = () => signOut(auth).then(() => window.location.href = "login.html");
     </script>
 </body>
