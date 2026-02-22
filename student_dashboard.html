@@ -62,47 +62,69 @@
             header { flex-direction: column !important; align-items: stretch !important; }
             .header-actions { flex-direction: column !important; width: 100% !important; gap: 0.75rem !important; }
             #subjectToggles { width: 100%; display: flex; }
-            /* Strict removal for global views on mobile */
             .hide-tabs #subjectToggles { display: none !important; }
             #exportGroup { width: 100% !important; justify-content: space-between; display: flex; gap: 8px; }
             #exportGroup button { flex: 1; }
         }
 
-        /* Universal PDF/Print Fix */
+        /* --- APPLYING MASTER TABLE PRINT LOGIC --- */
         @media print {
-            @page { margin: 1.5cm; size: portrait; }
-            html, body { background: white !important; color: black !important; height: auto !important; overflow: visible !important; }
-            body>*:not(#printAreaWrapper) { display: none !important; }
-            #printAreaWrapper { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
-            .no-print { display: none !important; }
+            @page { margin: 1cm; size: portrait; }
             
-            /* Print Watermark Visibility Behind Table */
+            /* Reset Global Backgrounds */
+            html, body { background: white !important; color: black !important; height: auto !important; overflow: visible !important; }
+            
+            /* Hide UI Elements */
+            body > *:not(#printAreaWrapper), .no-print, header, aside, #infoSummary, #subjectToggles { display: none !important; }
+            
+            /* Print Wrapper positioning */
+            #printAreaWrapper { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
+            #workspace { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+            
+            /* Watermark behind the table */
             .print-watermark { 
                 display: flex !important; 
                 position: fixed !important; 
                 inset: 0 !important; 
                 justify-content: center !important; 
                 align-items: center !important; 
-                opacity: 0.15 !important; 
-                z-index: -1 !important; 
+                opacity: 0.12 !important; 
+                z-index: -10 !important; 
                 pointer-events: none;
+                -webkit-print-color-adjust: exact;
             }
-            .print-watermark img { width: 70%; filter: grayscale(1); }
+            .print-watermark img { width: 80%; filter: grayscale(1); }
 
-            .glass-card { border: none !important; background: transparent !important; border-radius: 0 !important; backdrop-filter: none !important; padding: 0 !important; }
+            /* Table Formatting (Master Style) */
+            .glass-card { border: none !important; background: transparent !important; border-radius: 0 !important; backdrop-filter: none !important; padding: 0 !important; box-shadow: none !important; }
             table { 
                 width: 100% !important; 
                 border-collapse: collapse !important; 
-                border: 1.5pt solid black !important; 
+                border: 1.5pt solid #000 !important; 
                 min-width: 100% !important; 
-                margin-top: 20px;
+                margin-top: 10px;
                 background: transparent !important;
+                -webkit-print-color-adjust: exact;
             }
-            /* Make rows semi-transparent so logo shows through */
-            tr { background: rgba(255, 255, 255, 0.6) !important; }
-            th { border: 1pt solid black !important; background-color: #f2f2f2 !important; color: black !important; padding: 10px !important; font-size: 9pt !important; text-transform: uppercase; }
-            td { border: 1pt solid black !important; padding: 8px !important; color: black !important; font-size: 9pt !important; }
-            #printHeader { display: flex !important; flex-direction: column !important; align-items: center !important; text-align: center !important; margin-bottom: 20px !important; }
+            th { 
+                border: 1pt solid #000 !important; 
+                background-color: #f3f4f6 !important; 
+                color: black !important; 
+                padding: 8px !important; 
+                font-size: 10px !important; 
+                text-transform: uppercase; 
+                font-weight: 800;
+                -webkit-print-color-adjust: exact;
+            }
+            td { 
+                border: 1pt solid #000 !important; 
+                padding: 6px 10px !important; 
+                color: black !important; 
+                font-size: 10px !important; 
+                background: rgba(255, 255, 255, 0.4) !important; /* Slight opacity to see watermark */
+            }
+
+            #printHeader { display: flex !important; }
         }
     </style>
 </head>
@@ -170,16 +192,19 @@
                 </div>
             </header>
 
-            <div class="flex-1 overflow-y-auto p-4 md:p-10 scrollbar-hide">
+            <div class="flex-1 overflow-y-auto p-4 md:p-10">
                 <div id="workspace" class="max-w-7xl mx-auto space-y-6 md:space-y-10">
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 no-print" id="infoSummary"></div>
+                    
                     <div id="printArea">
                         <div class="print-watermark hidden"><img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
+                        
                         <div id="printHeader" class="hidden flex-col items-center text-center w-full mb-8">
                             <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="w-16 mb-2">
                             <h2 class="text-xl font-black text-black uppercase">Central Mindanao Computer School</h2>
                             <p class="text-[9px] text-black uppercase font-bold">2nd Floor Villasor Building, Burgos Street, Mlang, Cotabato</p>
                             <p class="w-full border-t-2 border-black mt-4 pt-2 font-black text-black uppercase tracking-widest text-sm" id="lblReportType"></p>
+                            
                             <div class="grid grid-cols-2 gap-x-12 mt-6 text-left w-full border-b border-black pb-4 text-black text-[10pt]">
                                 <div class="space-y-1">
                                     <p class="font-bold">Student: <span id="pName" class="font-normal uppercase"></span></p>
@@ -193,6 +218,7 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="glass-card transparent-table-card overflow-hidden">
                             <div id="scrollContainer" class="table-container">
                                 <table class="w-full text-left border-collapse" id="mainTable">
@@ -214,6 +240,7 @@
 
         const firebaseConfig = { apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ", authDomain: "svls-289ee.firebaseapp.com", projectId: "svls-289ee", storageBucket: "svls-289ee.firebasestorage.app", messagingSenderId: "500705386198", appId: "1:500705386198:web:96f189662bc2aa99cf7377" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
+        
         let currentStudent = null, programs = [], activeSubj = null, currentMode = 'schedules';
 
         function t12(t) { if (!t) return ""; let [h, m] = t.split(':'); h = parseInt(h); const p = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${m} ${p}`; }
@@ -263,20 +290,20 @@
 
         window.switchGlobalView = (mode) => {
             currentMode = mode; activeSubj = null;
-            document.getElementById('mainHeader').classList.add('hide-tabs'); // ADD MOBILE HIDER
+            document.getElementById('mainHeader').classList.add('hide-tabs');
             document.querySelectorAll('.sidebar-btn, .subj-btn').forEach(b => b.classList.remove('active-nav'));
             const navId = mode === 'schedules' ? 'navSched' : 'navGrades';
             if(document.getElementById(navId)) document.getElementById(navId).classList.add('active-nav');
             document.getElementById('headerTitle').innerText = mode === 'schedules' ? "OFFICIAL CLASS SCHEDULES" : "SCHOLASTIC PERFORMANCE RECORD";
             document.getElementById('headerContext').innerHTML = '';
-            document.getElementById('subjectToggles').style.display = 'none'; // DOM HIDER
+            document.getElementById('subjectToggles').style.display = 'none';
             document.getElementById('exportGroup').classList.remove('hidden');
             renderTable();
         };
 
         window.switchSubjectView = (p) => {
             activeSubj = p; currentMode = 'attendance';
-            document.getElementById('mainHeader').classList.remove('hide-tabs'); // REMOVE MOBILE HIDER
+            document.getElementById('mainHeader').classList.remove('hide-tabs');
             document.querySelectorAll('.sidebar-btn, .subj-btn').forEach(b => b.classList.remove('active-nav'));
             const navEl = document.getElementById(`nav-${p.code}`); if (navEl) navEl.classList.add('active-nav');
             document.getElementById('headerTitle').innerText = p.name;
@@ -284,7 +311,7 @@
                 <span class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-calendar mr-1"></i> ${p.schedule}</span>
                 <span class="bg-white/10 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-clock mr-1"></i> ${t12(p.startTime)} - ${t12(p.endTime)}</span>
                 <span class="bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-user-tie mr-1"></i> ${p.teacher}</span>`;
-            document.getElementById('subjectToggles').style.display = 'flex'; // DOM SHOW
+            document.getElementById('subjectToggles').style.display = 'flex';
             switchSubTab('attendance');
         };
 
@@ -333,13 +360,18 @@
 
         window.exportPDF = () => {
             const now = new Date(); document.getElementById('pGenDate').innerText = now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-            document.getElementById('lblReportType').innerText = currentMode === 'schedules' ? "CERTIFICATE OF MATRICULATION / SCHEDULE" : "OFFICIAL STUDENT SCHOLASTIC RECORD";
+            document.getElementById('lblReportType').innerText = currentMode === 'schedules' ? "OFFICIAL CLASS SCHEDULE / CERTIFICATE OF MATRICULATION" : (currentMode === 'grades' ? "OFFICIAL STUDENT SCHOLASTIC RECORD" : "STUDENT ATTENDANCE REPORT");
             document.getElementById('pName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
             document.getElementById('pID').innerText = currentStudent.studentId; document.getElementById('pCourse').innerText = currentStudent.course;
             document.getElementById('pYearSem').innerText = `YEAR ${currentStudent.year} - ${currentStudent.semester}`;
+            
+            // Prepare Print View
             document.getElementById('printHeader').classList.replace('hidden', 'flex');
             document.querySelector('.print-watermark').classList.remove('hidden');
+            
             window.print();
+            
+            // Revert UI
             document.getElementById('printHeader').classList.replace('flex', 'hidden');
             document.querySelector('.print-watermark').classList.add('hidden');
         };
