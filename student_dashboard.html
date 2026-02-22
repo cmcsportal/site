@@ -34,7 +34,6 @@
             filter: grayscale(1) brightness(0.5);
         }
 
-        /* UI Cards */
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(24px);
@@ -43,28 +42,24 @@
             border-radius: 1.5rem;
         }
 
-        /* Transparent Table for Watermark Visibility */
         .transparent-table-card {
             background: rgba(255, 255, 255, 0.01) !important;
             backdrop-filter: blur(8px);
         }
 
-        /* Sidebar Styling */
         .sidebar {
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(20px);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .sidebar-btn,
-        .subj-btn {
+        .sidebar-btn, .subj-btn {
             transition: all 0.3s ease;
             color: #94a3b8;
             border: 1px solid transparent;
         }
 
-        .sidebar-btn:hover,
-        .subj-btn:hover {
+        .sidebar-btn:hover, .subj-btn:hover {
             background: rgba(255, 255, 255, 0.05);
             color: white;
         }
@@ -76,27 +71,23 @@
             border-radius: 12px !important;
         }
 
-        /* Modern Scrollbar for Table */
+        /* Modern Scrollbar */
         .table-container::-webkit-scrollbar {
-            height: 8px;
-            display: block;
+            height: 6px;
+            width: 6px;
         }
 
         .table-container::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.02);
-            border-radius: 10px;
         }
 
         .table-container::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            border: 2px solid transparent;
-            background-clip: content-box;
+            border-radius: 100px;
         }
 
         .table-container::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.4);
-            background-clip: content-box;
         }
 
         .table-container {
@@ -106,40 +97,21 @@
             cursor: grab;
         }
 
-        .table-container:active {
-            cursor: grabbing;
-        }
+        .table-container:active { cursor: grabbing; }
 
         table {
             min-width: 800px;
             width: 100%;
         }
 
-        /* Mobile specific layout fixes */
         @media (max-width: 768px) {
-            header {
-                flex-direction: column !important;
-                align-items: stretch !important;
-            }
-            .header-actions {
-                flex-direction: column !important;
-                width: 100% !important;
-                gap: 0.75rem !important;
-            }
-            #subjectToggles {
-                width: 100% !important;
-                display: flex !important;
-            }
-            #exportGroup {
-                width: 100% !important;
-                justify-content: space-between;
-            }
-            #exportGroup button {
-                flex: 1;
-            }
+            header { flex-direction: column !important; align-items: stretch !important; }
+            .header-actions { flex-direction: column !important; width: 100% !important; gap: 0.75rem !important; }
+            #subjectToggles { width: 100% !important; display: flex !important; }
+            #exportGroup { width: 100% !important; justify-content: space-between; display: flex; }
+            #exportGroup button { flex: 1; }
         }
 
-        /* Universal PDF/Print Fix - Untouched */
         @media print {
             @page { margin: 1.5cm; size: portrait; }
             html, body { background: white !important; color: black !important; height: auto !important; overflow: visible !important; }
@@ -147,13 +119,30 @@
             #printAreaWrapper { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
             #printArea { display: block !important; background: white !important; }
             .no-print { display: none !important; }
-            .glass-card { border: none !important; background: transparent !important; border-radius: 0 !important; backdrop-filter: none !important; padding: 0 !important; }
-            table { width: 100% !important; border-collapse: collapse !important; border: 1.5pt solid black !important; min-width: 100% !important; margin-top: 20px; table-layout: auto; }
-            th { border: 1pt solid black !important; background-color: #f2f2f2 !important; color: black !important; -webkit-print-color-adjust: exact; padding: 10px !important; font-size: 9pt !important; text-transform: uppercase; }
-            td { border: 1pt solid black !important; padding: 8px !important; color: black !important; font-size: 9pt !important; background: transparent !important; }
-            #tableBody td, #tableBody span, #tableBody div { color: black !important; opacity: 1 !important; font-weight: normal !important; }
+            
+            /* Print Watermark Visibility Fix */
+            .print-watermark {
+                display: flex !important;
+                position: fixed;
+                inset: 0;
+                justify-content: center;
+                align-items: center;
+                opacity: 0.08 !important;
+                z-index: -1;
+                pointer-events: none;
+            }
+            .print-watermark img { height: 60%; filter: grayscale(1); }
+
+            table { 
+                width: 100% !important; 
+                border-collapse: collapse !important; 
+                border: 1pt solid black !important; 
+                min-width: 100% !important; 
+                background: rgba(255, 255, 255, 0.5) !important; /* Allow watermark to show */
+            }
+            th { border: 1pt solid black !important; background-color: rgba(240, 240, 240, 0.8) !important; color: black !important; -webkit-print-color-adjust: exact; padding: 10px !important; font-size: 9pt !important; }
+            td { border: 1pt solid black !important; padding: 8px !important; color: black !important; font-size: 9pt !important; background: transparent !important; -webkit-print-color-adjust: exact; }
             #printHeader { display: flex !important; flex-direction: column !important; align-items: center !important; text-align: center !important; margin-bottom: 20px !important; }
-            .print-watermark { display: flex !important; position: fixed; inset: 0; justify-content: center; align-items: center; opacity: 0.05 !important; z-index: -1; }
         }
     </style>
 </head>
@@ -301,7 +290,7 @@
         function setupDraggableTable() {
             const slider = document.getElementById('scrollContainer');
             let isDown = false, startX, scrollLeft;
-            slider.addEventListener('mousedown', (e) => { isDown = true; slider.classList.add('active'); startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
+            slider.addEventListener('mousedown', (e) => { isDown = true; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
             slider.addEventListener('mouseleave', () => { isDown = false; });
             slider.addEventListener('mouseup', () => { isDown = false; });
             slider.addEventListener('mousemove', (e) => { if(!isDown) return; e.preventDefault(); const x = e.pageX - slider.offsetLeft; const walk = (x - startX) * 2; slider.scrollLeft = scrollLeft - walk; });
