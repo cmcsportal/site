@@ -9,6 +9,10 @@
    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
    <style>
+       * {
+           box-sizing: border-box;
+       }
+       
        body {
            font-family: 'Inter', sans-serif;
            background-color: #050505;
@@ -67,15 +71,15 @@
                top: 0;
                left: 0;
                right: 0;
-               height: 60px;
-               background: rgba(5, 5, 5, 0.95);
+               height: 56px;
+               background: rgba(5, 5, 5, 0.98);
                backdrop-filter: blur(20px);
                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
                z-index: 100;
                display: flex;
                align-items: center;
                justify-content: space-between;
-               padding: 0 16px;
+               padding: 0 12px;
            }
 
            .mobile-menu-overlay {
@@ -105,21 +109,24 @@
            }
            .mobile-drawer.active { transform: translateX(0); }
 
-           /* Subject Cards Grid - Google Classroom Style */
+           /* Subject Cards Grid - Scrollable */
            .subjects-grid {
                display: flex;
                flex-direction: column;
-               gap: 12px;
-               padding: 16px;
-               padding-top: 80px;
-               padding-bottom: 100px;
+               gap: 8px;
+               padding: 12px;
+               padding-top: 68px;
+               padding-bottom: 20px;
+               overflow-y: auto;
+               height: 100vh;
+               -webkit-overflow-scrolling: touch;
            }
 
            .subject-card {
                position: relative;
-               border-radius: 16px;
-               padding: 20px;
-               min-height: 160px;
+               border-radius: 12px;
+               padding: 16px;
+               min-height: 120px;
                display: flex;
                flex-direction: column;
                justify-content: space-between;
@@ -127,6 +134,7 @@
                transition: transform 0.2s ease, box-shadow 0.2s ease;
                overflow: hidden;
                border: 1px solid rgba(255, 255, 255, 0.1);
+               flex-shrink: 0;
            }
            .subject-card:active { transform: scale(0.98); }
 
@@ -146,42 +154,52 @@
            }
 
            .subject-title {
-               font-size: 22px;
+               font-size: 18px;
                font-weight: 800;
                color: white;
                text-shadow: 0 2px 4px rgba(0,0,0,0.3);
                line-height: 1.2;
-               margin-bottom: 4px;
+               margin-bottom: 2px;
            }
 
            .subject-section {
-               font-size: 13px;
+               font-size: 12px;
                font-weight: 600;
-               color: rgba(255,255,255,0.9);
+               color: rgba(255,255,255,0.8);
            }
 
            .subject-meta {
                display: flex;
                flex-direction: column;
-               gap: 8px;
+               gap: 4px;
                z-index: 2;
+               margin-top: 8px;
            }
 
            .subject-time-row {
                display: flex;
                align-items: center;
-               gap: 8px;
-               font-size: 13px;
+               gap: 6px;
+               font-size: 12px;
                font-weight: 600;
                color: rgba(255,255,255,0.9);
            }
 
+           .subject-date {
+               font-size: 11px;
+               font-weight: 700;
+               color: rgba(255,255,255,0.7);
+               text-transform: uppercase;
+               letter-spacing: 0.05em;
+               margin-top: 4px;
+           }
+
            .subject-icon {
                position: absolute;
-               right: 16px;
-               bottom: 16px;
-               font-size: 56px;
-               opacity: 0.2;
+               right: 12px;
+               bottom: 12px;
+               font-size: 48px;
+               opacity: 0.15;
                transform: rotate(-12deg);
                z-index: 1;
            }
@@ -189,19 +207,19 @@
            /* Active Session Indicator */
            .active-session-badge {
                position: absolute;
-               top: 16px;
-               right: 16px;
+               top: 12px;
+               right: 12px;
                background: #10b981;
                color: white;
-               padding: 6px 12px;
+               padding: 4px 10px;
                border-radius: 20px;
-               font-size: 11px;
+               font-size: 10px;
                font-weight: 800;
                text-transform: uppercase;
                letter-spacing: 0.05em;
                display: flex;
                align-items: center;
-               gap: 6px;
+               gap: 4px;
                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
                z-index: 3;
                animation: pulse-badge 2s infinite;
@@ -214,8 +232,8 @@
 
            .active-session-badge::before {
                content: '';
-               width: 6px;
-               height: 6px;
+               width: 5px;
+               height: 5px;
                background: white;
                border-radius: 50%;
                animation: blink 1.5s infinite;
@@ -229,19 +247,19 @@
            /* Next Class Indicator */
            .next-class-badge {
                position: absolute;
-               top: 16px;
-               right: 16px;
+               top: 12px;
+               right: 12px;
                background: #f59e0b;
                color: white;
-               padding: 6px 12px;
+               padding: 4px 10px;
                border-radius: 20px;
-               font-size: 11px;
+               font-size: 10px;
                font-weight: 800;
                text-transform: uppercase;
                letter-spacing: 0.05em;
                display: flex;
                align-items: center;
-               gap: 6px;
+               gap: 4px;
                box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
                z-index: 3;
            }
@@ -268,23 +286,24 @@
            .mobile-view-header {
                background: rgba(255, 255, 255, 0.03);
                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-               padding: 60px 20px 20px;
+               padding: 56px 16px 16px;
                position: relative;
+               flex-shrink: 0;
            }
 
            .mobile-view-content {
                flex: 1;
                overflow-y: auto;
-               padding: 20px;
-               padding-bottom: 100px;
+               padding: 12px;
+               padding-bottom: 80px;
            }
 
            .mobile-back-btn {
                position: absolute;
-               top: 16px;
-               left: 16px;
-               width: 40px;
-               height: 40px;
+               top: 12px;
+               left: 12px;
+               width: 36px;
+               height: 36px;
                border-radius: 50%;
                background: rgba(255, 255, 255, 0.1);
                border: none;
@@ -292,12 +311,12 @@
                display: flex;
                align-items: center;
                justify-content: center;
-               font-size: 18px;
+               font-size: 16px;
                cursor: pointer;
                z-index: 10;
            }
 
-           /* Mobile Export Buttons - Fixed at bottom */
+           /* Mobile Export Buttons */
            .mobile-export-bar {
                position: fixed;
                bottom: 0;
@@ -307,16 +326,16 @@
                backdrop-filter: blur(20px);
                border-top: 1px solid rgba(255, 255, 255, 0.1);
                display: flex;
-               gap: 12px;
-               padding: 16px;
+               gap: 8px;
+               padding: 12px;
                z-index: 130;
            }
 
            .mobile-export-btn {
                flex: 1;
-               padding: 14px 20px;
-               border-radius: 12px;
-               font-size: 12px;
+               padding: 12px 16px;
+               border-radius: 10px;
+               font-size: 11px;
                font-weight: 800;
                text-transform: uppercase;
                letter-spacing: 0.05em;
@@ -352,20 +371,20 @@
                display: flex;
                justify-content: space-between;
                align-items: center;
-               padding: 16px;
+               padding: 12px;
                background: rgba(255, 255, 255, 0.02);
-               border-radius: 12px;
-               margin-bottom: 8px;
+               border-radius: 10px;
+               margin-bottom: 6px;
                border: 1px solid rgba(255, 255, 255, 0.05);
            }
 
            .schedule-row {
                display: flex;
                flex-direction: column;
-               padding: 16px;
+               padding: 12px;
                background: rgba(255, 255, 255, 0.02);
-               border-radius: 12px;
-               margin-bottom: 8px;
+               border-radius: 10px;
+               margin-bottom: 6px;
                border: 1px solid rgba(255, 255, 255, 0.05);
            }
 
@@ -373,11 +392,11 @@
                display: flex;
                justify-content: space-between;
                align-items: center;
-               margin-bottom: 8px;
+               margin-bottom: 6px;
            }
 
            .schedule-subject-name {
-               font-size: 16px;
+               font-size: 14px;
                font-weight: 800;
                color: white;
                text-transform: uppercase;
@@ -385,9 +404,9 @@
 
            .schedule-code {
                background: rgba(255, 255, 255, 0.1);
-               padding: 4px 10px;
-               border-radius: 6px;
-               font-size: 11px;
+               padding: 3px 8px;
+               border-radius: 5px;
+               font-size: 10px;
                font-weight: 700;
                color: rgba(255, 255, 255, 0.8);
            }
@@ -395,49 +414,49 @@
            .schedule-details {
                display: flex;
                flex-wrap: wrap;
-               gap: 12px;
-               margin-top: 4px;
+               gap: 10px;
+               margin-top: 2px;
            }
 
            .schedule-detail-item {
                display: flex;
                align-items: center;
-               gap: 6px;
-               font-size: 12px;
+               gap: 5px;
+               font-size: 11px;
                color: rgba(255, 255, 255, 0.6);
                font-weight: 600;
            }
 
            .schedule-detail-item i {
                color: rgba(255, 255, 255, 0.4);
-               font-size: 11px;
+               font-size: 10px;
            }
 
-           /* Grade Cards for Mobile Records */
+           /* Grade Cards */
            .grade-card {
                background: rgba(255, 255, 255, 0.02);
                border: 1px solid rgba(255, 255, 255, 0.05);
-               border-radius: 16px;
-               padding: 20px;
-               margin-bottom: 12px;
+               border-radius: 12px;
+               padding: 16px;
+               margin-bottom: 8px;
            }
 
            .grade-card-header {
                display: flex;
                justify-content: space-between;
                align-items: center;
-               margin-bottom: 16px;
+               margin-bottom: 12px;
            }
 
            .grade-subject {
-               font-size: 16px;
+               font-size: 14px;
                font-weight: 800;
                color: white;
                text-transform: uppercase;
            }
 
            .grade-gpa {
-               font-size: 24px;
+               font-size: 20px;
                font-weight: 900;
                color: #60a5fa;
            }
@@ -445,113 +464,166 @@
            .grade-breakdown {
                display: grid;
                grid-template-columns: repeat(3, 1fr);
-               gap: 12px;
+               gap: 8px;
            }
 
            .grade-item {
                text-align: center;
-               padding: 12px;
+               padding: 10px;
                background: rgba(255, 255, 255, 0.03);
-               border-radius: 10px;
+               border-radius: 8px;
            }
 
            .grade-label {
-               font-size: 10px;
+               font-size: 9px;
                font-weight: 700;
                color: rgba(255, 255, 255, 0.4);
                text-transform: uppercase;
                letter-spacing: 0.1em;
-               margin-bottom: 4px;
+               margin-bottom: 3px;
            }
 
            .grade-value {
-               font-size: 20px;
+               font-size: 18px;
                font-weight: 800;
                color: white;
            }
 
-           /* Mobile Tab Bar for Subject Detail */
-           .mobile-tab-bar {
-               position: fixed;
-               bottom: 0;
-               left: 0;
-               right: 0;
-               background: rgba(10, 10, 10, 0.98);
-               backdrop-filter: blur(20px);
-               border-top: 1px solid rgba(255, 255, 255, 0.1);
+           /* Subject Detail - Side by Side Layout */
+           .mobile-detail-layout {
                display: flex;
-               justify-content: space-around;
-               padding: 12px 0 24px;
-               z-index: 130;
+               gap: 12px;
+               height: 100%;
            }
 
-           .mobile-tab-btn {
+           .materials-column, .attendance-column {
+               flex: 1;
                display: flex;
                flex-direction: column;
+               min-width: 0;
+           }
+
+           .column-header {
+               font-size: 12px;
+               font-weight: 800;
+               color: rgba(255, 255, 255, 0.6);
+               text-transform: uppercase;
+               letter-spacing: 0.1em;
+               margin-bottom: 12px;
+               padding-bottom: 8px;
+               border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+           }
+
+           .material-card {
+               background: rgba(255, 255, 255, 0.02);
+               border: 1px solid rgba(255, 255, 255, 0.05);
+               border-radius: 10px;
+               padding: 12px;
+               margin-bottom: 8px;
+           }
+
+           .material-name {
+               font-size: 13px;
+               font-weight: 700;
+               color: white;
+               margin-bottom: 4px;
+               display: flex;
+               align-items: center;
+               gap: 8px;
+           }
+
+           .material-desc {
+               font-size: 11px;
+               color: rgba(255, 255, 255, 0.6);
+               margin-bottom: 6px;
+               line-height: 1.4;
+           }
+
+           .material-meta {
+               display: flex;
+               justify-content: space-between;
+               align-items: center;
+               font-size: 10px;
+               color: rgba(255, 255, 255, 0.4);
+           }
+
+           .material-link {
+               display: inline-flex;
                align-items: center;
                gap: 4px;
-               padding: 8px 24px;
-               color: #666;
-               font-size: 11px;
+               background: rgba(255, 255, 255, 0.1);
+               color: white;
+               padding: 4px 10px;
+               border-radius: 6px;
+               font-size: 10px;
                font-weight: 700;
-               text-transform: uppercase;
-               transition: color 0.2s;
-               background: none;
-               border: none;
+               text-decoration: none;
+               margin-top: 8px;
            }
-           .mobile-tab-btn.active { color: white; }
-           .mobile-tab-btn i { font-size: 20px; }
+
+           .attendance-item {
+               display: flex;
+               justify-content: space-between;
+               align-items: center;
+               padding: 10px 12px;
+               background: rgba(255, 255, 255, 0.02);
+               border-radius: 8px;
+               margin-bottom: 6px;
+               border: 1px solid rgba(255, 255, 255, 0.05);
+           }
+
+           .attendance-date {
+               font-size: 12px;
+               font-weight: 600;
+               color: white;
+           }
+
+           .attendance-status {
+               font-size: 10px;
+               font-weight: 800;
+               text-transform: uppercase;
+               padding: 3px 10px;
+               border-radius: 20px;
+           }
+
+           .attendance-status.present {
+               background: rgba(16, 185, 129, 0.15);
+               color: #10b981;
+               border: 1px solid rgba(16, 185, 129, 0.3);
+           }
+
+           .attendance-status.absent {
+               background: rgba(239, 68, 68, 0.15);
+               color: #ef4444;
+               border: 1px solid rgba(239, 68, 68, 0.3);
+           }
 
            /* Hide desktop elements on mobile */
            .desktop-only { display: none !important; }
            
            #printAreaWrapper {
-               padding-top: 60px;
+               padding-top: 56px;
            }
            
            header#mainHeader {
-               top: 60px;
-           }
-
-           /* Day Section Headers */
-           .day-section {
-               margin-bottom: 24px;
-           }
-
-           .day-section .subject-card {
-               margin-bottom: 12px;
-           }
-
-           .day-section .subject-card:last-child {
-               margin-bottom: 0;
-           }
-
-           .day-header {
-               font-size: 12px;
-               font-weight: 800;
-               color: rgba(255, 255, 255, 0.5);
-               text-transform: uppercase;
-               letter-spacing: 0.1em;
-               margin-bottom: 16px;
-               margin-top: 8px;
-               padding-left: 4px;
-           }
-
-           .day-section:first-child .day-header {
-               margin-top: 0;
+               top: 56px;
            }
 
            /* Empty state */
            .empty-state {
                text-align: center;
-               padding: 60px 20px;
+               padding: 40px 20px;
                color: rgba(255, 255, 255, 0.4);
            }
 
            .empty-state i {
-               font-size: 48px;
-               margin-bottom: 16px;
+               font-size: 40px;
+               margin-bottom: 12px;
                opacity: 0.3;
+           }
+
+           .empty-state p {
+               font-size: 13px;
            }
        }
 
@@ -562,148 +634,137 @@
            .mobile-drawer { display: none; }
            .subjects-grid { display: none; }
            .mobile-fullscreen-view { display: none; }
-           .mobile-tab-bar { display: none; }
            .mobile-export-bar { display: none; }
        }
 
        @media (max-width: 768px) {
            header { flex-direction: column !important; align-items: stretch !important; }
-           .header-actions { flex-direction: column !important; width: 100% !important; gap: 0.75rem !important; }
+           .header-actions { flex-direction: column !important; width: 100% !important; gap: 0.5rem !important; }
            #subjectToggles { width: 100%; display: flex; }
            .hide-tabs #subjectToggles { display: none !important; }
-           #exportGroup { width: 100% !important; justify-content: space-between; display: flex; gap: 8px; }
+           #exportGroup { width: 100% !important; justify-content: space-between; display: flex; gap: 6px; }
            #exportGroup button { flex: 1; }
        }
 
-       /* --- PRINT STYLES --- */
-     /* --- PRINT STYLES - Unified for Desktop and Mobile --- */
-@media print {
-    @page { margin: 1cm; size: portrait; }
-    
-    /* Reset all backgrounds */
-    html, body { 
-        background: white !important; 
-        color: black !important; 
-        height: auto !important; 
-        overflow: visible !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-    
-    /* Hide all UI elements */
-    body > *:not(#printAreaWrapper), 
-    .no-print, 
-    header, 
-    aside, 
-    #infoSummary, 
-    #subjectToggles, 
-    .mobile-header, 
-    .mobile-only,
-    .mobile-menu-overlay,
-    .mobile-drawer,
-    .mobile-fullscreen-view,
-    .subjects-grid,
-    .mobile-export-bar,
-    .mobile-tab-bar {
-        display: none !important;
-    }
-    
-    /* Show print wrapper */
-    #printAreaWrapper { 
-        display: block !important; 
-        position: static !important; 
-        width: 100% !important; 
-        padding: 0 !important;
-        margin: 0 !important;
-        overflow: visible !important;
-    }
-    
-    #workspace { 
-        padding: 0 !important; 
-        margin: 0 !important; 
-        max-width: 100% !important;
-    }
-    
-    /* Watermark */
-    .print-watermark { 
-        display: flex !important; 
-        position: fixed !important; 
-        inset: 0 !important; 
-        justify-content: center !important; 
-        align-items: center !important; 
-        opacity: 0.12 !important; 
-        z-index: -10 !important; 
-        pointer-events: none;
-    }
-    .print-watermark img { 
-        width: 80% !important; 
-        filter: grayscale(1) !important; 
-    }
+       /* --- PRINT STYLES - Unified --- */
+       @media print {
+           @page { margin: 1cm; size: portrait; }
+           
+           html, body { 
+               background: white !important; 
+               color: black !important; 
+               height: auto !important; 
+               overflow: visible !important;
+               -webkit-print-color-adjust: exact !important;
+               print-color-adjust: exact !important;
+           }
+           
+           body > *:not(#printAreaWrapper), 
+           .no-print, 
+           header, 
+           aside, 
+           #infoSummary, 
+           #subjectToggles, 
+           .mobile-header, 
+           .mobile-only,
+           .mobile-menu-overlay,
+           .mobile-drawer,
+           .mobile-fullscreen-view,
+           .subjects-grid,
+           .mobile-export-bar {
+               display: none !important;
+           }
+           
+           #printAreaWrapper { 
+               display: block !important; 
+               position: static !important; 
+               width: 100% !important; 
+               padding: 0 !important;
+               margin: 0 !important;
+               overflow: visible !important;
+           }
+           
+           #workspace { 
+               padding: 0 !important; 
+               margin: 0 !important; 
+               max-width: 100% !important;
+           }
+           
+           .print-watermark { 
+               display: flex !important; 
+               position: fixed !important; 
+               inset: 0 !important; 
+               justify-content: center !important; 
+               align-items: center !important; 
+               opacity: 0.12 !important; 
+               z-index: -10 !important; 
+               pointer-events: none;
+           }
+           .print-watermark img { 
+               width: 80% !important; 
+               filter: grayscale(1) !important; 
+           }
 
-    /* Remove glass effects */
-    .glass-card { 
-        border: none !important; 
-        background: transparent !important; 
-        border-radius: 0 !important; 
-        backdrop-filter: none !important; 
-        padding: 0 !important; 
-        box-shadow: none !important; 
-    }
-    
-    .transparent-table-card {
-        background: transparent !important;
-        backdrop-filter: none !important;
-    }
+           .glass-card { 
+               border: none !important; 
+               background: transparent !important; 
+               border-radius: 0 !important; 
+               backdrop-filter: none !important; 
+               padding: 0 !important; 
+               box-shadow: none !important; 
+           }
+           
+           .transparent-table-card {
+               background: transparent !important;
+               backdrop-filter: none !important;
+           }
 
-    /* Table styling */
-    #printArea {
-        display: block !important;
-        width: 100% !important;
-    }
+           #printArea {
+               display: block !important;
+               width: 100% !important;
+           }
 
-    table { 
-        width: 100% !important; 
-        border-collapse: collapse !important; 
-        border: 1.5pt solid #000 !important; 
-        min-width: 100% !important; 
-        margin-top: 10px !important;
-        background: transparent !important;
-        font-size: 10px !important;
-    }
-    
-    th { 
-        border: 1pt solid #000 !important; 
-        background-color: #f3f4f6 !important; 
-        color: black !important; 
-        padding: 8px !important; 
-        font-size: 10px !important; 
-        text-transform: uppercase; 
-        font-weight: 800 !important;
-    }
-    
-    td { 
-        border: 1pt solid #000 !important; 
-        padding: 6px 10px !important; 
-        color: black !important; 
-        font-size: 10px !important; 
-        background: rgba(255, 255, 255, 0.4) !important;
-    }
+           table { 
+               width: 100% !important; 
+               border-collapse: collapse !important; 
+               border: 1.5pt solid #000 !important; 
+               min-width: 100% !important; 
+               margin-top: 10px !important;
+               background: transparent !important;
+               font-size: 10px !important;
+           }
+           
+           th { 
+               border: 1pt solid #000 !important; 
+               background-color: #f3f4f6 !important; 
+               color: black !important; 
+               padding: 8px !important; 
+               font-size: 10px !important; 
+               text-transform: uppercase; 
+               font-weight: 800 !important;
+           }
+           
+           td { 
+               border: 1pt solid #000 !important; 
+               padding: 6px 10px !important; 
+               color: black !important; 
+               font-size: 10px !important; 
+               background: rgba(255, 255, 255, 0.4) !important;
+           }
 
-    /* Show print header */
-    #printHeader { 
-        display: flex !important; 
-    }
-    
-    /* Ensure table container doesn't scroll */
-    .table-container {
-        overflow: visible !important;
-        cursor: default !important;
-    }
-    
-    #mainTable {
-        min-width: 100% !important;
-    }
-}
+           #printHeader { 
+               display: flex !important; 
+           }
+           
+           .table-container {
+               overflow: visible !important;
+               cursor: default !important;
+           }
+           
+           #mainTable {
+               min-width: 100% !important;
+           }
+       }
    </style>
 </head>
 
@@ -712,11 +773,11 @@
 
    <!-- Mobile Header -->
    <div class="mobile-header no-print">
-       <button onclick="toggleMobileMenu()" class="text-white p-2 text-xl">
+       <button onclick="toggleMobileMenu()" class="text-white p-2 text-lg">
            <i class="fa-solid fa-bars-staggered"></i>
        </button>
        <div class="font-black text-sm tracking-tighter uppercase">CMCS <span class="text-gray-500">VLS</span></div>
-       <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-xs font-bold text-black uppercase" id="mobileHeaderInitial">AD</div>
+       <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center text-xs font-bold text-black uppercase" id="mobileHeaderInitial">AD</div>
    </div>
 
    <!-- Mobile Menu Overlay -->
@@ -724,37 +785,37 @@
 
    <!-- Mobile Drawer -->
    <div class="mobile-drawer no-print" id="mobileDrawer">
-       <div class="p-6 border-b border-white/10">
-           <div class="flex items-center gap-4">
-               <div id="mobileDrawerInitial" class="w-14 h-14 rounded-full bg-white flex items-center justify-center text-lg font-bold text-black uppercase">AD</div>
+       <div class="p-5 border-b border-white/10">
+           <div class="flex items-center gap-3">
+               <div id="mobileDrawerInitial" class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-base font-bold text-black uppercase">AD</div>
                <div>
                    <p class="text-sm font-black text-white uppercase" id="mobileDrawerName">Loading...</p>
                    <p class="text-xs text-gray-500 font-bold uppercase tracking-widest" id="mobileDrawerId">Student</p>
                </div>
            </div>
        </div>
-       <nav class="p-4 space-y-2">
-           <p class="px-4 text-[10px] font-bold text-gray-600 uppercase tracking-[0.3em] mb-4 mt-4">Core Portal</p>
-           <a onclick="openMobileSchedules(); toggleMobileMenu();" class="flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-semibold text-gray-300 hover:bg-white/5 transition-all cursor-pointer">
-               <i class="fa-solid fa-calendar-day text-lg w-6"></i> <span class="uppercase font-bold">Schedules</span>
+       <nav class="p-3 space-y-1">
+           <p class="px-3 text-[10px] font-bold text-gray-600 uppercase tracking-[0.3em] mb-3 mt-3">Core Portal</p>
+           <a onclick="openMobileSchedules(); toggleMobileMenu();" class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-gray-300 hover:bg-white/5 transition-all cursor-pointer">
+               <i class="fa-solid fa-calendar-day text-base w-5"></i> <span class="uppercase font-bold">Schedules</span>
            </a>
-           <a onclick="openMobileRecords(); toggleMobileMenu();" class="flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-semibold text-gray-300 hover:bg-white/5 transition-all cursor-pointer">
-               <i class="fa-solid fa-file-invoice text-lg w-6"></i> <span class="uppercase font-bold">Records</span>
+           <a onclick="openMobileRecords(); toggleMobileMenu();" class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-gray-300 hover:bg-white/5 transition-all cursor-pointer">
+               <i class="fa-solid fa-file-invoice text-base w-5"></i> <span class="uppercase font-bold">Records</span>
            </a>
            
-           <p class="px-4 text-[10px] font-bold text-gray-600 uppercase tracking-[0.3em] mb-4 mt-8">Account</p>
-           <a href="student_edit.html" class="flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-semibold text-gray-300 hover:bg-white/5 transition-all cursor-pointer">
-               <i class="fa-solid fa-user-gear text-lg w-6"></i> <span class="uppercase font-bold">Edit Profile</span>
+           <p class="px-3 text-[10px] font-bold text-gray-600 uppercase tracking-[0.3em] mb-3 mt-6">Account</p>
+           <a href="student_edit.html" class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-gray-300 hover:bg-white/5 transition-all cursor-pointer">
+               <i class="fa-solid fa-user-gear text-base w-5"></i> <span class="uppercase font-bold">Edit Profile</span>
            </a>
-           <button onclick="logout()" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-semibold text-red-400 hover:bg-red-500/10 transition-all mt-4">
-               <i class="fa-solid fa-right-from-bracket text-lg w-6"></i> <span class="uppercase font-bold">Sign Out</span>
+           <button onclick="logout()" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-500/10 transition-all mt-3">
+               <i class="fa-solid fa-right-from-bracket text-base w-5"></i> <span class="uppercase font-bold">Sign Out</span>
            </button>
        </nav>
    </div>
 
    <!-- Mobile Subjects Grid View (Home/Default) -->
    <div class="subjects-grid mobile-only no-print" id="mobileSubjectsView">
-       <!-- Dynamically populated and sorted by schedule -->
+       <!-- Dynamically populated -->
    </div>
 
    <!-- Mobile Schedules Full Screen View -->
@@ -763,19 +824,16 @@
            <button class="mobile-back-btn" onclick="closeMobileFullscreen('mobileSchedulesView')">
                <i class="fa-solid fa-arrow-left"></i>
            </button>
-           <h1 class="text-2xl font-black text-white mb-1">Class Schedules</h1>
-           <p class="text-sm text-gray-400 font-semibold">2025-2026 Academic Year</p>
+           <h1 class="text-xl font-black text-white mb-1">Class Schedules</h1>
+           <p class="text-xs text-gray-400 font-semibold">2025-2026 Academic Year</p>
        </div>
-       <div class="mobile-view-content" id="mobileSchedulesContent">
-           <!-- Dynamic schedule content -->
-       </div>
-       <!-- Mobile Export Buttons for Schedules -->
+       <div class="mobile-view-content" id="mobileSchedulesContent"></div>
        <div class="mobile-export-bar">
            <button class="mobile-export-btn csv" onclick="exportCSVFromMobile('schedules')">
-               <i class="fa-solid fa-file-csv mr-2"></i>Export CSV
+               <i class="fa-solid fa-file-csv mr-1"></i>CSV
            </button>
            <button class="mobile-export-btn pdf" onclick="exportPDFFromMobile('schedules')">
-               <i class="fa-solid fa-file-pdf mr-2"></i>Export PDF
+               <i class="fa-solid fa-file-pdf mr-1"></i>PDF
            </button>
        </div>
    </div>
@@ -786,19 +844,16 @@
            <button class="mobile-back-btn" onclick="closeMobileFullscreen('mobileRecordsView')">
                <i class="fa-solid fa-arrow-left"></i>
            </button>
-           <h1 class="text-2xl font-black text-white mb-1">Academic Records</h1>
-           <p class="text-sm text-gray-400 font-semibold">Scholastic Performance</p>
+           <h1 class="text-xl font-black text-white mb-1">Academic Records</h1>
+           <p class="text-xs text-gray-400 font-semibold">Scholastic Performance</p>
        </div>
-       <div class="mobile-view-content" id="mobileRecordsContent">
-           <!-- Dynamic records content -->
-       </div>
-       <!-- Mobile Export Buttons for Records -->
+       <div class="mobile-view-content" id="mobileRecordsContent"></div>
        <div class="mobile-export-bar">
            <button class="mobile-export-btn csv" onclick="exportCSVFromMobile('grades')">
-               <i class="fa-solid fa-file-csv mr-2"></i>Export CSV
+               <i class="fa-solid fa-file-csv mr-1"></i>CSV
            </button>
            <button class="mobile-export-btn pdf" onclick="exportPDFFromMobile('grades')">
-               <i class="fa-solid fa-file-pdf mr-2"></i>Export PDF
+               <i class="fa-solid fa-file-pdf mr-1"></i>PDF
            </button>
        </div>
    </div>
@@ -809,25 +864,15 @@
            <button class="mobile-back-btn" onclick="closeMobileDetail()">
                <i class="fa-solid fa-arrow-left"></i>
            </button>
-           <h1 class="text-2xl font-black text-white mb-1" id="mobileDetailTitle">Subject Name</h1>
-           <p class="text-sm text-gray-400 font-semibold uppercase tracking-wider" id="mobileDetailSchedule">Schedule</p>
-           <div class="flex items-center gap-2 mt-3">
-               <span class="bg-white/10 px-3 py-1 rounded-full text-xs font-bold uppercase" id="mobileDetailTime">Time</span>
-               <span class="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-xs font-bold uppercase border border-emerald-500/30" id="mobileDetailTeacher">Teacher</span>
+           <h1 class="text-xl font-black text-white mb-1" id="mobileDetailTitle">Subject Name</h1>
+           <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider" id="mobileDetailSchedule">Schedule</p>
+           <div class="flex items-center gap-2 mt-2">
+               <span class="bg-white/10 px-2 py-1 rounded-full text-[10px] font-bold uppercase" id="mobileDetailTime">Time</span>
+               <span class="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-full text-[10px] font-bold uppercase border border-emerald-500/30" id="mobileDetailTeacher">Teacher</span>
            </div>
        </div>
        <div class="mobile-view-content" id="mobileDetailContent">
-           <!-- Dynamic content -->
-       </div>
-       <div class="mobile-tab-bar">
-           <button class="mobile-tab-btn active" id="mobileTabAtt" onclick="switchMobileSubTab('attendance')">
-               <i class="fa-solid fa-clipboard-check"></i>
-               <span>Attendance</span>
-           </button>
-           <button class="mobile-tab-btn" id="mobileTabMat" onclick="switchMobileSubTab('materials')">
-               <i class="fa-solid fa-folder-open"></i>
-               <span>Materials</span>
-           </button>
+           <!-- Side by side layout -->
        </div>
    </div>
 
@@ -891,39 +936,38 @@
                <div id="workspace" class="max-w-7xl mx-auto space-y-6 md:space-y-10">
                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 no-print" id="infoSummary"></div>
                    
-<!-- Print Area - Shared between desktop and mobile -->
-<div id="printArea">
-    <div class="print-watermark hidden"><img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
-    
-    <div id="printHeader" class="hidden flex-col items-center text-center w-full mb-8">
-        <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="w-16 mb-2">
-        <h2 class="text-xl font-black text-black uppercase">Central Mindanao Computer School</h2>
-        <p class="text-[9px] text-black uppercase font-bold">2nd Floor Villasor Building, Burgos Street, Mlang, Cotabato</p>
-        <p class="w-full border-t-2 border-black mt-4 pt-2 font-black text-black uppercase tracking-widest text-sm" id="lblReportType"></p>
-        
-        <div class="grid grid-cols-2 gap-x-12 mt-6 text-left w-full border-b border-black pb-4 text-black text-[10pt]">
-            <div class="space-y-1">
-                <p class="font-bold">Student: <span id="pName" class="font-normal uppercase"></span></p>
-                <p class="font-bold">ID Number: <span id="pID" class="font-normal"></span></p>
-                <p class="font-bold">Course: <span id="pCourse" class="font-normal uppercase"></span></p>
-            </div>
-            <div class="space-y-1">
-                <p class="font-bold">Year/Sem: <span id="pYearSem" class="font-normal uppercase"></span></p>
-                <p class="font-bold">School Year: <span id="pSY" class="font-normal">2025-2026</span></p>
-                <p class="font-bold italic">Date Generated: <span id="pGenDate" class="font-normal not-italic"></span></p>
-            </div>
-        </div>
-    </div>
+                   <div id="printArea">
+                       <div class="print-watermark hidden"><img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
+                       
+                       <div id="printHeader" class="hidden flex-col items-center text-center w-full mb-8">
+                           <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="w-16 mb-2">
+                           <h2 class="text-xl font-black text-black uppercase">Central Mindanao Computer School</h2>
+                           <p class="text-[9px] text-black uppercase font-bold">2nd Floor Villasor Building, Burgos Street, Mlang, Cotabato</p>
+                           <p class="w-full border-t-2 border-black mt-4 pt-2 font-black text-black uppercase tracking-widest text-sm" id="lblReportType"></p>
+                           
+                           <div class="grid grid-cols-2 gap-x-12 mt-6 text-left w-full border-b border-black pb-4 text-black text-[10pt]">
+                               <div class="space-y-1">
+                                   <p class="font-bold">Student: <span id="pName" class="font-normal uppercase"></span></p>
+                                   <p class="font-bold">ID Number: <span id="pID" class="font-normal"></span></p>
+                                   <p class="font-bold">Course: <span id="pCourse" class="font-normal uppercase"></span></p>
+                               </div>
+                               <div class="space-y-1">
+                                   <p class="font-bold">Year/Sem: <span id="pYearSem" class="font-normal uppercase"></span></p>
+                                   <p class="font-bold">School Year: <span id="pSY" class="font-normal">2025-2026</span></p>
+                                   <p class="font-bold italic">Date Generated: <span id="pGenDate" class="font-normal not-italic"></span></p>
+                               </div>
+                           </div>
+                       </div>
 
-    <div class="glass-card transparent-table-card overflow-hidden">
-        <div id="scrollContainer" class="table-container">
-            <table class="w-full text-left border-collapse" id="mainTable">
-                <thead id="tableHead" class="bg-white/5 text-[10px] uppercase font-black text-gray-400"></thead>
-                <tbody id="tableBody" class="divide-y divide-white/5 text-sm"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
+                       <div class="glass-card transparent-table-card overflow-hidden">
+                           <div id="scrollContainer" class="table-container">
+                               <table class="w-full text-left border-collapse" id="mainTable">
+                                   <thead id="tableHead" class="bg-white/5 text-[10px] uppercase font-black text-gray-400"></thead>
+                                   <tbody id="tableBody" class="divide-y divide-white/5 text-sm"></tbody>
+                               </table>
+                           </div>
+                       </div>
+                   </div>
                </div>
            </div>
        </main>
@@ -939,13 +983,12 @@
        
        let currentStudent = null, programs = [], activeSubj = null, currentMode = 'schedules';
        let mobileCurrentSubj = null;
-       let mobileCurrentTab = 'attendance';
        let subjectDesigns = {};
-       let mobileExportMode = 'schedules'; // Track which view is open for export
 
        // Day order mapping
        const dayOrder = { 'M': 1, 'T': 2, 'W': 3, 'TH': 4, 'F': 5, 'SAT': 6, 'SUN': 7 };
        const dayNames = { 'M': 'Monday', 'T': 'Tuesday', 'W': 'Wednesday', 'TH': 'Thursday', 'F': 'Friday', 'SAT': 'Saturday', 'SUN': 'Sunday' };
+       const dayNamesShort = { 'M': 'Mon', 'T': 'Tue', 'W': 'Wed', 'TH': 'Thu', 'F': 'Fri', 'SAT': 'Sat', 'SUN': 'Sun' };
 
        function t12(t) { if (!t) return ""; let [h, m] = t.split(':'); h = parseInt(h); const p = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${m} ${p}`; }
 
@@ -972,15 +1015,7 @@
            const endMinutes = parseTime(program.endTime);
            
            const scheduleDays = program.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
-           const isToday = scheduleDays.some(d => {
-               if (d === currentDay) return true;
-               if (d === 'TH' && currentDay === 'TH') return true;
-               if (d === 'M' && currentDay === 'M') return true;
-               if (d === 'T' && currentDay === 'T') return true;
-               if (d === 'W' && currentDay === 'W') return true;
-               if (d === 'F' && currentDay === 'F') return true;
-               return false;
-           });
+           const isToday = scheduleDays.some(d => d === currentDay);
            
            return isToday && currentTime >= startMinutes && currentTime <= endMinutes;
        }
@@ -991,15 +1026,7 @@
            const startMinutes = parseTime(program.startTime);
            
            const scheduleDays = program.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
-           const isToday = scheduleDays.some(d => {
-               if (d === currentDay) return true;
-               if (d === 'TH' && currentDay === 'TH') return true;
-               if (d === 'M' && currentDay === 'M') return true;
-               if (d === 'T' && currentDay === 'T') return true;
-               if (d === 'W' && currentDay === 'W') return true;
-               if (d === 'F' && currentDay === 'F') return true;
-               return false;
-           });
+           const isToday = scheduleDays.some(d => d === currentDay);
            
            if (!isToday) return false;
            if (startMinutes <= currentTime) return false;
@@ -1009,16 +1036,7 @@
            
            const todayClasses = allPrograms.filter(p => {
                const pDays = p.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
-               const pIsToday = pDays.some(d => {
-                   if (d === currentDay) return true;
-                   if (d === 'TH' && currentDay === 'TH') return true;
-                   if (d === 'M' && currentDay === 'M') return true;
-                   if (d === 'T' && currentDay === 'T') return true;
-                   if (d === 'W' && currentDay === 'W') return true;
-                   if (d === 'F' && currentDay === 'F') return true;
-                   return false;
-               });
-               return pIsToday && parseTime(p.startTime) > currentTime;
+               return pDays.some(d => d === currentDay) && parseTime(p.startTime) > currentTime;
            });
            
            todayClasses.sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
@@ -1036,103 +1054,99 @@
            return `in ${mins}m`;
        }
 
-       function sortProgramsBySchedule(programsList) {
+       function getNextClassDate(program) {
+           const today = new Date();
+           const currentDayCode = getCurrentDayCode();
+           const scheduleDays = program.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
+           
+           // Find next occurrence
+           let daysUntil = 0;
+           let found = false;
+           
+           for (let i = 0; i < 7; i++) {
+               const checkDay = new Date(today);
+               checkDay.setDate(today.getDate() + i);
+               const dayIdx = checkDay.getDay();
+               const dayCode = ['SUN', 'M', 'T', 'W', 'TH', 'F', 'SAT'][dayIdx];
+               
+               if (scheduleDays.includes(dayCode)) {
+                   if (i === 0) {
+                       // Today - check if class hasn't started yet or is currently happening
+                       const currentTime = getCurrentTimeMinutes();
+                       const startMinutes = parseTime(program.startTime);
+                       if (currentTime < startMinutes + 60) { // Show if within an hour after start
+                           daysUntil = 0;
+                           found = true;
+                           break;
+                       }
+                   } else {
+                       daysUntil = i;
+                       found = true;
+                       break;
+                   }
+               }
+           }
+           
+           if (!found) return null;
+           
+           const nextDate = new Date(today);
+           nextDate.setDate(today.getDate() + daysUntil);
+           
+           if (daysUntil === 0) return 'Today';
+           if (daysUntil === 1) return 'Tomorrow';
+           return dayNamesShort[scheduleDays[0]] || scheduleDays[0];
+       }
+
+       function sortProgramsByDateTime(programsList) {
+           const today = new Date();
+           const currentDay = getCurrentDayCode();
+           const currentTime = getCurrentTimeMinutes();
+           
            return [...programsList].sort((a, b) => {
                const aDays = a.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
                const bDays = b.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
                
-               const aDay = dayOrder[aDays[0]] || 8;
-               const bDay = dayOrder[bDays[0]] || 8;
+               // Calculate next occurrence for each
+               const aNext = getNextOccurrence(aDays, parseTime(a.startTime));
+               const bNext = getNextOccurrence(bDays, parseTime(b.startTime));
                
-               if (aDay !== bDay) return aDay - bDay;
-               
-               return parseTime(a.startTime) - parseTime(b.startTime);
+               if (aNext.days !== bNext.days) return aNext.days - bNext.days;
+               if (aNext.time !== bNext.time) return aNext.time - bNext.time;
+               return 0;
            });
        }
 
-       function groupProgramsByDay(programsList) {
-           const sorted = sortProgramsBySchedule(programsList);
-           const grouped = {};
+       function getNextOccurrence(days, startTime) {
+           const today = new Date();
+           const currentDayCode = getCurrentDayCode();
+           const currentTime = getCurrentTimeMinutes();
            
-           sorted.forEach(p => {
-               const days = p.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
-               days.forEach(day => {
-                   if (!grouped[day]) grouped[day] = [];
-                   grouped[day].push(p);
-               });
-           });
-           
-           const orderedDays = Object.keys(grouped).sort((a, b) => {
-               return (dayOrder[a] || 8) - (dayOrder[b] || 8);
-           });
-           
-           return { grouped, orderedDays };
+           for (let i = 0; i < 7; i++) {
+               const checkDay = new Date(today);
+               checkDay.setDate(today.getDate() + i);
+               const dayIdx = checkDay.getDay();
+               const dayCode = ['SUN', 'M', 'T', 'W', 'TH', 'F', 'SAT'][dayIdx];
+               
+               if (days.includes(dayCode)) {
+                   if (i === 0 && currentTime > startTime + 60) {
+                       continue; // Class already passed today
+                   }
+                   return { days: i, time: startTime };
+               }
+           }
+           return { days: 7, time: startTime };
        }
 
        const defaultComputerDesigns = {
-           'comprog': {
-               bg: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
-               border: 'rgba(56, 189, 248, 0.3)',
-               icon: 'fa-laptop-code',
-               accent: '#38bdf8',
-               pattern: 'circuit'
-           },
-           'prog': {
-               bg: 'linear-gradient(135deg, #1a0f2e 0%, #2d1b4e 50%, #4c1d95 100%)',
-               border: 'rgba(167, 139, 250, 0.3)',
-               icon: 'fa-code',
-               accent: '#a78bfa',
-               pattern: 'binary'
-           },
-           'database': {
-               bg: 'linear-gradient(135deg, #0f1f0f 0%, #1a3a1a 50%, #2d5a2d 100%)',
-               border: 'rgba(74, 222, 128, 0.3)',
-               icon: 'fa-database',
-               accent: '#4ade80',
-               pattern: 'grid'
-           },
-           'network': {
-               bg: 'linear-gradient(135deg, #1f0f0f 0%, #3d1f1f 50%, #5c2a2a 100%)',
-               border: 'rgba(248, 113, 113, 0.3)',
-               icon: 'fa-network-wired',
-               accent: '#f87171',
-               pattern: 'nodes'
-           },
-           'web': {
-               bg: 'linear-gradient(135deg, #0f1a2e 0%, #1e3a5f 50%, #2d5a87 100%)',
-               border: 'rgba(96, 165, 250, 0.3)',
-               icon: 'fa-globe',
-               accent: '#60a5fa',
-               pattern: 'wave'
-           },
-           'mobile': {
-               bg: 'linear-gradient(135deg, #2e1a0f 0%, #5f3a1e 50%, #875a2d 100%)',
-               border: 'rgba(251, 146, 60, 0.3)',
-               icon: 'fa-mobile-screen',
-               accent: '#fb923c',
-               pattern: 'touch'
-           },
-           'security': {
-               bg: 'linear-gradient(135deg, #0a0a0a 0%, #1f1f1f 50%, #363636 100%)',
-               border: 'rgba(255, 255, 255, 0.2)',
-               icon: 'fa-shield-halved',
-               accent: '#ffffff',
-               pattern: 'lock'
-           },
-           'ai': {
-               bg: 'linear-gradient(135deg, #1a0f2e 0%, #2d1b69 50%, #4c1d95 100%)',
-               border: 'rgba(216, 180, 254, 0.3)',
-               icon: 'fa-brain',
-               accent: '#d8b4fe',
-               pattern: 'neural'
-           },
-           'default': {
-               bg: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
-               border: 'rgba(148, 163, 184, 0.2)',
-               icon: 'fa-computer',
-               accent: '#94a3b8',
-               pattern: 'none'
-           }
+           'comprog': { bg: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)', border: 'rgba(56, 189, 248, 0.3)', icon: 'fa-laptop-code', accent: '#38bdf8', pattern: 'circuit' },
+           'prog': { bg: 'linear-gradient(135deg, #1a0f2e 0%, #2d1b4e 50%, #4c1d95 100%)', border: 'rgba(167, 139, 250, 0.3)', icon: 'fa-code', accent: '#a78bfa', pattern: 'binary' },
+           'database': { bg: 'linear-gradient(135deg, #0f1f0f 0%, #1a3a1a 50%, #2d5a2d 100%)', border: 'rgba(74, 222, 128, 0.3)', icon: 'fa-database', accent: '#4ade80', pattern: 'grid' },
+           'network': { bg: 'linear-gradient(135deg, #1f0f0f 0%, #3d1f1f 50%, #5c2a2a 100%)', border: 'rgba(248, 113, 113, 0.3)', icon: 'fa-network-wired', accent: '#f87171', pattern: 'nodes' },
+           'web': { bg: 'linear-gradient(135deg, #0f1a2e 0%, #1e3a5f 50%, #2d5a87 100%)', border: 'rgba(96, 165, 250, 0.3)', icon: 'fa-globe', accent: '#60a5fa', pattern: 'wave' },
+           'mobile': { bg: 'linear-gradient(135deg, #2e1a0f 0%, #5f3a1e 50%, #875a2d 100%)', border: 'rgba(251, 146, 60, 0.3)', icon: 'fa-mobile-screen', accent: '#fb923c', pattern: 'touch' },
+           'security': { bg: 'linear-gradient(135deg, #0a0a0a 0%, #1f1f1f 50%, #363636 100%)', border: 'rgba(255, 255, 255, 0.2)', icon: 'fa-shield-halved', accent: '#ffffff', pattern: 'lock' },
+           'ai': { bg: 'linear-gradient(135deg, #1a0f2e 0%, #2d1b69 50%, #4c1d95 100%)', border: 'rgba(216, 180, 254, 0.3)', icon: 'fa-brain', accent: '#d8b4fe', pattern: 'neural' },
+           'default': { bg: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', border: 'rgba(148, 163, 184, 0.2)', icon: 'fa-computer', accent: '#94a3b8', pattern: 'none' }
        };
 
        async function fetchSubjectDesigns() {
@@ -1149,35 +1163,24 @@
            if (subjectDesigns[code]) return subjectDesigns[code];
            
            for (const [key, design] of Object.entries(defaultComputerDesigns)) {
-               if (code_lower.includes(key) || name_lower.includes(key)) {
-                   return design;
-               }
+               if (code_lower.includes(key) || name_lower.includes(key)) return design;
            }
            
-           if (code_lower.includes('cs') || name_lower.includes('computer') || 
-               name_lower.includes('programming') || name_lower.includes('software') ||
-               name_lower.includes('data') || name_lower.includes('system')) {
+           if (code_lower.includes('cs') || name_lower.includes('computer') || name_lower.includes('programming') || name_lower.includes('software') || name_lower.includes('data') || name_lower.includes('system')) {
                return defaultComputerDesigns.comprog;
            }
            
            return defaultComputerDesigns.default;
        }
 
-       function applySubjectDesign(element, design, index) {
+       function applySubjectDesign(element, design) {
            element.style.setProperty('--subj-bg', design.bg);
            element.style.setProperty('--subj-border', design.border);
            element.classList.add('subj-custom');
            
            if (design.pattern && design.pattern !== 'none') {
                const pattern = document.createElement('div');
-               pattern.style.cssText = `
-                   position: absolute;
-                   inset: 0;
-                   opacity: 0.05;
-                   pointer-events: none;
-                   background-image: ${getPattern(design.pattern)};
-                   background-size: 30px 30px;
-               `;
+               pattern.style.cssText = `position: absolute; inset: 0; opacity: 0.05; pointer-events: none; background-image: ${getPattern(design.pattern)}; background-size: 30px 30px;`;
                element.appendChild(pattern);
            }
        }
@@ -1199,8 +1202,18 @@
        window.saveSubjectDesign = async function(subjectCode, design) {
            await setDoc(doc(db, "subjectDesigns", subjectCode), design);
            subjectDesigns[subjectCode] = design;
-           console.log(`Design saved for ${subjectCode}`);
        };
+
+       // Desktop resize reload
+       let lastWidth = window.innerWidth;
+       window.addEventListener('resize', () => {
+           const currentWidth = window.innerWidth;
+           const crossedBreakpoint = (lastWidth <= 768 && currentWidth > 768) || (lastWidth > 768 && currentWidth <= 768);
+           if (crossedBreakpoint) {
+               location.reload();
+           }
+           lastWidth = currentWidth;
+       });
 
        onAuthStateChanged(auth, async user => {
            if (user) {
@@ -1250,11 +1263,17 @@
            const q = query(collection(db, "programs"), where("code", "in", codes));
            const snap = await getDocs(q); programs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
            
+           // Desktop nav with colors
            const nav = document.getElementById('subjectNavItems'); nav.innerHTML = '';
            programs.forEach(p => {
-               const a = document.createElement('a'); a.id = `nav-${p.code}`; a.className = "subj-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[11px] font-black cursor-pointer uppercase mb-2";
+               const design = getSubjectDesign(p.code, p.name);
+               const a = document.createElement('a'); 
+               a.id = `nav-${p.code}`; 
+               a.className = "subj-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[11px] font-black cursor-pointer uppercase mb-2";
+               a.style.borderLeft = `3px solid ${design.accent}`;
                a.onclick = () => { switchSubjectView(p); };
-               a.innerHTML = `<i class="fa-solid fa-book-open text-xs"></i> ${p.code}`; nav.appendChild(a);
+               a.innerHTML = `<i class="fa-solid ${design.icon} text-xs" style="color: ${design.accent}"></i> ${p.code}`; 
+               nav.appendChild(a);
            });
 
            renderMobileSubjects();
@@ -1271,75 +1290,57 @@
            grid.innerHTML = '';
            
            if (programs.length === 0) {
-               grid.innerHTML = `
-                   <div class="empty-state">
-                       <i class="fa-solid fa-book-open"></i>
-                       <p class="text-lg font-semibold">No subjects enrolled</p>
-                       <p class="text-sm mt-2">Contact your administrator to enroll in subjects.</p>
-                   </div>
-               `;
+               grid.innerHTML = `<div class="empty-state"><i class="fa-solid fa-book-open"></i><p class="text-lg font-semibold">No subjects enrolled</p><p class="text-sm mt-2">Contact your administrator to enroll in subjects.</p></div>`;
                return;
            }
            
-           const { grouped, orderedDays } = groupProgramsByDay(programs);
+           const sortedPrograms = sortProgramsByDateTime(programs);
            let hasShownNext = false;
            
-           orderedDays.forEach((day, dayIndex) => {
-               const daySection = document.createElement('div');
-               daySection.className = 'day-section';
+           sortedPrograms.forEach((p, index) => {
+               const design = getSubjectDesign(p.code, p.name);
+               const isActive = isClassActive(p);
+               const isNext = !hasShownNext && isClassNext(p, programs);
+               const nextDate = getNextClassDate(p);
                
-               const dayHeader = document.createElement('div');
-               dayHeader.className = 'day-header';
-               const isToday = day === getCurrentDayCode();
-               dayHeader.innerHTML = `${dayNames[day] || day} ${isToday ? '<span style="color: #10b981; margin-left: 8px;">• Today</span>' : ''}`;
-               daySection.appendChild(dayHeader);
+               if (isNext) hasShownNext = true;
                
-               const dayPrograms = grouped[day];
-               dayPrograms.forEach((p, index) => {
-                   const design = getSubjectDesign(p.code, p.name);
-                   const isActive = isClassActive(p);
-                   const isNext = !hasShownNext && isClassNext(p, programs);
-                   
-                   if (isNext) hasShownNext = true;
-                   
-                   const card = document.createElement('div');
-                   card.className = 'subject-card subj-custom';
-                   card.onclick = () => openMobileDetail(p);
-                   
-                   let badge = '';
-                   if (isActive) {
-                       badge = `<div class="active-session-badge"><span>Live</span></div>`;
-                   } else if (isNext) {
-                       const timeUntil = getTimeUntilClass(p);
-                       badge = `<div class="next-class-badge"><i class="fa-regular fa-clock"></i><span>Next ${timeUntil}</span></div>`;
-                   }
-                   
-                   card.innerHTML = `
-                       ${badge}
-                       <div class="subject-card-header">
-                           <div>
-                               <div class="subject-title">${p.name}</div>
-                               <div class="subject-section">${p.code}</div>
-                           </div>
+               const card = document.createElement('div');
+               card.className = 'subject-card subj-custom';
+               card.onclick = () => openMobileDetail(p);
+               
+               let badge = '';
+               if (isActive) {
+                   badge = `<div class="active-session-badge"><span>Live</span></div>`;
+               } else if (isNext) {
+                   const timeUntil = getTimeUntilClass(p);
+                   badge = `<div class="next-class-badge"><i class="fa-regular fa-clock"></i><span>Next ${timeUntil}</span></div>`;
+               }
+               
+               card.innerHTML = `
+                   ${badge}
+                   <div class="subject-card-header">
+                       <div>
+                           <div class="subject-title">${p.name}</div>
+                           <div class="subject-section">${p.code}</div>
                        </div>
-                       <div class="subject-meta">
-                           <div class="subject-time-row">
-                               <i class="fa-regular fa-clock" style="color: ${design.accent}"></i>
-                               <span>${t12(p.startTime)} - ${t12(p.endTime)}</span>
-                           </div>
-                           <div class="subject-time-row">
-                               <i class="fa-solid fa-user-tie" style="color: ${design.accent}"></i>
-                               <span>${p.teacher}</span>
-                           </div>
+                   </div>
+                   <div class="subject-meta">
+                       <div class="subject-time-row">
+                           <i class="fa-regular fa-clock" style="color: ${design.accent}"></i>
+                           <span>${t12(p.startTime)} - ${t12(p.endTime)}</span>
                        </div>
-                       <i class="fa-solid ${design.icon} subject-icon" style="color: ${design.accent}"></i>
-                   `;
-                   
-                   applySubjectDesign(card, design, index);
-                   daySection.appendChild(card);
-               });
+                       <div class="subject-time-row">
+                           <i class="fa-solid fa-user-tie" style="color: ${design.accent}"></i>
+                           <span>${p.teacher}</span>
+                       </div>
+                       ${nextDate ? `<div class="subject-date"><i class="fa-regular fa-calendar" style="color: ${design.accent}; margin-right: 6px;"></i>${nextDate}</div>` : ''}
+                   </div>
+                   <i class="fa-solid ${design.icon} subject-icon" style="color: ${design.accent}"></i>
+               `;
                
-               grid.appendChild(daySection);
+               applySubjectDesign(card, design);
+               grid.appendChild(card);
            });
        }
 
@@ -1350,48 +1351,35 @@
        }, 60000);
 
        window.openMobileSchedules = function() {
-           mobileExportMode = 'schedules';
+           currentMode = 'schedules';
            const view = document.getElementById('mobileSchedulesView');
            const content = document.getElementById('mobileSchedulesContent');
            content.innerHTML = '';
            
-           const { grouped, orderedDays } = groupProgramsByDay(programs);
+           const sortedPrograms = sortProgramsByDateTime(programs);
            
-           orderedDays.forEach(day => {
-               const dayHeader = document.createElement('div');
-               dayHeader.className = 'day-header';
-               const isToday = day === getCurrentDayCode();
-               dayHeader.innerHTML = `${dayNames[day] || day} ${isToday ? '<span style="color: #10b981; margin-left: 8px;">• Today</span>' : ''}`;
-               content.appendChild(dayHeader);
-               
-               grouped[day].forEach(p => {
-                   const row = document.createElement('div');
-                   row.className = 'schedule-row';
-                   row.innerHTML = `
-                       <div class="schedule-row-header">
-                           <span class="schedule-subject-name">${p.name}</span>
-                           <span class="schedule-code">${p.code}</span>
-                       </div>
-                       <div class="schedule-details">
-                           <div class="schedule-detail-item">
-                               <i class="fa-solid fa-clock"></i>
-                               <span>${t12(p.startTime)} - ${t12(p.endTime)}</span>
-                           </div>
-                           <div class="schedule-detail-item">
-                               <i class="fa-solid fa-user-tie"></i>
-                               <span>${p.teacher}</span>
-                           </div>
-                       </div>
-                   `;
-                   content.appendChild(row);
-               });
+           sortedPrograms.forEach(p => {
+               const row = document.createElement('div');
+               row.className = 'schedule-row';
+               row.innerHTML = `
+                   <div class="schedule-row-header">
+                       <span class="schedule-subject-name">${p.name}</span>
+                       <span class="schedule-code">${p.code}</span>
+                   </div>
+                   <div class="schedule-details">
+                       <div class="schedule-detail-item"><i class="fa-solid fa-calendar"></i><span>${p.schedule}</span></div>
+                       <div class="schedule-detail-item"><i class="fa-solid fa-clock"></i><span>${t12(p.startTime)} - ${t12(p.endTime)}</span></div>
+                       <div class="schedule-detail-item"><i class="fa-solid fa-user-tie"></i><span>${p.teacher}</span></div>
+                   </div>
+               `;
+               content.appendChild(row);
            });
            
            view.classList.add('active');
        };
 
        window.openMobileRecords = function() {
-           mobileExportMode = 'grades';
+           currentMode = 'grades';
            const view = document.getElementById('mobileRecordsView');
            const content = document.getElementById('mobileRecordsContent');
            content.innerHTML = '';
@@ -1406,18 +1394,9 @@
                        <span class="grade-gpa">${g.point !== '-' ? g.point : '—'}</span>
                    </div>
                    <div class="grade-breakdown">
-                       <div class="grade-item">
-                           <div class="grade-label">Prelim</div>
-                           <div class="grade-value" style="color: ${getGradeColor(g.prelim)}">${g.prelim}</div>
-                       </div>
-                       <div class="grade-item">
-                           <div class="grade-label">Midterm</div>
-                           <div class="grade-value" style="color: ${getGradeColor(g.midterm)}">${g.midterm}</div>
-                       </div>
-                       <div class="grade-item">
-                           <div class="grade-label">Final</div>
-                           <div class="grade-value" style="color: ${getGradeColor(g.final)}">${g.final}</div>
-                       </div>
+                       <div class="grade-item"><div class="grade-label">Prelim</div><div class="grade-value" style="color: ${getGradeColor(g.prelim)}">${g.prelim}</div></div>
+                       <div class="grade-item"><div class="grade-label">Midterm</div><div class="grade-value" style="color: ${getGradeColor(g.midterm)}">${g.midterm}</div></div>
+                       <div class="grade-item"><div class="grade-label">Final</div><div class="grade-value" style="color: ${getGradeColor(g.final)}">${g.final}</div></div>
                    </div>
                `;
                content.appendChild(card);
@@ -1439,150 +1418,129 @@
            document.getElementById(viewId).classList.remove('active');
        };
 
-       // Mobile export functions
-      // Mobile export functions - set currentMode before exporting
-window.exportCSVFromMobile = function(mode) {
-    currentMode = mode;
-    // Render table first to ensure data exists
-    if (mode === 'schedules') {
-        renderPrintTable('schedules');
-    } else if (mode === 'grades') {
-        renderPrintTable('grades');
-    }
-    setTimeout(() => exportCSV(), 100);
-};
+       // Mobile export functions - ensure table is rendered first
+       window.exportCSVFromMobile = function(mode) {
+           currentMode = mode;
+           renderPrintTable(mode);
+           setTimeout(() => exportCSV(), 100);
+       };
 
-window.exportPDFFromMobile = function(mode) {
-    currentMode = mode;
-    // Render table first to ensure data exists
-    if (mode === 'schedules') {
-        renderPrintTable('schedules');
-    } else if (mode === 'grades') {
-        renderPrintTable('grades');
-    }
-    setTimeout(() => exportPDF(), 100);
-};
+       window.exportPDFFromMobile = function(mode) {
+           currentMode = mode;
+           renderPrintTable(mode);
+           setTimeout(() => exportPDF(), 100);
+       };
 
-// Separate render function for print that doesn't depend on desktop view
-function renderPrintTable(mode) {
-    const head = document.getElementById('tableHead'); 
-    const body = document.getElementById('tableBody'); 
-    body.innerHTML = '';
-    
-    if (mode === 'schedules') {
-        head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject</th><th class="px-8 py-5">Schedule</th><th class="px-8 py-5">Instructor</th></tr>`;
-        programs.forEach(p => { 
-            body.innerHTML += `<tr>
-                <td class="px-8 py-6 font-black text-white">${p.code}</td>
-                <td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td>
-                <td class="px-8 py-6 text-white font-bold">${p.schedule} <br><span class="text-[10px] text-gray-500">${t12(p.startTime)} - ${t12(p.endTime)}</span></td>
-                <td class="px-8 py-6 text-gray-400 font-bold uppercase">${p.teacher}</td>
-            </tr>`; 
-        });
-    } else if (mode === 'grades') {
-        head.innerHTML = `<tr><th class="px-8 py-5">Subject</th><th class="px-8 py-5 text-center">PRE</th><th class="px-8 py-5 text-center">MID</th><th class="px-8 py-5 text-center">FIN</th><th class="px-8 py-5 text-right">POINT</th></tr>`;
-        programs.forEach(p => { 
-            const g = currentStudent.grades?.[p.code] || { prelim: '-', midterm: '-', final: '-', point: '-' };
-            body.innerHTML += `<tr>
-                <td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td>
-                <td class="text-center font-black">${g.prelim}</td>
-                <td class="text-center font-black">${g.midterm}</td>
-                <td class="text-center font-black">${g.final}</td>
-                <td class="text-right px-8 font-black text-blue-400">${g.point}</td>
-            </tr>`; 
-        });
-    }
-}
+       // Render table for print without affecting desktop view
+       function renderPrintTable(mode) {
+           const head = document.getElementById('tableHead'); 
+           const body = document.getElementById('tableBody'); 
+           body.innerHTML = '';
+           
+           if (mode === 'schedules') {
+               head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject</th><th class="px-8 py-5">Schedule</th><th class="px-8 py-5">Instructor</th></tr>`;
+               programs.forEach(p => { 
+                   body.innerHTML += `<tr>
+                       <td class="px-8 py-6 font-black text-white">${p.code}</td>
+                       <td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td>
+                       <td class="px-8 py-6 text-white font-bold">${p.schedule} <br><span class="text-[10px] text-gray-500">${t12(p.startTime)} - ${t12(p.endTime)}</span></td>
+                       <td class="px-8 py-6 text-gray-400 font-bold uppercase">${p.teacher}</td>
+                   </tr>`; 
+               });
+           } else if (mode === 'grades') {
+               head.innerHTML = `<tr><th class="px-8 py-5">Subject</th><th class="px-8 py-5 text-center">PRE</th><th class="px-8 py-5 text-center">MID</th><th class="px-8 py-5 text-center">FIN</th><th class="px-8 py-5 text-right">POINT</th></tr>`;
+               programs.forEach(p => { 
+                   const g = currentStudent.grades?.[p.code] || { prelim: '-', midterm: '-', final: '-', point: '-' };
+                   body.innerHTML += `<tr>
+                       <td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td>
+                       <td class="text-center font-black">${g.prelim}</td>
+                       <td class="text-center font-black">${g.midterm}</td>
+                       <td class="text-center font-black">${g.final}</td>
+                       <td class="text-right px-8 font-black text-blue-400">${g.point}</td>
+                   </tr>`; 
+               });
+           }
+       }
 
-       function openMobileDetail(p) {
+       async function openMobileDetail(p) {
            mobileCurrentSubj = p;
-           mobileCurrentTab = 'attendance';
            
            document.getElementById('mobileDetailTitle').innerText = p.name;
            document.getElementById('mobileDetailSchedule').innerText = p.schedule;
            document.getElementById('mobileDetailTime').innerText = `${t12(p.startTime)} - ${t12(p.endTime)}`;
            document.getElementById('mobileDetailTeacher').innerText = p.teacher;
            
+           const content = document.getElementById('mobileDetailContent');
+           content.innerHTML = '';
+           
+           // Create side by side layout
+           const layout = document.createElement('div');
+           layout.className = 'mobile-detail-layout';
+           
+           // Materials column (left)
+           const materialsCol = document.createElement('div');
+           materialsCol.className = 'materials-column';
+           materialsCol.innerHTML = '<div class="column-header"><i class="fa-solid fa-folder-open mr-2"></i>Materials</div>';
+           
+           // Attendance column (right)
+           const attendanceCol = document.createElement('div');
+           attendanceCol.className = 'attendance-column';
+           attendanceCol.innerHTML = '<div class="column-header"><i class="fa-solid fa-clipboard-check mr-2"></i>Attendance</div>';
+           
+           // Fetch materials
+           const matQuery = query(collection(db, "materials"), where("subjectCode", "==", p.code));
+           const matSnap = await getDocs(matQuery);
+           
+           if (matSnap.empty) {
+               materialsCol.innerHTML += '<div class="empty-state" style="padding: 20px 0;"><i class="fa-solid fa-folder-open" style="font-size: 32px;"></i><p style="font-size: 12px;">No materials</p></div>';
+           } else {
+               matSnap.forEach(d => {
+                   const m = d.data();
+                   const createdDate = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown date';
+                   const card = document.createElement('div');
+                   card.className = 'material-card';
+                   card.innerHTML = `
+                       <div class="material-name"><i class="fa-solid fa-file" style="color: ${getSubjectDesign(p.code, p.name).accent}"></i>${m.name}</div>
+                       ${m.desc ? `<div class="material-desc">${m.desc}</div>` : ''}
+                       <div class="material-meta">
+                           <span><i class="fa-regular fa-clock mr-1"></i>${createdDate}</span>
+                       </div>
+                       <a href="${m.link}" target="_blank" class="material-link"><i class="fa-solid fa-external-link-alt"></i>Open</a>
+                   `;
+                   materialsCol.appendChild(card);
+               });
+           }
+           
+           // Fetch attendance
+           const att = currentStudent.attendance?.[p.code] || {};
+           const dates = Object.keys(att).sort().reverse();
+           
+           if (dates.length === 0) {
+               attendanceCol.innerHTML += '<div class="empty-state" style="padding: 20px 0;"><i class="fa-solid fa-clipboard-check" style="font-size: 32px;"></i><p style="font-size: 12px;">No records</p></div>';
+           } else {
+               dates.forEach(d => {
+                   const isPresent = att[d] === 'P';
+                   const item = document.createElement('div');
+                   item.className = 'attendance-item';
+                   item.innerHTML = `
+                       <span class="attendance-date">${d}</span>
+                       <span class="attendance-status ${isPresent ? 'present' : 'absent'}">${isPresent ? 'Present' : 'Absent'}</span>
+                   `;
+                   attendanceCol.appendChild(item);
+               });
+           }
+           
+           layout.appendChild(materialsCol);
+           layout.appendChild(attendanceCol);
+           content.appendChild(layout);
+           
            document.getElementById('mobileDetailView').classList.add('active');
-           renderMobileDetailContent();
-           updateMobileTabs();
        }
 
        window.closeMobileDetail = function() {
            document.getElementById('mobileDetailView').classList.remove('active');
            mobileCurrentSubj = null;
-       }
-
-       window.switchMobileSubTab = function(tab) {
-           mobileCurrentTab = tab;
-           updateMobileTabs();
-           renderMobileDetailContent();
-       }
-
-       function updateMobileTabs() {
-           document.getElementById('mobileTabAtt').classList.toggle('active', mobileCurrentTab === 'attendance');
-           document.getElementById('mobileTabMat').classList.toggle('active', mobileCurrentTab === 'materials');
-       }
-
-       async function renderMobileDetailContent() {
-           const content = document.getElementById('mobileDetailContent');
-           content.innerHTML = '';
-           
-           if (mobileCurrentTab === 'attendance') {
-               const att = currentStudent.attendance?.[mobileCurrentSubj.code] || {};
-               const dates = Object.keys(att).sort().reverse();
-               
-               if (dates.length === 0) {
-                   content.innerHTML = '<div class="text-center text-gray-500 py-10"><i class="fa-solid fa-clipboard-check text-4xl mb-3 opacity-30"></i><p class="text-sm font-semibold">No attendance records yet</p></div>';
-                   return;
-               }
-               
-               dates.forEach(d => {
-                   const isPresent = att[d] === 'P';
-                   const row = document.createElement('div');
-                   row.className = 'mobile-table-row';
-                   row.innerHTML = `
-                       <div>
-                           <div class="text-white font-bold text-sm">${d}</div>
-                           <div class="text-xs text-gray-500 mt-1">${mobileCurrentSubj.code}</div>
-                       </div>
-                       <span class="px-3 py-1.5 rounded-full text-xs font-black uppercase ${isPresent ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}">
-                           ${isPresent ? 'Present' : 'Absent'}
-                       </span>
-                   `;
-                   content.appendChild(row);
-               });
-           } else if (mobileCurrentTab === 'materials') {
-               const q = query(collection(db, "materials"), where("subjectCode", "==", mobileCurrentSubj.code));
-               const snap = await getDocs(q);
-               
-               if (snap.empty) {
-                   content.innerHTML = '<div class="text-center text-gray-500 py-10"><i class="fa-solid fa-folder-open text-4xl mb-3 opacity-30"></i><p class="text-sm font-semibold">No materials uploaded yet</p></div>';
-                   return;
-               }
-               
-               snap.forEach(d => {
-                   const m = d.data();
-                   const row = document.createElement('div');
-                   row.className = 'mobile-table-row';
-                   row.innerHTML = `
-                       <div class="flex items-center gap-3 flex-1 min-w-0">
-                           <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
-                               <i class="fa-solid fa-file text-gray-400"></i>
-                           </div>
-                           <div class="min-w-0">
-                               <div class="text-white font-bold text-sm truncate">${m.name}</div>
-                               <div class="text-xs text-gray-500 mt-1">Resource</div>
-                           </div>
-                       </div>
-                       <a href="${m.link}" target="_blank" class="bg-white text-black px-4 py-2 rounded-xl text-xs font-black uppercase flex-shrink-0">
-                           Open
-                       </a>
-                   `;
-                   content.appendChild(row);
-               });
-           }
-       }
+       };
 
        window.switchGlobalView = (mode) => {
            currentMode = mode; activeSubj = null;
@@ -1660,28 +1618,26 @@ function renderPrintTable(mode) {
            const a = document.createElement('a'); a.href = url; a.download = `${currentStudent.lastname}_${currentMode}.csv`; a.click();
        };
 
-window.exportPDF = () => {
-    // Ensure table is rendered before printing
-    if (document.getElementById('tableBody').innerHTML === '') {
-        renderTable();
-    }
-    
-    const now = new Date(); 
-    document.getElementById('pGenDate').innerText = now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-    document.getElementById('lblReportType').innerText = currentMode === 'schedules' ? "OFFICIAL CLASS SCHEDULE / CERTIFICATE OF MATRICULATION" : (currentMode === 'grades' ? "OFFICIAL STUDENT SCHOLASTIC RECORD" : "STUDENT ATTENDANCE REPORT");
-    document.getElementById('pName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
-    document.getElementById('pID').innerText = currentStudent.studentId; 
-    document.getElementById('pCourse').innerText = currentStudent.course;
-    document.getElementById('pYearSem').innerText = `YEAR ${currentStudent.year} - ${currentStudent.semester}`;
-    
-    document.getElementById('printHeader').classList.replace('hidden', 'flex');
-    document.querySelector('.print-watermark').classList.remove('hidden');
-    
-    window.print();
-    
-    document.getElementById('printHeader').classList.replace('flex', 'hidden');
-    document.querySelector('.print-watermark').classList.add('hidden');
-};
+       window.exportPDF = () => {
+           // Ensure table is rendered
+           if (document.getElementById('tableBody').innerHTML === '') {
+               renderPrintTable(currentMode);
+           }
+           
+           const now = new Date(); document.getElementById('pGenDate').innerText = now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+           document.getElementById('lblReportType').innerText = currentMode === 'schedules' ? "OFFICIAL CLASS SCHEDULE / CERTIFICATE OF MATRICULATION" : (currentMode === 'grades' ? "OFFICIAL STUDENT SCHOLASTIC RECORD" : "STUDENT ATTENDANCE REPORT");
+           document.getElementById('pName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
+           document.getElementById('pID').innerText = currentStudent.studentId; document.getElementById('pCourse').innerText = currentStudent.course;
+           document.getElementById('pYearSem').innerText = `YEAR ${currentStudent.year} - ${currentStudent.semester}`;
+           
+           document.getElementById('printHeader').classList.replace('hidden', 'flex');
+           document.querySelector('.print-watermark').classList.remove('hidden');
+           
+           window.print();
+           
+           document.getElementById('printHeader').classList.replace('flex', 'hidden');
+           document.querySelector('.print-watermark').classList.add('hidden');
+       };
 
        window.toggleMobileMenu = () => { 
            document.getElementById('mobileDrawer').classList.toggle('active'); 
@@ -1696,5 +1652,3 @@ window.exportPDF = () => {
 </body>
 
 </html>
-
-
