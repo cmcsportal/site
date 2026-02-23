@@ -109,7 +109,7 @@
            .subjects-grid {
                display: flex;
                flex-direction: column;
-               gap: 0;
+               gap: 12px;
                padding: 16px;
                padding-top: 80px;
                padding-bottom: 100px;
@@ -276,6 +276,7 @@
                flex: 1;
                overflow-y: auto;
                padding: 20px;
+               padding-bottom: 100px;
            }
 
            .mobile-back-btn {
@@ -294,6 +295,56 @@
                font-size: 18px;
                cursor: pointer;
                z-index: 10;
+           }
+
+           /* Mobile Export Buttons - Fixed at bottom */
+           .mobile-export-bar {
+               position: fixed;
+               bottom: 0;
+               left: 0;
+               right: 0;
+               background: rgba(10, 10, 10, 0.98);
+               backdrop-filter: blur(20px);
+               border-top: 1px solid rgba(255, 255, 255, 0.1);
+               display: flex;
+               gap: 12px;
+               padding: 16px;
+               z-index: 130;
+           }
+
+           .mobile-export-btn {
+               flex: 1;
+               padding: 14px 20px;
+               border-radius: 12px;
+               font-size: 12px;
+               font-weight: 800;
+               text-transform: uppercase;
+               letter-spacing: 0.05em;
+               border: none;
+               cursor: pointer;
+               transition: all 0.2s ease;
+           }
+
+           .mobile-export-btn.csv {
+               background: rgba(255, 255, 255, 0.1);
+               color: white;
+               border: 1px solid rgba(255, 255, 255, 0.2);
+           }
+
+           .mobile-export-btn.csv:active {
+               background: white;
+               color: black;
+           }
+
+           .mobile-export-btn.pdf {
+               background: rgba(239, 68, 68, 0.15);
+               color: #f87171;
+               border: 1px solid rgba(239, 68, 68, 0.3);
+           }
+
+           .mobile-export-btn.pdf:active {
+               background: #ef4444;
+               color: white;
            }
 
            /* Mobile Tables */
@@ -464,17 +515,16 @@
 
            /* Day Section Headers */
            .day-section {
-              margin-bottom: 24px;
+               margin-bottom: 24px;
            }
-          
-            .day-section .subject-card {
-                margin-bottom: 12px;
-            }
-            
-            .day-section .subject-card:last-child {
-                margin-bottom: 0;
-            }
 
+           .day-section .subject-card {
+               margin-bottom: 12px;
+           }
+
+           .day-section .subject-card:last-child {
+               margin-bottom: 0;
+           }
 
            .day-header {
                font-size: 12px;
@@ -482,8 +532,13 @@
                color: rgba(255, 255, 255, 0.5);
                text-transform: uppercase;
                letter-spacing: 0.1em;
-               margin-bottom: 12px;
+               margin-bottom: 16px;
+               margin-top: 8px;
                padding-left: 4px;
+           }
+
+           .day-section:first-child .day-header {
+               margin-top: 0;
            }
 
            /* Empty state */
@@ -508,6 +563,7 @@
            .subjects-grid { display: none; }
            .mobile-fullscreen-view { display: none; }
            .mobile-tab-bar { display: none; }
+           .mobile-export-bar { display: none; }
        }
 
        @media (max-width: 768px) {
@@ -632,6 +688,15 @@
        <div class="mobile-view-content" id="mobileSchedulesContent">
            <!-- Dynamic schedule content -->
        </div>
+       <!-- Mobile Export Buttons for Schedules -->
+       <div class="mobile-export-bar">
+           <button class="mobile-export-btn csv" onclick="exportCSVFromMobile('schedules')">
+               <i class="fa-solid fa-file-csv mr-2"></i>Export CSV
+           </button>
+           <button class="mobile-export-btn pdf" onclick="exportPDFFromMobile('schedules')">
+               <i class="fa-solid fa-file-pdf mr-2"></i>Export PDF
+           </button>
+       </div>
    </div>
 
    <!-- Mobile Records Full Screen View -->
@@ -645,6 +710,15 @@
        </div>
        <div class="mobile-view-content" id="mobileRecordsContent">
            <!-- Dynamic records content -->
+       </div>
+       <!-- Mobile Export Buttons for Records -->
+       <div class="mobile-export-bar">
+           <button class="mobile-export-btn csv" onclick="exportCSVFromMobile('grades')">
+               <i class="fa-solid fa-file-csv mr-2"></i>Export CSV
+           </button>
+           <button class="mobile-export-btn pdf" onclick="exportPDFFromMobile('grades')">
+               <i class="fa-solid fa-file-pdf mr-2"></i>Export PDF
+           </button>
        </div>
    </div>
 
@@ -785,6 +859,7 @@
        let mobileCurrentSubj = null;
        let mobileCurrentTab = 'attendance';
        let subjectDesigns = {};
+       let mobileExportMode = 'schedules'; // Track which view is open for export
 
        // Day order mapping
        const dayOrder = { 'M': 1, 'T': 2, 'W': 3, 'TH': 4, 'F': 5, 'SAT': 6, 'SUN': 7 };
@@ -814,7 +889,6 @@
            const startMinutes = parseTime(program.startTime);
            const endMinutes = parseTime(program.endTime);
            
-           // Check if today matches schedule day
            const scheduleDays = program.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
            const isToday = scheduleDays.some(d => {
                if (d === currentDay) return true;
@@ -848,11 +922,9 @@
            if (!isToday) return false;
            if (startMinutes <= currentTime) return false;
            
-           // Check if there's an active class
            const hasActive = allPrograms.some(p => isClassActive(p));
            if (hasActive) return false;
            
-           // Check if this is the next class today
            const todayClasses = allPrograms.filter(p => {
                const pDays = p.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
                const pIsToday = pDays.some(d => {
@@ -884,7 +956,6 @@
 
        function sortProgramsBySchedule(programsList) {
            return [...programsList].sort((a, b) => {
-               // Get primary day for each
                const aDays = a.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
                const bDays = b.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
                
@@ -893,7 +964,6 @@
                
                if (aDay !== bDay) return aDay - bDay;
                
-               // Same day, sort by time
                return parseTime(a.startTime) - parseTime(b.startTime);
            });
        }
@@ -910,7 +980,6 @@
                });
            });
            
-           // Sort days
            const orderedDays = Object.keys(grouped).sort((a, b) => {
                return (dayOrder[a] || 8) - (dayOrder[b] || 8);
            });
@@ -918,7 +987,6 @@
            return { grouped, orderedDays };
        }
 
-       // Default computer subject designs
        const defaultComputerDesigns = {
            'comprog': {
                bg: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
@@ -1059,7 +1127,6 @@
                    currentStudent = { uid: user.uid, ...snap.data() };
                    await fetchSubjectDesigns();
                    initUI(); await fetchSubjects();
-                   // On mobile, show subjects grid by default
                    if (window.innerWidth <= 768) {
                        showMobileSubjectsView();
                    } else {
@@ -1101,7 +1168,6 @@
            const q = query(collection(db, "programs"), where("code", "in", codes));
            const snap = await getDocs(q); programs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
            
-           // Desktop nav
            const nav = document.getElementById('subjectNavItems'); nav.innerHTML = '';
            programs.forEach(p => {
                const a = document.createElement('a'); a.id = `nav-${p.code}`; a.className = "subj-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[11px] font-black cursor-pointer uppercase mb-2";
@@ -1109,7 +1175,6 @@
                a.innerHTML = `<i class="fa-solid fa-book-open text-xs"></i> ${p.code}`; nav.appendChild(a);
            });
 
-           // Mobile grid
            renderMobileSubjects();
        }
 
@@ -1196,7 +1261,6 @@
            });
        }
 
-       // Refresh the view every minute to update "Next" indicators
        setInterval(() => {
            if (window.innerWidth <= 768 && document.getElementById('mobileSubjectsView').style.display !== 'none') {
                renderMobileSubjects();
@@ -1204,6 +1268,7 @@
        }, 60000);
 
        window.openMobileSchedules = function() {
+           mobileExportMode = 'schedules';
            const view = document.getElementById('mobileSchedulesView');
            const content = document.getElementById('mobileSchedulesContent');
            content.innerHTML = '';
@@ -1244,6 +1309,7 @@
        };
 
        window.openMobileRecords = function() {
+           mobileExportMode = 'grades';
            const view = document.getElementById('mobileRecordsView');
            const content = document.getElementById('mobileRecordsContent');
            content.innerHTML = '';
@@ -1289,6 +1355,17 @@
 
        window.closeMobileFullscreen = function(viewId) {
            document.getElementById(viewId).classList.remove('active');
+       };
+
+       // Mobile export functions
+       window.exportCSVFromMobile = function(mode) {
+           currentMode = mode;
+           exportCSV();
+       };
+
+       window.exportPDFFromMobile = function(mode) {
+           currentMode = mode;
+           exportPDF();
        };
 
        function openMobileDetail(p) {
@@ -1486,4 +1563,3 @@
 </body>
 
 </html>
-
