@@ -105,10 +105,10 @@
            }
            .mobile-drawer.active { transform: translateX(0); }
 
-           /* Subject Cards Grid */
+           /* Subject Cards Grid - Google Classroom Style */
            .subjects-grid {
-               display: grid;
-               grid-template-columns: 1fr;
+               display: flex;
+               flex-direction: column;
                gap: 12px;
                padding: 16px;
                padding-top: 80px;
@@ -119,13 +119,14 @@
                position: relative;
                border-radius: 16px;
                padding: 20px;
-               min-height: 140px;
+               min-height: 160px;
                display: flex;
                flex-direction: column;
                justify-content: space-between;
                cursor: pointer;
                transition: transform 0.2s ease, box-shadow 0.2s ease;
                overflow: hidden;
+               border: 1px solid rgba(255, 255, 255, 0.1);
            }
            .subject-card:active { transform: scale(0.98); }
 
@@ -141,6 +142,7 @@
                display: flex;
                justify-content: space-between;
                align-items: flex-start;
+               z-index: 2;
            }
 
            .subject-title {
@@ -149,31 +151,99 @@
                color: white;
                text-shadow: 0 2px 4px rgba(0,0,0,0.3);
                line-height: 1.2;
+               margin-bottom: 4px;
            }
 
-           .subject-period {
+           .subject-section {
                font-size: 13px;
                font-weight: 600;
                color: rgba(255,255,255,0.9);
-               margin-top: 4px;
            }
 
            .subject-meta {
+               display: flex;
+               flex-direction: column;
+               gap: 8px;
+               z-index: 2;
+           }
+
+           .subject-time-row {
                display: flex;
                align-items: center;
                gap: 8px;
                font-size: 13px;
                font-weight: 600;
-               color: rgba(255,255,255,0.8);
+               color: rgba(255,255,255,0.9);
            }
 
            .subject-icon {
                position: absolute;
                right: 16px;
                bottom: 16px;
-               font-size: 48px;
-               opacity: 0.3;
+               font-size: 56px;
+               opacity: 0.2;
                transform: rotate(-12deg);
+               z-index: 1;
+           }
+
+           /* Active Session Indicator */
+           .active-session-badge {
+               position: absolute;
+               top: 16px;
+               right: 16px;
+               background: #10b981;
+               color: white;
+               padding: 6px 12px;
+               border-radius: 20px;
+               font-size: 11px;
+               font-weight: 800;
+               text-transform: uppercase;
+               letter-spacing: 0.05em;
+               display: flex;
+               align-items: center;
+               gap: 6px;
+               box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+               z-index: 3;
+               animation: pulse-badge 2s infinite;
+           }
+
+           @keyframes pulse-badge {
+               0%, 100% { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
+               50% { box-shadow: 0 4px 20px rgba(16, 185, 129, 0.6); }
+           }
+
+           .active-session-badge::before {
+               content: '';
+               width: 6px;
+               height: 6px;
+               background: white;
+               border-radius: 50%;
+               animation: blink 1.5s infinite;
+           }
+
+           @keyframes blink {
+               0%, 100% { opacity: 1; }
+               50% { opacity: 0.3; }
+           }
+
+           /* Next Class Indicator */
+           .next-class-badge {
+               position: absolute;
+               top: 16px;
+               right: 16px;
+               background: #f59e0b;
+               color: white;
+               padding: 6px 12px;
+               border-radius: 20px;
+               font-size: 11px;
+               font-weight: 800;
+               text-transform: uppercase;
+               letter-spacing: 0.05em;
+               display: flex;
+               align-items: center;
+               gap: 6px;
+               box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+               z-index: 3;
            }
 
            /* Dynamic Subject Colors from DB */
@@ -391,6 +461,34 @@
            header#mainHeader {
                top: 60px;
            }
+
+           /* Day Section Headers */
+           .day-section {
+               margin-bottom: 20px;
+           }
+
+           .day-header {
+               font-size: 12px;
+               font-weight: 800;
+               color: rgba(255, 255, 255, 0.5);
+               text-transform: uppercase;
+               letter-spacing: 0.1em;
+               margin-bottom: 12px;
+               padding-left: 4px;
+           }
+
+           /* Empty state */
+           .empty-state {
+               text-align: center;
+               padding: 60px 20px;
+               color: rgba(255, 255, 255, 0.4);
+           }
+
+           .empty-state i {
+               font-size: 48px;
+               margin-bottom: 16px;
+               opacity: 0.3;
+           }
        }
 
        @media (min-width: 769px) {
@@ -508,9 +606,9 @@
        </nav>
    </div>
 
-   <!-- Mobile Subjects Grid View (Home) -->
+   <!-- Mobile Subjects Grid View (Home/Default) -->
    <div class="subjects-grid mobile-only no-print" id="mobileSubjectsView">
-       <!-- Dynamically populated -->
+       <!-- Dynamically populated and sorted by schedule -->
    </div>
 
    <!-- Mobile Schedules Full Screen View -->
@@ -677,9 +775,139 @@
        let currentStudent = null, programs = [], activeSubj = null, currentMode = 'schedules';
        let mobileCurrentSubj = null;
        let mobileCurrentTab = 'attendance';
-       let subjectDesigns = {}; // Cache for subject designs
+       let subjectDesigns = {};
+
+       // Day order mapping
+       const dayOrder = { 'M': 1, 'T': 2, 'W': 3, 'TH': 4, 'F': 5, 'SAT': 6, 'SUN': 7 };
+       const dayNames = { 'M': 'Monday', 'T': 'Tuesday', 'W': 'Wednesday', 'TH': 'Thursday', 'F': 'Friday', 'SAT': 'Saturday', 'SUN': 'Sunday' };
 
        function t12(t) { if (!t) return ""; let [h, m] = t.split(':'); h = parseInt(h); const p = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${m} ${p}`; }
+
+       function parseTime(timeStr) {
+           if (!timeStr) return 0;
+           const [h, m] = timeStr.split(':').map(Number);
+           return h * 60 + m;
+       }
+
+       function getCurrentDayCode() {
+           const days = ['SUN', 'M', 'T', 'W', 'TH', 'F', 'SAT'];
+           return days[new Date().getDay()];
+       }
+
+       function getCurrentTimeMinutes() {
+           const now = new Date();
+           return now.getHours() * 60 + now.getMinutes();
+       }
+
+       function isClassActive(program) {
+           const currentDay = getCurrentDayCode();
+           const currentTime = getCurrentTimeMinutes();
+           const startMinutes = parseTime(program.startTime);
+           const endMinutes = parseTime(program.endTime);
+           
+           // Check if today matches schedule day
+           const scheduleDays = program.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
+           const isToday = scheduleDays.some(d => {
+               if (d === currentDay) return true;
+               if (d === 'TH' && currentDay === 'TH') return true;
+               if (d === 'M' && currentDay === 'M') return true;
+               if (d === 'T' && currentDay === 'T') return true;
+               if (d === 'W' && currentDay === 'W') return true;
+               if (d === 'F' && currentDay === 'F') return true;
+               return false;
+           });
+           
+           return isToday && currentTime >= startMinutes && currentTime <= endMinutes;
+       }
+
+       function isClassNext(program, allPrograms) {
+           const currentDay = getCurrentDayCode();
+           const currentTime = getCurrentTimeMinutes();
+           const startMinutes = parseTime(program.startTime);
+           
+           const scheduleDays = program.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
+           const isToday = scheduleDays.some(d => {
+               if (d === currentDay) return true;
+               if (d === 'TH' && currentDay === 'TH') return true;
+               if (d === 'M' && currentDay === 'M') return true;
+               if (d === 'T' && currentDay === 'T') return true;
+               if (d === 'W' && currentDay === 'W') return true;
+               if (d === 'F' && currentDay === 'F') return true;
+               return false;
+           });
+           
+           if (!isToday) return false;
+           if (startMinutes <= currentTime) return false;
+           
+           // Check if there's an active class
+           const hasActive = allPrograms.some(p => isClassActive(p));
+           if (hasActive) return false;
+           
+           // Check if this is the next class today
+           const todayClasses = allPrograms.filter(p => {
+               const pDays = p.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
+               const pIsToday = pDays.some(d => {
+                   if (d === currentDay) return true;
+                   if (d === 'TH' && currentDay === 'TH') return true;
+                   if (d === 'M' && currentDay === 'M') return true;
+                   if (d === 'T' && currentDay === 'T') return true;
+                   if (d === 'W' && currentDay === 'W') return true;
+                   if (d === 'F' && currentDay === 'F') return true;
+                   return false;
+               });
+               return pIsToday && parseTime(p.startTime) > currentTime;
+           });
+           
+           todayClasses.sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
+           return todayClasses.length > 0 && todayClasses[0].code === program.code;
+       }
+
+       function getTimeUntilClass(program) {
+           const currentTime = getCurrentTimeMinutes();
+           const startMinutes = parseTime(program.startTime);
+           const diff = startMinutes - currentTime;
+           const hours = Math.floor(diff / 60);
+           const mins = diff % 60;
+           
+           if (hours > 0) return `in ${hours}h ${mins}m`;
+           return `in ${mins}m`;
+       }
+
+       function sortProgramsBySchedule(programsList) {
+           return [...programsList].sort((a, b) => {
+               // Get primary day for each
+               const aDays = a.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
+               const bDays = b.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
+               
+               const aDay = dayOrder[aDays[0]] || 8;
+               const bDay = dayOrder[bDays[0]] || 8;
+               
+               if (aDay !== bDay) return aDay - bDay;
+               
+               // Same day, sort by time
+               return parseTime(a.startTime) - parseTime(b.startTime);
+           });
+       }
+
+       function groupProgramsByDay(programsList) {
+           const sorted = sortProgramsBySchedule(programsList);
+           const grouped = {};
+           
+           sorted.forEach(p => {
+               const days = p.schedule.toUpperCase().split(/[\/,]/).map(d => d.trim());
+               days.forEach(day => {
+                   if (!grouped[day]) grouped[day] = [];
+                   grouped[day].push(p);
+               });
+           });
+           
+           // Sort days
+           const orderedDays = Object.keys(grouped).sort((a, b) => {
+               return (dayOrder[a] || 8) - (dayOrder[b] || 8);
+           });
+           
+           return { grouped, orderedDays };
+       }
 
        // Default computer subject designs
        const defaultComputerDesigns = {
@@ -749,7 +977,6 @@
        };
 
        async function fetchSubjectDesigns() {
-           // Fetch custom designs from Firestore
            const designsSnap = await getDocs(collection(db, "subjectDesigns"));
            designsSnap.forEach(doc => {
                subjectDesigns[doc.id] = doc.data();
@@ -760,17 +987,14 @@
            const code_lower = code.toLowerCase();
            const name_lower = name.toLowerCase();
            
-           // Check for custom design in database
            if (subjectDesigns[code]) return subjectDesigns[code];
            
-           // Check defaults by keywords
            for (const [key, design] of Object.entries(defaultComputerDesigns)) {
                if (code_lower.includes(key) || name_lower.includes(key)) {
                    return design;
                }
            }
            
-           // Computer-related keyword detection
            if (code_lower.includes('cs') || name_lower.includes('computer') || 
                name_lower.includes('programming') || name_lower.includes('software') ||
                name_lower.includes('data') || name_lower.includes('system')) {
@@ -785,7 +1009,6 @@
            element.style.setProperty('--subj-border', design.border);
            element.classList.add('subj-custom');
            
-           // Add pattern overlay if specified
            if (design.pattern && design.pattern !== 'none') {
                const pattern = document.createElement('div');
                pattern.style.cssText = `
@@ -814,7 +1037,6 @@
            return patterns[type] || '';
        }
 
-       // Admin function to save subject design (call this from console or admin panel)
        window.saveSubjectDesign = async function(subjectCode, design) {
            await setDoc(doc(db, "subjectDesigns", subjectCode), design);
            subjectDesigns[subjectCode] = design;
@@ -826,8 +1048,14 @@
                const snap = await getDoc(doc(db, "users", user.uid));
                if (snap.exists() && snap.data().role === 'student') {
                    currentStudent = { uid: user.uid, ...snap.data() };
-                   await fetchSubjectDesigns(); // Load custom designs
-                   initUI(); await fetchSubjects(); switchGlobalView('schedules');
+                   await fetchSubjectDesigns();
+                   initUI(); await fetchSubjects();
+                   // On mobile, show subjects grid by default
+                   if (window.innerWidth <= 768) {
+                       showMobileSubjectsView();
+                   } else {
+                       switchGlobalView('schedules');
+                   }
                } else { window.location.href = "login.html"; }
            } else { window.location.href = "login.html"; }
        });
@@ -876,68 +1104,136 @@
            renderMobileSubjects();
        }
 
+       function showMobileSubjectsView() {
+           document.getElementById('mobileSubjectsView').style.display = 'flex';
+           document.getElementById('workspace').style.display = 'none';
+           document.getElementById('mainHeader').style.display = 'none';
+       }
+
        function renderMobileSubjects() {
            const grid = document.getElementById('mobileSubjectsView');
            grid.innerHTML = '';
-           programs.forEach((p, index) => {
-               const design = getSubjectDesign(p.code, p.name);
-               const card = document.createElement('div');
-               card.className = 'subject-card subj-custom';
-               card.onclick = () => openMobileDetail(p);
-               card.innerHTML = `
-                   <div class="subject-card-header">
-                       <div>
-                           <div class="subject-title">${p.name}</div>
-                           <div class="subject-period">Period ${index + 1}</div>
-                       </div>
+           
+           if (programs.length === 0) {
+               grid.innerHTML = `
+                   <div class="empty-state">
+                       <i class="fa-solid fa-book-open"></i>
+                       <p class="text-lg font-semibold">No subjects enrolled</p>
+                       <p class="text-sm mt-2">Contact your administrator to enroll in subjects.</p>
                    </div>
-                   <div class="subject-meta">
-                       <i class="fa-solid fa-user-group text-xs"></i>
-                       <span>24 students</span>
-                   </div>
-                   <i class="fa-solid ${design.icon} subject-icon" style="color: ${design.accent}"></i>
                `;
-               applySubjectDesign(card, design, index);
-               grid.appendChild(card);
+               return;
+           }
+           
+           const { grouped, orderedDays } = groupProgramsByDay(programs);
+           let hasShownNext = false;
+           
+           orderedDays.forEach((day, dayIndex) => {
+               const daySection = document.createElement('div');
+               daySection.className = 'day-section';
+               
+               const dayHeader = document.createElement('div');
+               dayHeader.className = 'day-header';
+               const isToday = day === getCurrentDayCode();
+               dayHeader.innerHTML = `${dayNames[day] || day} ${isToday ? '<span style="color: #10b981; margin-left: 8px;">• Today</span>' : ''}`;
+               daySection.appendChild(dayHeader);
+               
+               const dayPrograms = grouped[day];
+               dayPrograms.forEach((p, index) => {
+                   const design = getSubjectDesign(p.code, p.name);
+                   const isActive = isClassActive(p);
+                   const isNext = !hasShownNext && isClassNext(p, programs);
+                   
+                   if (isNext) hasShownNext = true;
+                   
+                   const card = document.createElement('div');
+                   card.className = 'subject-card subj-custom';
+                   card.onclick = () => openMobileDetail(p);
+                   
+                   let badge = '';
+                   if (isActive) {
+                       badge = `<div class="active-session-badge"><span>Live</span></div>`;
+                   } else if (isNext) {
+                       const timeUntil = getTimeUntilClass(p);
+                       badge = `<div class="next-class-badge"><i class="fa-regular fa-clock"></i><span>Next ${timeUntil}</span></div>`;
+                   }
+                   
+                   card.innerHTML = `
+                       ${badge}
+                       <div class="subject-card-header">
+                           <div>
+                               <div class="subject-title">${p.name}</div>
+                               <div class="subject-section">${p.code}</div>
+                           </div>
+                       </div>
+                       <div class="subject-meta">
+                           <div class="subject-time-row">
+                               <i class="fa-regular fa-clock" style="color: ${design.accent}"></i>
+                               <span>${t12(p.startTime)} - ${t12(p.endTime)}</span>
+                           </div>
+                           <div class="subject-time-row">
+                               <i class="fa-solid fa-user-tie" style="color: ${design.accent}"></i>
+                               <span>${p.teacher}</span>
+                           </div>
+                       </div>
+                       <i class="fa-solid ${design.icon} subject-icon" style="color: ${design.accent}"></i>
+                   `;
+                   
+                   applySubjectDesign(card, design, index);
+                   daySection.appendChild(card);
+               });
+               
+               grid.appendChild(daySection);
            });
        }
 
-       // Mobile Schedules View
+       // Refresh the view every minute to update "Next" indicators
+       setInterval(() => {
+           if (window.innerWidth <= 768 && document.getElementById('mobileSubjectsView').style.display !== 'none') {
+               renderMobileSubjects();
+           }
+       }, 60000);
+
        window.openMobileSchedules = function() {
            const view = document.getElementById('mobileSchedulesView');
            const content = document.getElementById('mobileSchedulesContent');
            content.innerHTML = '';
            
-           programs.forEach((p, index) => {
-               const row = document.createElement('div');
-               row.className = 'schedule-row';
-               row.innerHTML = `
-                   <div class="schedule-row-header">
-                       <span class="schedule-subject-name">${p.name}</span>
-                       <span class="schedule-code">${p.code}</span>
-                   </div>
-                   <div class="schedule-details">
-                       <div class="schedule-detail-item">
-                           <i class="fa-solid fa-calendar"></i>
-                           <span>${p.schedule}</span>
+           const { grouped, orderedDays } = groupProgramsByDay(programs);
+           
+           orderedDays.forEach(day => {
+               const dayHeader = document.createElement('div');
+               dayHeader.className = 'day-header';
+               const isToday = day === getCurrentDayCode();
+               dayHeader.innerHTML = `${dayNames[day] || day} ${isToday ? '<span style="color: #10b981; margin-left: 8px;">• Today</span>' : ''}`;
+               content.appendChild(dayHeader);
+               
+               grouped[day].forEach(p => {
+                   const row = document.createElement('div');
+                   row.className = 'schedule-row';
+                   row.innerHTML = `
+                       <div class="schedule-row-header">
+                           <span class="schedule-subject-name">${p.name}</span>
+                           <span class="schedule-code">${p.code}</span>
                        </div>
-                       <div class="schedule-detail-item">
-                           <i class="fa-solid fa-clock"></i>
-                           <span>${t12(p.startTime)} - ${t12(p.endTime)}</span>
+                       <div class="schedule-details">
+                           <div class="schedule-detail-item">
+                               <i class="fa-solid fa-clock"></i>
+                               <span>${t12(p.startTime)} - ${t12(p.endTime)}</span>
+                           </div>
+                           <div class="schedule-detail-item">
+                               <i class="fa-solid fa-user-tie"></i>
+                               <span>${p.teacher}</span>
+                           </div>
                        </div>
-                       <div class="schedule-detail-item">
-                           <i class="fa-solid fa-user-tie"></i>
-                           <span>${p.teacher}</span>
-                       </div>
-                   </div>
-               `;
-               content.appendChild(row);
+                   `;
+                   content.appendChild(row);
+               });
            });
            
            view.classList.add('active');
        };
 
-       // Mobile Records View
        window.openMobileRecords = function() {
            const view = document.getElementById('mobileRecordsView');
            const content = document.getElementById('mobileRecordsContent');
@@ -1090,6 +1386,7 @@
            if (window.innerWidth <= 768) {
                document.getElementById('mobileSubjectsView').style.display = 'none';
                document.getElementById('workspace').style.display = 'block';
+               document.getElementById('mainHeader').style.display = 'flex';
            }
            renderTable();
        };
