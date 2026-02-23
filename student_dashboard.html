@@ -358,40 +358,22 @@
        }
 
        onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        try {
-            // 1. Fetch the student document first
-            const studentDoc = await getDoc(doc(db, "students", user.uid));
-            
-            if (studentDoc.exists()) {
-                currentStudent = studentDoc.data();
-                
-                // 2. Only after currentStudent is populated, proceed with UI
-                document.getElementById('adminName').innerText = `${currentStudent.firstname} ${currentStudent.lastname}`;
-                document.getElementById('mobileDrawerName').innerText = `${currentStudent.firstname} ${currentStudent.lastname}`;
-                document.getElementById('studentIdDisplay').innerText = currentStudent.studentId;
-                document.getElementById('mobileDrawerId').innerText = currentStudent.studentId;
-                
-                const initial = currentStudent.firstname.charAt(0) + currentStudent.lastname.charAt(0);
-                document.getElementById('adminInitial').innerText = initial;
-                document.getElementById('mobileHeaderInitial').innerText = initial;
-                document.getElementById('mobileDrawerInitial').innerText = initial;
+    if        onAuthStateChanged(auth, async user => {
+           if (user) {
+               const snap = await getDoc(doc(db, "users", user.uid));
+               if (snap.exists() && snap.data().role === 'student') {
+                   currentStudent = { uid: user.uid, ...snap.data() };
+                   await fetchSubjectDesigns();
+                   initUI(); await fetchSubjects();
+                   if (window.innerWidth <= 768) {
+                       showMobileSubjectsView();
+                   } else {
+                       switchGlobalView('schedules');
+                   }
+               } else { window.location.href = "login.html"; }
+           } else { window.location.href = "login.html"; }
+       });
 
-                await loadData();
-            } else {
-                // If user exists in Auth but not in Firestore "students" collection
-                console.error("No student record found for this account.");
-                window.location.href = "login.html";
-            }
-        } catch (error) {
-            console.error("Error loading profile:", error);
-            window.location.href = "login.html";
-        }
-    } else {
-        // Only redirect if there is no authenticated user at all
-        window.location.href = "login.html";
-    }
-});
 
        async function loadSubjects() {
            const progSnap = await getDocs(collection(db, "programs"));
@@ -618,4 +600,5 @@
    </script>
 </body>
 </html>
+
 
