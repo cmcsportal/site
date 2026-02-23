@@ -297,308 +297,302 @@
        </main>
    </div>
 
-   <script type="module">
-       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-       import { getFirestore, collection, query, where, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-       import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-       const firebaseConfig = { apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ", authDomain: "svls-289ee.firebaseapp.com", projectId: "svls-289ee", storageBucket: "svls-289ee.firebasestorage.app", messagingSenderId: "500705386198", appId: "1:500705386198:web:96f189662bc2aa99cf7377" };
-       const app = initializeApp(firebaseConfig);
-       const db = getFirestore(app);
-       const auth = getAuth(app);
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ", 
+        authDomain: "svls-289ee.firebaseapp.com", 
+        projectId: "svls-289ee", 
+        storageBucket: "svls-289ee.firebasestorage.app", 
+        messagingSenderId: "500705386198", 
+        appId: "1:500705386198:web:96f189662bc2aa99cf7377" 
+    };
 
-       let currentStudent = null, programs = [], activeSubj = null, currentMode = 'schedules';
-       let mobileCurrentSubj = null;
-       let mobileCurrentTab = 'materials';
-       let subjectDesigns = {};
-       const dayOrder = { 'M': 1, 'T': 2, 'W': 3, 'TH': 4, 'F': 5, 'SAT': 6, 'SUN': 7 };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-       // Reload handling on resize [FIX: Web-to-Mobile Reload]
-       let isMobileSize = window.innerWidth <= 768;
-       window.addEventListener('resize', () => {
-           const checkMobile = window.innerWidth <= 768;
-           if (checkMobile !== isMobileSize) {
-               window.location.reload();
-           }
-       });
+    let currentStudent = null, programs = [], activeSubj = null, currentMode = 'schedules';
+    let mobileCurrentSubj = null;
+    let subjectDesigns = {};
+    const dayOrder = { 'M': 1, 'T': 2, 'W': 3, 'TH': 4, 'F': 5, 'SAT': 6, 'SUN': 7 };
 
-       function t12(t) { if (!t) return ""; let [h, m] = t.split(':'); h = parseInt(h); const p = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${m} ${p}`; }
-       function parseTime(timeStr) { if (!timeStr) return 0; const [h, m] = timeStr.split(':').map(Number); return h * 60 + m; }
-       function getCurrentDayCode() { const days = ['SUN', 'M', 'T', 'W', 'TH', 'F', 'SAT']; return days[new Date().getDay()]; }
-       function getCurrentTimeMinutes() { const now = new Date(); return now.getHours() * 60 + now.getMinutes(); }
+    // Auth Listener
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            try {
+                const snap = await getDoc(doc(db, "users", user.uid));
+                if (snap.exists() && snap.data().role === 'student') {
+                    currentStudent = { uid: user.uid, ...snap.data() };
+                    updateUserUI();
+                    await loadSubjects(); // Initialize data loading
+                } else {
+                    window.location.href = "login.html";
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                window.location.href = "login.html";
+            }
+        } else {
+            window.location.href = "login.html";
+        }
+    });
 
-       function parseScheduleDays(scheduleStr) {
-           const normalized = scheduleStr.toUpperCase().replace(/-/g, '/').replace(/,/g, '/').replace(/\s/g, '');
-           const days = [];
-           const dayCodes = ['TH', 'SAT', 'SUN', 'M', 'T', 'W', 'F'];
-           let remaining = normalized;
-           dayCodes.sort((a, b) => b.length - a.length);
-           while (remaining.length > 0) {
-               let matched = false;
-               for (const day of dayCodes) {
-                   if (remaining.startsWith(day)) {
-                       days.push(day);
-                       remaining = remaining.slice(day.length);
-                       if (remaining.startsWith('/')) remaining = remaining.slice(1);
-                       matched = true; break;
-                   }
-               }
-               if (!matched) remaining = remaining.slice(1);
-           }
-           return days;
-       }
+    function updateUserUI() {
+        const initial = currentStudent.firstname.charAt(0) + currentStudent.lastname.charAt(0);
+        const fullName = `${currentStudent.firstname} ${currentStudent.lastname}`;
+        
+        // Desktop Profile
+        document.getElementById('adminInitial').innerText = initial;
+        document.getElementById('adminName').innerText = fullName;
+        document.getElementById('studentIdDisplay').innerText = currentStudent.studentId;
+        
+        // Mobile Profile
+        document.getElementById('mobileHeaderInitial').innerText = initial;
+        document.getElementById('mobileDrawerInitial').innerText = initial;
+        document.getElementById('mobileDrawerName').innerText = fullName;
+        document.getElementById('mobileDrawerId').innerText = currentStudent.studentId;
+    }
 
-       function isClassActive(program) {
-           const currentDay = getCurrentDayCode();
-           const currentTime = getCurrentTimeMinutes();
-           const startMinutes = parseTime(program.startTime);
-           const endMinutes = parseTime(program.endTime);
-           const scheduleDays = parseScheduleDays(program.schedule);
-           return scheduleDays.includes(currentDay) && currentTime >= startMinutes && currentTime <= endMinutes;
-       }
+    async function loadSubjects() {
+        // Fetch specific subjects for this student based on their course/year/semester if necessary
+        // For now, fetching all programs as per your original logic
+        const progSnap = await getDocs(collection(db, "programs"));
+        programs = progSnap.docs.map(doc => doc.data());
 
-       onAuthStateChanged(auth, async (user) => {
-    if        onAuthStateChanged(auth, async user => {
-           if (user) {
-               const snap = await getDoc(doc(db, "users", user.uid));
-               if (snap.exists() && snap.data().role === 'student') {
-                   currentStudent = { uid: user.uid, ...snap.data() };
-                   await fetchSubjectDesigns();
-                   initUI(); await fetchSubjects();
-                   if (window.innerWidth <= 768) {
-                       showMobileSubjectsView();
-                   } else {
-                       switchGlobalView('schedules');
-                   }
-               } else { window.location.href = "login.html"; }
-           } else { window.location.href = "login.html"; }
-       });
+        const designSnap = await getDocs(collection(db, "subject_designs"));
+        designSnap.forEach(doc => subjectDesigns[doc.id] = doc.data());
 
+        renderSidebar();
+        renderMobileSubjects();
+        
+        // Default view
+        if (window.innerWidth <= 768) {
+            document.getElementById('mobileSubjectsView').classList.remove('hidden');
+        } else {
+            switchGlobalView('schedules');
+        }
+    }
 
-       async function loadSubjects() {
-           const progSnap = await getDocs(collection(db, "programs"));
-           programs = progSnap.docs.map(doc => doc.data());
-           const designSnap = await getDocs(collection(db, "subject_designs"));
-           designSnap.forEach(doc => subjectDesigns[doc.id] = doc.data());
-           renderSidebar();
-           renderMobileSubjects();
-           switchGlobalView('schedules');
-       }
+    // Helper Functions
+    function t12(t) { if (!t) return ""; let [h, m] = t.split(':'); h = parseInt(h); const p = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${m} ${p}`; }
+    function parseTime(timeStr) { if (!timeStr) return 0; const [h, m] = timeStr.split(':').map(Number); return h * 60 + m; }
+    function getCurrentDayCode() { const days = ['SUN', 'M', 'T', 'W', 'TH', 'F', 'SAT']; return days[new Date().getDay()]; }
+    function getCurrentTimeMinutes() { const now = new Date(); return now.getHours() * 60 + now.getMinutes(); }
 
-       function renderSidebar() {
-           const container = document.getElementById('subjectNavItems');
-           container.innerHTML = '';
-           programs.forEach(p => {
-               const btn = document.createElement('a');
-               btn.id = `navSubj_${p.code}`;
-               btn.className = "sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2 cursor-pointer";
-               const design = subjectDesigns[p.code] || { color: '#ffffff' };
-               btn.style.setProperty('--subj-bg', design.color);
-               btn.innerHTML = `<div class="w-2 h-2 rounded-full" style="background: ${design.color}"></div> <span class="uppercase truncate">${p.name}</span>`;
-               // [FIX: Subject Navigation on Web] - Changed to switchGlobalView
-               btn.onclick = () => switchGlobalView(p.code);
-               container.appendChild(btn);
-           });
-       }
+    function parseScheduleDays(scheduleStr) {
+        if (!scheduleStr) return [];
+        const normalized = scheduleStr.toUpperCase().replace(/[-,\s]/g, '/');
+        const dayCodes = ['TH', 'SAT', 'SUN', 'M', 'T', 'W', 'F'];
+        const days = [];
+        let remaining = normalized;
+        dayCodes.sort((a, b) => b.length - a.length);
+        while (remaining.length > 0) {
+            let matched = false;
+            for (const day of dayCodes) {
+                if (remaining.startsWith(day)) {
+                    days.push(day);
+                    remaining = remaining.slice(day.length);
+                    if (remaining.startsWith('/')) remaining = remaining.slice(1);
+                    matched = true; break;
+                }
+            }
+            if (!matched) remaining = remaining.slice(1);
+        }
+        return days;
+    }
 
-       function renderMobileSubjects() {
-           const container = document.getElementById('mobileSubjectsView');
-           container.innerHTML = '';
-           programs.forEach(p => {
-               const design = subjectDesigns[p.code] || { color: '#3b82f6', icon: 'fa-book' };
-               const card = document.createElement('div');
-               card.className = "subject-card subj-custom";
-               card.style.setProperty('--subj-bg', `linear-gradient(135deg, ${design.color} 0%, #000 150%)`);
-               card.style.setProperty('--subj-border', `${design.color}44`);
-               const isActive = isClassActive(p);
-               card.innerHTML = `
-                   ${isActive ? '<div class="active-session-badge">In Session</div>' : ''}
-                   <div class="subject-card-header">
-                       <div class="flex flex-col">
-                           <span class="subject-title">${p.name}</span>
-                           <span class="subject-section">${p.code} • SECTION ${p.section || 'A'}</span>
-                       </div>
-                   </div>
-                   <div class="subject-meta">
-                       <div class="subject-time-row"><i class="fa-regular fa-clock"></i> <span>${t12(p.startTime)} - ${t12(p.endTime)}</span></div>
-                       <div class="subject-date">${p.schedule}</div>
-                   </div>
-                   <i class="fa-solid ${design.icon || 'fa-book'} subject-icon"></i>
-               `;
-               card.onclick = () => openMobileDetail(p);
-               container.appendChild(card);
-           });
-       }
+    function isClassActive(program) {
+        const currentDay = getCurrentDayCode();
+        const currentTime = getCurrentTimeMinutes();
+        const scheduleDays = parseScheduleDays(program.schedule);
+        return scheduleDays.includes(currentDay) && 
+               currentTime >= parseTime(program.startTime) && 
+               currentTime <= parseTime(program.endTime);
+    }
 
-       window.switchGlobalView = async (mode) => {
-           currentMode = mode; activeSubj = null;
-           document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active-nav'));
-           document.getElementById('mainHeader').classList.remove('hide-tabs');
-           document.getElementById('subjectToggles').classList.add('hidden');
-           document.getElementById('infoSummary').classList.remove('hidden');
+    function renderSidebar() {
+        const container = document.getElementById('subjectNavItems');
+        container.innerHTML = '';
+        programs.forEach(p => {
+            const design = subjectDesigns[p.code] || { color: '#6366f1' };
+            const btn = document.createElement('a');
+            btn.id = `navSubj_${p.code}`;
+            btn.className = "sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2 cursor-pointer";
+            btn.style.setProperty('--subj-bg', design.color);
+            btn.innerHTML = `<div class="w-2 h-2 rounded-full" style="background: ${design.color}"></div> <span class="uppercase truncate">${p.name}</span>`;
+            btn.onclick = () => switchGlobalView(p.code);
+            container.appendChild(btn);
+        });
+    }
 
-           if (mode === 'schedules') {
-               document.getElementById('navSched').classList.add('active-nav');
-               document.getElementById('headerTitle').innerText = "CLASS SCHEDULES";
-               renderSchedules();
-           } else if (mode === 'grades') {
-               document.getElementById('navGrades').classList.add('active-nav');
-               document.getElementById('headerTitle').innerText = "SCHOLASTIC RECORDS";
-               renderGrades();
-           } else {
-               const p = programs.find(x => x.code === mode);
-               if (p) {
-                   activeSubj = p;
-                   document.getElementById(`navSubj_${p.code}`).classList.add('active-nav');
-                   document.getElementById('headerTitle').innerText = p.name;
-                   document.getElementById('subjectToggles').classList.remove('hidden');
-                   document.getElementById('infoSummary').classList.add('hidden');
-                   switchSubTab('attendance');
-               }
-           }
-       };
+    function renderMobileSubjects() {
+        const container = document.getElementById('mobileSubjectsView');
+        container.innerHTML = '';
+        programs.forEach(p => {
+            const design = subjectDesigns[p.code] || { color: '#3b82f6', icon: 'fa-book' };
+            const card = document.createElement('div');
+            card.className = "subject-card subj-custom";
+            card.style.setProperty('--subj-bg', `linear-gradient(135deg, ${design.color} 0%, #000 150%)`);
+            card.style.setProperty('--subj-border', `${design.color}44`);
+            card.innerHTML = `
+                ${isClassActive(p) ? '<div class="active-session-badge">In Session</div>' : ''}
+                <div class="subject-card-header">
+                    <div class="flex flex-col">
+                        <span class="subject-title">${p.name}</span>
+                        <span class="subject-section">${p.code} • SECTION ${p.section || 'A'}</span>
+                    </div>
+                </div>
+                <div class="subject-meta">
+                    <div class="subject-time-row"><i class="fa-regular fa-clock"></i> <span>${t12(p.startTime)} - ${t12(p.endTime)}</span></div>
+                    <div class="subject-date">${p.schedule}</div>
+                </div>
+                <i class="fa-solid ${design.icon || 'fa-book'} subject-icon"></i>
+            `;
+            card.onclick = () => openMobileDetail(p);
+            container.appendChild(card);
+        });
+    }
 
-       function renderSchedules() {
-           const head = document.getElementById('tableHead');
-           head.innerHTML = '<tr><th class="px-6 py-4">Day</th><th class="px-6 py-4">Subject</th><th class="px-6 py-4">Time</th><th class="px-6 py-4">Instructor</th></tr>';
-           const body = document.getElementById('tableBody');
-           body.innerHTML = '';
-           const rows = [];
-           programs.forEach(p => {
-               parseScheduleDays(p.schedule).forEach(day => {
-                   rows.push({ day, ...p });
-               });
-           });
-           rows.sort((a, b) => (dayOrder[a.day] || 9) - (dayOrder[b.day] || 9) || parseTime(a.startTime) - parseTime(b.startTime));
-           rows.forEach(r => {
-               const tr = document.createElement('tr');
-               tr.className = "hover:bg-white/5 transition-colors";
-               tr.innerHTML = `<td class="px-6 py-4 font-bold text-white">${r.day}</td><td class="px-6 py-4"><p class="font-bold text-white uppercase">${r.name}</p><p class="text-[10px] text-gray-500 uppercase">${r.code}</p></td><td class="px-6 py-4 text-gray-300 font-medium">${t12(r.startTime)} - ${t12(r.endTime)}</td><td class="px-6 py-4"><span class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-gray-400 uppercase border border-white/5">${r.instructor || 'TBA'}</span></td>`;
-               body.appendChild(tr);
-           });
-       }
+    window.switchGlobalView = async (mode) => {
+        currentMode = mode; 
+        activeSubj = null;
+        document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active-nav'));
+        document.getElementById('subjectToggles').classList.add('hidden');
+        document.getElementById('infoSummary').classList.remove('hidden');
 
-       function renderGrades() {
-           const head = document.getElementById('tableHead');
-           head.innerHTML = '<tr><th class="px-6 py-4">Subject Code</th><th class="px-6 py-4">Description</th><th class="px-6 py-4 text-center">Prelim</th><th class="px-6 py-4 text-center">Midterm</th><th class="px-6 py-4 text-center">Finals</th><th class="px-6 py-4 text-center">GPA</th></tr>';
-           const body = document.getElementById('tableBody');
-           body.innerHTML = '';
-           programs.forEach(p => {
-               const g = currentStudent.grades?.[p.code] || { p: 0, m: 0, f: 0 };
-               const avg = ((parseFloat(g.p || 0) + parseFloat(g.m || 0) + parseFloat(g.f || 0)) / 3).toFixed(2);
-               const tr = document.createElement('tr');
-               tr.innerHTML = `<td class="px-6 py-4 font-bold text-white uppercase">${p.code}</td><td class="px-6 py-4 font-bold text-white uppercase">${p.name}</td><td class="px-6 py-4 text-center text-gray-400">${g.p || '-'}</td><td class="px-6 py-4 text-center text-gray-400">${g.m || '-'}</td><td class="px-6 py-4 text-center text-gray-400">${g.f || '-'}</td><td class="px-6 py-4 text-center font-black text-blue-400">${avg}</td>`;
-               body.appendChild(tr);
-           });
-       }
+        if (mode === 'schedules') {
+            document.getElementById('navSched').classList.add('active-nav');
+            document.getElementById('headerTitle').innerText = "CLASS SCHEDULES";
+            renderSchedules();
+        } else if (mode === 'grades') {
+            document.getElementById('navGrades').classList.add('active-nav');
+            document.getElementById('headerTitle').innerText = "SCHOLASTIC RECORDS";
+            renderGrades();
+        } else {
+            const p = programs.find(x => x.code === mode);
+            if (p) {
+                activeSubj = p;
+                document.getElementById(`navSubj_${p.code}`).classList.add('active-nav');
+                document.getElementById('headerTitle').innerText = p.name;
+                document.getElementById('subjectToggles').classList.remove('hidden');
+                document.getElementById('infoSummary').classList.add('hidden');
+                switchSubTab('attendance');
+            }
+        }
+    };
 
-       window.switchSubTab = async (tab) => {
-           document.getElementById('btnAtt').className = tab === 'attendance' ? 'flex-1 md:flex-none px-5 py-2.5 text-[10px] font-black uppercase rounded-lg active-nav' : 'flex-1 md:flex-none px-5 py-2.5 text-[10px] font-black uppercase rounded-lg text-gray-500';
-           document.getElementById('btnMat').className = tab === 'materials' ? 'flex-1 md:flex-none px-5 py-2.5 text-[10px] font-black uppercase rounded-lg active-nav' : 'flex-1 md:flex-none px-5 py-2.5 text-[10px] font-black uppercase rounded-lg text-gray-500';
-           const head = document.getElementById('tableHead');
-           const body = document.getElementById('tableBody');
-           body.innerHTML = '<tr><td colspan="4" class="text-center py-10 opacity-50">Loading content...</td></tr>';
+    function renderSchedules() {
+        const head = document.getElementById('tableHead');
+        const body = document.getElementById('tableBody');
+        head.innerHTML = '<tr><th class="px-6 py-4">Day</th><th class="px-6 py-4">Subject</th><th class="px-6 py-4">Time</th><th class="px-6 py-4">Instructor</th></tr>';
+        body.innerHTML = '';
+        const rows = [];
+        programs.forEach(p => {
+            parseScheduleDays(p.schedule).forEach(day => rows.push({ day, ...p }));
+        });
+        rows.sort((a, b) => (dayOrder[a.day] || 9) - (dayOrder[b.day] || 9) || parseTime(a.startTime) - parseTime(b.startTime));
+        rows.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-white/5 transition-colors";
+            tr.innerHTML = `<td class="px-6 py-4 font-bold text-white">${r.day}</td><td class="px-6 py-4"><p class="font-bold text-white uppercase">${r.name}</p><p class="text-[10px] text-gray-500 uppercase">${r.code}</p></td><td class="px-6 py-4 text-gray-300 font-medium">${t12(r.startTime)} - ${t12(r.endTime)}</td><td class="px-6 py-4"><span class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-gray-400 uppercase border border-white/5">${r.instructor || 'TBA'}</span></td>`;
+            body.appendChild(tr);
+        });
+    }
 
-           if (tab === 'attendance') {
-               head.innerHTML = '<tr><th class="px-6 py-4">Date</th><th class="px-6 py-4">Status</th><th class="px-6 py-4">Remarks</th></tr>';
-               const q = query(collection(db, "attendance"), where("studentId", "==", currentStudent.studentId), where("subjectCode", "==", activeSubj.code));
-               const snap = await getDocs(q);
-               body.innerHTML = '';
-               if (snap.empty) body.innerHTML = '<tr><td colspan="3" class="text-center py-10 opacity-30">No attendance records found</td></tr>';
-               snap.forEach(doc => {
-                   const d = doc.data();
-                   const tr = document.createElement('tr');
-                   const st = d.status.toLowerCase();
-                   const badge = st === 'present' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : (st === 'absent' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20');
-                   tr.innerHTML = `<td class="px-6 py-4 font-bold text-white uppercase">${d.date}</td><td class="px-6 py-4"><span class="px-3 py-1 rounded-full text-[10px] font-black uppercase border ${badge}">${d.status}</span></td><td class="px-6 py-4 text-gray-500 text-xs italic">${d.remarks || '-'}</td>`;
-                   body.appendChild(tr);
-               });
-           } else {
-               head.innerHTML = '<tr><th class="px-6 py-4">Material Name</th><th class="px-6 py-4">Type</th><th class="px-6 py-4">Date Added</th><th class="px-6 py-4 text-right">Action</th></tr>';
-               const q = query(collection(db, "materials"), where("subjectCode", "==", activeSubj.code));
-               const snap = await getDocs(q);
-               body.innerHTML = '';
-               if (snap.empty) body.innerHTML = '<tr><td colspan="4" class="text-center py-10 opacity-30">No learning materials uploaded yet</td></tr>';
-               snap.forEach(doc => {
-                   const d = doc.data();
-                   const tr = document.createElement('tr');
-                   tr.innerHTML = `<td class="px-6 py-4 font-bold text-white uppercase">${d.title}</td><td class="px-6 py-4"><span class="px-2 py-1 bg-white/5 rounded text-[9px] font-bold text-gray-400 uppercase border border-white/5">${d.type || 'FILE'}</span></td><td class="px-6 py-4 text-gray-500 text-xs">${d.dateAdded || 'N/A'}</td><td class="px-6 py-4 text-right"><a href="${d.fileUrl}" target="_blank" class="text-blue-400 hover:text-blue-300 font-bold text-[10px] uppercase underline">Download</a></td>`;
-                   body.appendChild(tr);
-               });
-           }
-       };
+    function renderGrades() {
+        const head = document.getElementById('tableHead');
+        const body = document.getElementById('tableBody');
+        head.innerHTML = '<tr><th class="px-6 py-4">Subject Code</th><th class="px-6 py-4">Description</th><th class="px-6 py-4 text-center">Prelim</th><th class="px-6 py-4 text-center">Midterm</th><th class="px-6 py-4 text-center">Finals</th><th class="px-6 py-4 text-center">GPA</th></tr>';
+        body.innerHTML = '';
+        programs.forEach(p => {
+            const g = (currentStudent.grades && currentStudent.grades[p.code]) ? currentStudent.grades[p.code] : { p: '-', m: '-', f: '-' };
+            const avg = (g.p !== '-' && g.m !== '-' && g.f !== '-') ? ((parseFloat(g.p) + parseFloat(g.m) + parseFloat(g.f)) / 3).toFixed(2) : '-';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td class="px-6 py-4 font-bold text-white uppercase">${p.code}</td><td class="px-6 py-4 font-bold text-white uppercase">${p.name}</td><td class="px-6 py-4 text-center text-gray-400">${g.p}</td><td class="px-6 py-4 text-center text-gray-400">${g.m}</td><td class="px-6 py-4 text-center text-gray-400">${g.f}</td><td class="px-6 py-4 text-center font-black text-blue-400">${avg}</td>`;
+            body.appendChild(tr);
+        });
+    }
 
-       // Mobile Detail and Print Flow [FIX: Blank PDF on Mobile]
-       window.openMobileDetail = (subject) => {
-           mobileCurrentSubj = subject;
-           document.getElementById('mobileDetailTitle').innerText = subject.name;
-           document.getElementById('mobileDetailSchedule').innerText = `SECTION ${subject.section || 'A'} • ${subject.schedule}`;
-           document.getElementById('mobileDetailTime').innerText = `${t12(subject.startTime)} - ${t12(subject.endTime)}`;
-           document.getElementById('mobileDetailTeacher').innerText = subject.instructor || 'TBA';
-           const design = subjectDesigns[subject.code] || { color: '#3b82f6' };
-           document.getElementById('mobileDetailHeader').style.background = `linear-gradient(to bottom, ${design.color}33, #050505)`;
-           document.getElementById('mobileDetailView').classList.add('active');
-           switchMobileSubTab('materials');
-       };
+    window.switchSubTab = async (tab) => {
+        document.getElementById('btnAtt').className = tab === 'attendance' ? 'flex-1 md:flex-none px-5 py-2.5 text-[10px] font-black uppercase rounded-lg active-nav' : 'flex-1 md:flex-none px-5 py-2.5 text-[10px] font-black uppercase rounded-lg text-gray-500';
+        document.getElementById('btnMat').className = tab === 'materials' ? 'flex-1 md:flex-none px-5 py-2.5 text-[10px] font-black uppercase rounded-lg active-nav' : 'flex-1 md:flex-none px-5 py-2.5 text-[10px] font-black uppercase rounded-lg text-gray-500';
+        
+        const head = document.getElementById('tableHead');
+        const body = document.getElementById('tableBody');
+        body.innerHTML = '<tr><td colspan="4" class="text-center py-10 opacity-50">Loading content...</td></tr>';
 
-       window.exportPDFFromMobile = (type) => {
-           // Prep the hidden print area for mobile
-           currentMode = type;
-           if (type === 'schedules') renderSchedules();
-           else renderGrades();
-           
-           // Small timeout to ensure content is in DOM before printing
-           setTimeout(() => {
-               exportPDF();
-           }, 300);
-       };
+        if (tab === 'attendance') {
+            head.innerHTML = '<tr><th class="px-6 py-4">Date</th><th class="px-6 py-4">Status</th><th class="px-6 py-4">Remarks</th></tr>';
+            const q = query(collection(db, "attendance"), where("studentId", "==", currentStudent.studentId), where("subjectCode", "==", activeSubj.code));
+            const snap = await getDocs(q);
+            body.innerHTML = snap.empty ? '<tr><td colspan="3" class="text-center py-10 opacity-30">No attendance records found</td></tr>' : '';
+            snap.forEach(doc => {
+                const d = doc.data();
+                const st = d.status.toLowerCase();
+                const badge = st === 'present' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : (st === 'absent' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20');
+                body.innerHTML += `<tr><td class="px-6 py-4 font-bold text-white uppercase">${d.date}</td><td class="px-6 py-4"><span class="px-3 py-1 rounded-full text-[10px] font-black uppercase border ${badge}">${d.status}</span></td><td class="px-6 py-4 text-gray-500 text-xs italic">${d.remarks || '-'}</td></tr>`;
+            });
+        } else {
+            head.innerHTML = '<tr><th class="px-6 py-4">Material Name</th><th class="px-6 py-4">Type</th><th class="px-6 py-4">Date</th><th class="px-6 py-4 text-right">Action</th></tr>';
+            const q = query(collection(db, "materials"), where("subjectCode", "==", activeSubj.code));
+            const snap = await getDocs(q);
+            body.innerHTML = snap.empty ? '<tr><td colspan="4" class="text-center py-10 opacity-30">No materials uploaded</td></tr>' : '';
+            snap.forEach(doc => {
+                const d = doc.data();
+                body.innerHTML += `<tr><td class="px-6 py-4 font-bold text-white uppercase">${d.title}</td><td class="px-6 py-4"><span class="px-2 py-1 bg-white/5 rounded text-[9px] font-bold text-gray-400 uppercase">${d.type || 'FILE'}</span></td><td class="px-6 py-4 text-gray-500 text-xs">${d.dateAdded || '-'}</td><td class="px-6 py-4 text-right"><a href="${d.fileUrl}" target="_blank" class="text-blue-400 font-bold text-[10px] uppercase">Download</a></td></tr>`;
+            });
+        }
+    };
 
-       window.exportPDF = () => {
-           const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-           document.getElementById('pGenDate').innerText = date;
-           document.getElementById('lblReportType').innerText = currentMode === 'schedules' ? "CERTIFICATE OF MATRICULATION" : (currentMode === 'grades' ? "OFFICIAL STUDENT SCHOLASTIC RECORD" : "STUDENT ATTENDANCE REPORT");
-           document.getElementById('pName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
-           document.getElementById('pID').innerText = currentStudent.studentId;
-           document.getElementById('pCourse').innerText = currentStudent.course;
-           document.getElementById('pYearSem').innerText = `YEAR ${currentStudent.year} - ${currentStudent.semester}`;
-           
-           document.getElementById('printHeader').classList.replace('hidden', 'flex');
-           document.querySelector('.print-watermark').classList.remove('hidden');
-           window.print();
-           document.getElementById('printHeader').classList.replace('flex', 'hidden');
-           document.querySelector('.print-watermark').classList.add('hidden');
-       };
+    window.openMobileDetail = (subject) => {
+        mobileCurrentSubj = subject;
+        document.getElementById('mobileDetailTitle').innerText = subject.name;
+        document.getElementById('mobileDetailSchedule').innerText = `SECTION ${subject.section || 'A'} • ${subject.schedule}`;
+        document.getElementById('mobileDetailTime').innerText = `${t12(subject.startTime)} - ${t12(subject.endTime)}`;
+        document.getElementById('mobileDetailTeacher').innerText = subject.instructor || 'TBA';
+        document.getElementById('mobileDetailView').classList.add('active');
+        switchMobileSubTab('materials');
+    };
 
-       window.closeMobileDetail = () => document.getElementById('mobileDetailView').classList.remove('active');
-       window.switchMobileSubTab = async (tab) => {
-           mobileCurrentTab = tab;
-           document.getElementById('mobileTabMat').className = tab === 'materials' ? 'mobile-tab-btn active' : 'mobile-tab-btn';
-           document.getElementById('mobileTabAtt').className = tab === 'attendance' ? 'mobile-tab-btn active' : 'mobile-tab-btn';
-           const container = document.getElementById('mobileDetailContent');
-           container.innerHTML = '<div class="flex justify-center py-10"><i class="fa-solid fa-spinner fa-spin text-2xl opacity-20"></i></div>';
-           if (tab === 'materials') {
-               const q = query(collection(db, "materials"), where("subjectCode", "==", mobileCurrentSubj.code));
-               const snap = await getDocs(q);
-               container.innerHTML = snap.empty ? '<div class="empty-state"><i class="fa-solid fa-folder-open"></i><p>No materials found</p></div>' : '';
-               snap.forEach(doc => {
-                   const d = doc.data();
-                   container.innerHTML += `<div class="material-card"><div class="material-name"><i class="fa-solid fa-file-pdf text-red-500"></i>${d.title}</div><div class="material-desc">${d.description || 'No description provided.'}</div><div class="material-meta"><span>${d.dateAdded || ''}</span> <a href="${d.fileUrl}" target="_blank" class="material-link"><i class="fa-solid fa-download"></i> OPEN</a></div></div>`;
-               });
-           } else {
-               const q = query(collection(db, "attendance"), where("studentId", "==", currentStudent.studentId), where("subjectCode", "==", mobileCurrentSubj.code));
-               const snap = await getDocs(q);
-               container.innerHTML = snap.empty ? '<div class="empty-state"><i class="fa-solid fa-clipboard-check"></i><p>No attendance found</p></div>' : '';
-               snap.forEach(doc => {
-                   const d = doc.data();
-                   container.innerHTML += `<div class="mobile-table-row"><div class="flex flex-col"><span class="text-xs font-black text-white uppercase">${d.date}</span><span class="text-[10px] text-gray-500 uppercase">${d.remarks || 'Regular Session'}</span></div><span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${d.status === 'Present' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}">${d.status}</span></div>`;
-               });
-           }
-       };
+    window.closeMobileDetail = () => document.getElementById('mobileDetailView').classList.remove('active');
 
-       window.toggleMobileMenu = () => { document.getElementById('mobileDrawer').classList.toggle('active'); document.getElementById('mobileMenuOverlay').classList.toggle('active'); };
-       window.logout = () => signOut(auth).then(() => window.location.href = "login.html");
+    window.switchMobileSubTab = async (tab) => {
+        document.getElementById('mobileTabMat').classList.toggle('active', tab === 'materials');
+        document.getElementById('mobileTabAtt').classList.toggle('active', tab === 'attendance');
+        const container = document.getElementById('mobileDetailContent');
+        container.innerHTML = '<div class="flex justify-center py-10"><i class="fa-solid fa-spinner fa-spin text-2xl opacity-20"></i></div>';
+        
+        const col = tab === 'materials' ? 'materials' : 'attendance';
+        const q = tab === 'materials' 
+            ? query(collection(db, col), where("subjectCode", "==", mobileCurrentSubj.code))
+            : query(collection(db, col), where("studentId", "==", currentStudent.studentId), where("subjectCode", "==", mobileCurrentSubj.code));
+        
+        const snap = await getDocs(q);
+        container.innerHTML = snap.empty ? '<div class="empty-state"><p>No data found</p></div>' : '';
+        snap.forEach(doc => {
+            const d = doc.data();
+            if (tab === 'materials') {
+                container.innerHTML += `<div class="material-card"><div class="material-name"><i class="fa-solid fa-file-pdf text-red-500"></i>${d.title}</div><div class="material-meta"><a href="${d.fileUrl}" target="_blank" class="material-link">OPEN</a></div></div>`;
+            } else {
+                container.innerHTML += `<div class="mobile-table-row"><div><span class="text-xs font-black text-white uppercase">${d.date}</span></div><span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${d.status === 'Present' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}">${d.status}</span></div>`;
+            }
+        });
+    };
+
+    window.toggleMobileMenu = () => {
+        document.getElementById('mobileDrawer').classList.toggle('active');
+        document.getElementById('mobileMenuOverlay').classList.toggle('active');
+    };
+
+    window.logout = () => signOut(auth).then(() => window.location.href = "login.html");
    </script>
+   
 </body>
 </html>
+
 
 
