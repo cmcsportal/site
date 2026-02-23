@@ -358,22 +358,40 @@
        }
 
        onAuthStateChanged(auth, async (user) => {
-           if (user) {
-               const q = query(collection(db, "students"), where("email", "==", user.email));
-               const snap = await getDocs(q);
-               if (!snap.empty) {
-                   currentStudent = snap.docs[0].data();
-                   document.getElementById('adminName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
-                   document.getElementById('studentIdDisplay').innerText = currentStudent.studentId;
-                   document.getElementById('adminInitial').innerText = currentStudent.firstname[0] + currentStudent.lastname[0];
-                   document.getElementById('mobileHeaderInitial').innerText = currentStudent.firstname[0] + currentStudent.lastname[0];
-                   document.getElementById('mobileDrawerInitial').innerText = currentStudent.firstname[0] + currentStudent.lastname[0];
-                   document.getElementById('mobileDrawerName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
-                   document.getElementById('mobileDrawerId').innerText = currentStudent.studentId;
-                   await loadSubjects();
-               } else window.location.href = "login.html";
-           } else window.location.href = "login.html";
-       });
+    if (user) {
+        try {
+            // 1. Fetch the student document first
+            const studentDoc = await getDoc(doc(db, "students", user.uid));
+            
+            if (studentDoc.exists()) {
+                currentStudent = studentDoc.data();
+                
+                // 2. Only after currentStudent is populated, proceed with UI
+                document.getElementById('adminName').innerText = `${currentStudent.firstname} ${currentStudent.lastname}`;
+                document.getElementById('mobileDrawerName').innerText = `${currentStudent.firstname} ${currentStudent.lastname}`;
+                document.getElementById('studentIdDisplay').innerText = currentStudent.studentId;
+                document.getElementById('mobileDrawerId').innerText = currentStudent.studentId;
+                
+                const initial = currentStudent.firstname.charAt(0) + currentStudent.lastname.charAt(0);
+                document.getElementById('adminInitial').innerText = initial;
+                document.getElementById('mobileHeaderInitial').innerText = initial;
+                document.getElementById('mobileDrawerInitial').innerText = initial;
+
+                await loadData();
+            } else {
+                // If user exists in Auth but not in Firestore "students" collection
+                console.error("No student record found for this account.");
+                window.location.href = "login.html";
+            }
+        } catch (error) {
+            console.error("Error loading profile:", error);
+            window.location.href = "login.html";
+        }
+    } else {
+        // Only redirect if there is no authenticated user at all
+        window.location.href = "login.html";
+    }
+});
 
        async function loadSubjects() {
            const progSnap = await getDocs(collection(db, "programs"));
@@ -600,3 +618,4 @@
    </script>
 </body>
 </html>
+
