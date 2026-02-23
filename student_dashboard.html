@@ -60,10 +60,8 @@
 
        /* --- MOBILE CLASSROOM STYLES --- */
        @media (max-width: 768px) {
-           /* Hide desktop sidebar on mobile */
            .desktop-sidebar { display: none; }
            
-           /* Mobile Header */
            .mobile-header {
                position: fixed;
                top: 0;
@@ -80,7 +78,6 @@
                padding: 0 16px;
            }
 
-           /* Mobile Menu Overlay */
            .mobile-menu-overlay {
                position: fixed;
                inset: 0;
@@ -93,7 +90,6 @@
            }
            .mobile-menu-overlay.active { opacity: 1; pointer-events: auto; }
 
-           /* Mobile Side Drawer */
            .mobile-drawer {
                position: fixed;
                top: 0;
@@ -109,7 +105,7 @@
            }
            .mobile-drawer.active { transform: translateX(0); }
 
-           /* Subject Cards Grid (Google Classroom Style) */
+           /* Subject Cards Grid */
            .subjects-grid {
                display: grid;
                grid-template-columns: 1fr;
@@ -180,19 +176,14 @@
                transform: rotate(-12deg);
            }
 
-           /* Subject-specific colors (Dark theme) */
-           .subj-math { background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); border: 1px solid rgba(100, 180, 255, 0.2); }
-           .subj-science { background: linear-gradient(135deg, #5c2d4d 0%, #8b4a6b 100%); border: 1px solid rgba(255, 150, 200, 0.2); }
-           .subj-english { background: linear-gradient(135deg, #2d4a3e 0%, #4a7c59 100%); border: 1px solid rgba(100, 255, 150, 0.2); }
-           .subj-filipino { background: linear-gradient(135deg, #5c4a2d 0%, #8b6f4a 100%); border: 1px solid rgba(255, 200, 100, 0.2); }
-           .subj-tle { background: linear-gradient(135deg, #4a2d5c 0%, #6b4a8b 100%); border: 1px solid rgba(200, 100, 255, 0.2); }
-           .subj-ap { background: linear-gradient(135deg, #2d3a5c 0%, #4a5a87 100%); border: 1px solid rgba(100, 150, 255, 0.2); }
-           .subj-esp { background: linear-gradient(135deg, #5c3a2d 0%, #8b5a4a 100%); border: 1px solid rgba(255, 150, 100, 0.2); }
-           .subj-mapeh { background: linear-gradient(135deg, #2d5c4a 0%, #4a8b6f 100%); border: 1px solid rgba(100, 255, 200, 0.2); }
-           .subj-default { background: linear-gradient(135deg, #2d2d2d 0%, #4a4a4a 100%); border: 1px solid rgba(255, 255, 255, 0.1); }
+           /* Dynamic Subject Colors from DB */
+           .subj-custom { 
+               background: var(--subj-bg, linear-gradient(135deg, #2d2d2d 0%, #4a4a4a 100%)); 
+               border: 1px solid var(--subj-border, rgba(255, 255, 255, 0.1)); 
+           }
 
-           /* Mobile Detail View */
-           .mobile-detail-view {
+           /* Mobile Full Screen Views */
+           .mobile-fullscreen-view {
                position: fixed;
                inset: 0;
                background: #050505;
@@ -202,21 +193,163 @@
                display: flex;
                flex-direction: column;
            }
-           .mobile-detail-view.active { transform: translateY(0); }
+           .mobile-fullscreen-view.active { transform: translateY(0); }
 
-           .mobile-detail-header {
+           .mobile-view-header {
                background: rgba(255, 255, 255, 0.03);
                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                padding: 60px 20px 20px;
                position: relative;
            }
 
-           .mobile-detail-content {
+           .mobile-view-content {
                flex: 1;
                overflow-y: auto;
                padding: 20px;
            }
 
+           .mobile-back-btn {
+               position: absolute;
+               top: 16px;
+               left: 16px;
+               width: 40px;
+               height: 40px;
+               border-radius: 50%;
+               background: rgba(255, 255, 255, 0.1);
+               border: none;
+               color: white;
+               display: flex;
+               align-items: center;
+               justify-content: center;
+               font-size: 18px;
+               cursor: pointer;
+               z-index: 10;
+           }
+
+           /* Mobile Tables */
+           .mobile-table-row {
+               display: flex;
+               justify-content: space-between;
+               align-items: center;
+               padding: 16px;
+               background: rgba(255, 255, 255, 0.02);
+               border-radius: 12px;
+               margin-bottom: 8px;
+               border: 1px solid rgba(255, 255, 255, 0.05);
+           }
+
+           .schedule-row {
+               display: flex;
+               flex-direction: column;
+               padding: 16px;
+               background: rgba(255, 255, 255, 0.02);
+               border-radius: 12px;
+               margin-bottom: 8px;
+               border: 1px solid rgba(255, 255, 255, 0.05);
+           }
+
+           .schedule-row-header {
+               display: flex;
+               justify-content: space-between;
+               align-items: center;
+               margin-bottom: 8px;
+           }
+
+           .schedule-subject-name {
+               font-size: 16px;
+               font-weight: 800;
+               color: white;
+               text-transform: uppercase;
+           }
+
+           .schedule-code {
+               background: rgba(255, 255, 255, 0.1);
+               padding: 4px 10px;
+               border-radius: 6px;
+               font-size: 11px;
+               font-weight: 700;
+               color: rgba(255, 255, 255, 0.8);
+           }
+
+           .schedule-details {
+               display: flex;
+               flex-wrap: wrap;
+               gap: 12px;
+               margin-top: 4px;
+           }
+
+           .schedule-detail-item {
+               display: flex;
+               align-items: center;
+               gap: 6px;
+               font-size: 12px;
+               color: rgba(255, 255, 255, 0.6);
+               font-weight: 600;
+           }
+
+           .schedule-detail-item i {
+               color: rgba(255, 255, 255, 0.4);
+               font-size: 11px;
+           }
+
+           /* Grade Cards for Mobile Records */
+           .grade-card {
+               background: rgba(255, 255, 255, 0.02);
+               border: 1px solid rgba(255, 255, 255, 0.05);
+               border-radius: 16px;
+               padding: 20px;
+               margin-bottom: 12px;
+           }
+
+           .grade-card-header {
+               display: flex;
+               justify-content: space-between;
+               align-items: center;
+               margin-bottom: 16px;
+           }
+
+           .grade-subject {
+               font-size: 16px;
+               font-weight: 800;
+               color: white;
+               text-transform: uppercase;
+           }
+
+           .grade-gpa {
+               font-size: 24px;
+               font-weight: 900;
+               color: #60a5fa;
+           }
+
+           .grade-breakdown {
+               display: grid;
+               grid-template-columns: repeat(3, 1fr);
+               gap: 12px;
+           }
+
+           .grade-item {
+               text-align: center;
+               padding: 12px;
+               background: rgba(255, 255, 255, 0.03);
+               border-radius: 10px;
+           }
+
+           .grade-label {
+               font-size: 10px;
+               font-weight: 700;
+               color: rgba(255, 255, 255, 0.4);
+               text-transform: uppercase;
+               letter-spacing: 0.1em;
+               margin-bottom: 4px;
+           }
+
+           .grade-value {
+               font-size: 20px;
+               font-weight: 800;
+               color: white;
+           }
+
+           /* Mobile Tab Bar for Subject Detail */
            .mobile-tab-bar {
                position: fixed;
                bottom: 0;
@@ -248,45 +381,9 @@
            .mobile-tab-btn.active { color: white; }
            .mobile-tab-btn i { font-size: 20px; }
 
-           /* Mobile Tables */
-           .mobile-table-container {
-               background: rgba(255, 255, 255, 0.02);
-               border-radius: 16px;
-               border: 1px solid rgba(255, 255, 255, 0.05);
-               overflow: hidden;
-           }
-
-           .mobile-table-row {
-               display: flex;
-               justify-content: space-between;
-               align-items: center;
-               padding: 16px;
-               border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-           }
-           .mobile-table-row:last-child { border-bottom: none; }
-
-           .mobile-back-btn {
-               position: absolute;
-               top: 16px;
-               left: 16px;
-               width: 40px;
-               height: 40px;
-               border-radius: 50%;
-               background: rgba(255, 255, 255, 0.1);
-               border: none;
-               color: white;
-               display: flex;
-               align-items: center;
-               justify-content: center;
-               font-size: 18px;
-               cursor: pointer;
-               z-index: 10;
-           }
-
            /* Hide desktop elements on mobile */
            .desktop-only { display: none !important; }
            
-           /* Adjust main content for mobile */
            #printAreaWrapper {
                padding-top: 60px;
            }
@@ -302,7 +399,7 @@
            .mobile-menu-overlay { display: none; }
            .mobile-drawer { display: none; }
            .subjects-grid { display: none; }
-           .mobile-detail-view { display: none; }
+           .mobile-fullscreen-view { display: none; }
            .mobile-tab-bar { display: none; }
        }
 
@@ -315,21 +412,13 @@
            #exportGroup button { flex: 1; }
        }
 
-       /* --- APPLYING MASTER TABLE PRINT LOGIC --- */
+       /* --- PRINT STYLES --- */
        @media print {
            @page { margin: 1cm; size: portrait; }
-           
-           /* Reset Global Backgrounds */
            html, body { background: white !important; color: black !important; height: auto !important; overflow: visible !important; }
-           
-           /* Hide UI Elements */
            body > *:not(#printAreaWrapper), .no-print, header, aside, #infoSummary, #subjectToggles, .mobile-header, .mobile-only { display: none !important; }
-           
-           /* Print Wrapper positioning */
            #printAreaWrapper { display: block !important; position: absolute; top: 0; left: 0; width: 100%; padding-top: 0 !important; }
            #workspace { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
-           
-           /* Watermark behind the table */
            .print-watermark { 
                display: flex !important; 
                position: fixed !important; 
@@ -342,8 +431,6 @@
                -webkit-print-color-adjust: exact;
            }
            .print-watermark img { width: 80%; filter: grayscale(1); }
-
-           /* Table Formatting (Master Style) */
            .glass-card { border: none !important; background: transparent !important; border-radius: 0 !important; backdrop-filter: none !important; padding: 0 !important; box-shadow: none !important; }
            table { 
                width: 100% !important; 
@@ -371,7 +458,6 @@
                font-size: 10px !important; 
                background: rgba(255, 255, 255, 0.4) !important;
            }
-
            #printHeader { display: flex !important; }
        }
    </style>
@@ -405,10 +491,10 @@
        </div>
        <nav class="p-4 space-y-2">
            <p class="px-4 text-[10px] font-bold text-gray-600 uppercase tracking-[0.3em] mb-4 mt-4">Core Portal</p>
-           <a onclick="switchGlobalView('schedules'); toggleMobileMenu();" class="flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-semibold text-gray-300 hover:bg-white/5 transition-all cursor-pointer">
+           <a onclick="openMobileSchedules(); toggleMobileMenu();" class="flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-semibold text-gray-300 hover:bg-white/5 transition-all cursor-pointer">
                <i class="fa-solid fa-calendar-day text-lg w-6"></i> <span class="uppercase font-bold">Schedules</span>
            </a>
-           <a onclick="switchGlobalView('grades'); toggleMobileMenu();" class="flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-semibold text-gray-300 hover:bg-white/5 transition-all cursor-pointer">
+           <a onclick="openMobileRecords(); toggleMobileMenu();" class="flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-semibold text-gray-300 hover:bg-white/5 transition-all cursor-pointer">
                <i class="fa-solid fa-file-invoice text-lg w-6"></i> <span class="uppercase font-bold">Records</span>
            </a>
            
@@ -422,14 +508,42 @@
        </nav>
    </div>
 
-   <!-- Mobile Subjects Grid View -->
+   <!-- Mobile Subjects Grid View (Home) -->
    <div class="subjects-grid mobile-only no-print" id="mobileSubjectsView">
        <!-- Dynamically populated -->
    </div>
 
-   <!-- Mobile Detail View -->
-   <div class="mobile-detail-view no-print" id="mobileDetailView">
-       <div class="mobile-detail-header" id="mobileDetailHeader">
+   <!-- Mobile Schedules Full Screen View -->
+   <div class="mobile-fullscreen-view no-print" id="mobileSchedulesView">
+       <div class="mobile-view-header">
+           <button class="mobile-back-btn" onclick="closeMobileFullscreen('mobileSchedulesView')">
+               <i class="fa-solid fa-arrow-left"></i>
+           </button>
+           <h1 class="text-2xl font-black text-white mb-1">Class Schedules</h1>
+           <p class="text-sm text-gray-400 font-semibold">2025-2026 Academic Year</p>
+       </div>
+       <div class="mobile-view-content" id="mobileSchedulesContent">
+           <!-- Dynamic schedule content -->
+       </div>
+   </div>
+
+   <!-- Mobile Records Full Screen View -->
+   <div class="mobile-fullscreen-view no-print" id="mobileRecordsView">
+       <div class="mobile-view-header">
+           <button class="mobile-back-btn" onclick="closeMobileFullscreen('mobileRecordsView')">
+               <i class="fa-solid fa-arrow-left"></i>
+           </button>
+           <h1 class="text-2xl font-black text-white mb-1">Academic Records</h1>
+           <p class="text-sm text-gray-400 font-semibold">Scholastic Performance</p>
+       </div>
+       <div class="mobile-view-content" id="mobileRecordsContent">
+           <!-- Dynamic records content -->
+       </div>
+   </div>
+
+   <!-- Mobile Subject Detail View -->
+   <div class="mobile-fullscreen-view no-print" id="mobileDetailView">
+       <div class="mobile-view-header" id="mobileDetailHeader">
            <button class="mobile-back-btn" onclick="closeMobileDetail()">
                <i class="fa-solid fa-arrow-left"></i>
            </button>
@@ -440,7 +554,7 @@
                <span class="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-xs font-bold uppercase border border-emerald-500/30" id="mobileDetailTeacher">Teacher</span>
            </div>
        </div>
-       <div class="mobile-detail-content" id="mobileDetailContent">
+       <div class="mobile-view-content" id="mobileDetailContent">
            <!-- Dynamic content -->
        </div>
        <div class="mobile-tab-bar">
@@ -554,7 +668,7 @@
 
 <script type="module">
        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-       import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+       import { getFirestore, collection, query, where, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
        const firebaseConfig = { apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ", authDomain: "svls-289ee.firebaseapp.com", projectId: "svls-289ee", storageBucket: "svls-289ee.firebasestorage.app", messagingSenderId: "500705386198", appId: "1:500705386198:web:96f189662bc2aa99cf7377" };
@@ -563,39 +677,156 @@
        let currentStudent = null, programs = [], activeSubj = null, currentMode = 'schedules';
        let mobileCurrentSubj = null;
        let mobileCurrentTab = 'attendance';
+       let subjectDesigns = {}; // Cache for subject designs
 
        function t12(t) { if (!t) return ""; let [h, m] = t.split(':'); h = parseInt(h); const p = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${m} ${p}`; }
 
-       function getSubjectColorClass(code) {
-           const code_lower = code.toLowerCase();
-           if (code_lower.includes('math') || code_lower.includes('algebra') || code_lower.includes('geom')) return 'subj-math';
-           if (code_lower.includes('sci') || code_lower.includes('phys') || code_lower.includes('chem') || code_lower.includes('bio')) return 'subj-science';
-           if (code_lower.includes('eng')) return 'subj-english';
-           if (code_lower.includes('fil')) return 'subj-filipino';
-           if (code_lower.includes('tle') || code_lower.includes('comp')) return 'subj-tle';
-           if (code_lower.includes('ap') || code_lower.includes('hist') || code_lower.includes('soc')) return 'subj-ap';
-           if (code_lower.includes('esp') || code_lower.includes('val')) return 'subj-esp';
-           if (code_lower.includes('mapeh') || code_lower.includes('pe') || code_lower.includes('music') || code_lower.includes('arts')) return 'subj-mapeh';
-           return 'subj-default';
+       // Default computer subject designs
+       const defaultComputerDesigns = {
+           'comprog': {
+               bg: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
+               border: 'rgba(56, 189, 248, 0.3)',
+               icon: 'fa-laptop-code',
+               accent: '#38bdf8',
+               pattern: 'circuit'
+           },
+           'prog': {
+               bg: 'linear-gradient(135deg, #1a0f2e 0%, #2d1b4e 50%, #4c1d95 100%)',
+               border: 'rgba(167, 139, 250, 0.3)',
+               icon: 'fa-code',
+               accent: '#a78bfa',
+               pattern: 'binary'
+           },
+           'database': {
+               bg: 'linear-gradient(135deg, #0f1f0f 0%, #1a3a1a 50%, #2d5a2d 100%)',
+               border: 'rgba(74, 222, 128, 0.3)',
+               icon: 'fa-database',
+               accent: '#4ade80',
+               pattern: 'grid'
+           },
+           'network': {
+               bg: 'linear-gradient(135deg, #1f0f0f 0%, #3d1f1f 50%, #5c2a2a 100%)',
+               border: 'rgba(248, 113, 113, 0.3)',
+               icon: 'fa-network-wired',
+               accent: '#f87171',
+               pattern: 'nodes'
+           },
+           'web': {
+               bg: 'linear-gradient(135deg, #0f1a2e 0%, #1e3a5f 50%, #2d5a87 100%)',
+               border: 'rgba(96, 165, 250, 0.3)',
+               icon: 'fa-globe',
+               accent: '#60a5fa',
+               pattern: 'wave'
+           },
+           'mobile': {
+               bg: 'linear-gradient(135deg, #2e1a0f 0%, #5f3a1e 50%, #875a2d 100%)',
+               border: 'rgba(251, 146, 60, 0.3)',
+               icon: 'fa-mobile-screen',
+               accent: '#fb923c',
+               pattern: 'touch'
+           },
+           'security': {
+               bg: 'linear-gradient(135deg, #0a0a0a 0%, #1f1f1f 50%, #363636 100%)',
+               border: 'rgba(255, 255, 255, 0.2)',
+               icon: 'fa-shield-halved',
+               accent: '#ffffff',
+               pattern: 'lock'
+           },
+           'ai': {
+               bg: 'linear-gradient(135deg, #1a0f2e 0%, #2d1b69 50%, #4c1d95 100%)',
+               border: 'rgba(216, 180, 254, 0.3)',
+               icon: 'fa-brain',
+               accent: '#d8b4fe',
+               pattern: 'neural'
+           },
+           'default': {
+               bg: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+               border: 'rgba(148, 163, 184, 0.2)',
+               icon: 'fa-computer',
+               accent: '#94a3b8',
+               pattern: 'none'
+           }
+       };
+
+       async function fetchSubjectDesigns() {
+           // Fetch custom designs from Firestore
+           const designsSnap = await getDocs(collection(db, "subjectDesigns"));
+           designsSnap.forEach(doc => {
+               subjectDesigns[doc.id] = doc.data();
+           });
        }
 
-       function getSubjectIcon(code) {
+       function getSubjectDesign(code, name) {
            const code_lower = code.toLowerCase();
-           if (code_lower.includes('math') || code_lower.includes('algebra') || code_lower.includes('geom')) return 'fa-calculator';
-           if (code_lower.includes('sci') || code_lower.includes('phys') || code_lower.includes('chem')) return 'fa-flask';
-           if (code_lower.includes('eng')) return 'fa-book';
-           if (code_lower.includes('fil')) return 'fa-flag';
-           if (code_lower.includes('comp') || code_lower.includes('tle')) return 'fa-laptop-code';
-           if (code_lower.includes('hist') || code_lower.includes('ap')) return 'fa-landmark';
-           if (code_lower.includes('pe') || code_lower.includes('mapeh')) return 'fa-basketball';
-           return 'fa-graduation-cap';
+           const name_lower = name.toLowerCase();
+           
+           // Check for custom design in database
+           if (subjectDesigns[code]) return subjectDesigns[code];
+           
+           // Check defaults by keywords
+           for (const [key, design] of Object.entries(defaultComputerDesigns)) {
+               if (code_lower.includes(key) || name_lower.includes(key)) {
+                   return design;
+               }
+           }
+           
+           // Computer-related keyword detection
+           if (code_lower.includes('cs') || name_lower.includes('computer') || 
+               name_lower.includes('programming') || name_lower.includes('software') ||
+               name_lower.includes('data') || name_lower.includes('system')) {
+               return defaultComputerDesigns.comprog;
+           }
+           
+           return defaultComputerDesigns.default;
        }
+
+       function applySubjectDesign(element, design, index) {
+           element.style.setProperty('--subj-bg', design.bg);
+           element.style.setProperty('--subj-border', design.border);
+           element.classList.add('subj-custom');
+           
+           // Add pattern overlay if specified
+           if (design.pattern && design.pattern !== 'none') {
+               const pattern = document.createElement('div');
+               pattern.style.cssText = `
+                   position: absolute;
+                   inset: 0;
+                   opacity: 0.05;
+                   pointer-events: none;
+                   background-image: ${getPattern(design.pattern)};
+                   background-size: 30px 30px;
+               `;
+               element.appendChild(pattern);
+           }
+       }
+
+       function getPattern(type) {
+           const patterns = {
+               circuit: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0v20h10v-10h10v20h-10v20h-20v-20h-10v-10h10v-20h10z' fill='none' stroke='white' stroke-width='1'/%3E%3C/svg%3E")`,
+               binary: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='5' y='15' font-family='monospace' font-size='10' fill='white' opacity='0.3'%3E10%3C/text%3E%3Ctext x='25' y='35' font-family='monospace' font-size='10' fill='white' opacity='0.3'%3E01%3C/text%3E%3C/svg%3E")`,
+               grid: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm1 1v38h38V1H1z' fill='none' stroke='white' stroke-width='0.5'/%3E%3C/svg%3E")`,
+               nodes: `url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 50 50' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='25' cy='25' r='2' fill='white' opacity='0.3'/%3E%3Ccircle cx='5' cy='5' r='1.5' fill='white' opacity='0.2'/%3E%3Ccircle cx='45' cy='45' r='1.5' fill='white' opacity='0.2'/%3E%3Cpath d='M25 25L5 5M25 25l20 20' stroke='white' stroke-width='0.5' opacity='0.2'/%3E%3C/svg%3E")`,
+               wave: `url("data:image/svg+xml,%3Csvg width='60' height='30' viewBox='0 0 60 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 15 Q15 0 30 15 T60 15' fill='none' stroke='white' stroke-width='1' opacity='0.2'/%3E%3C/svg%3E")`,
+               touch: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='8' fill='none' stroke='white' stroke-width='1' opacity='0.2'/%3E%3Ccircle cx='20' cy='20' r='3' fill='white' opacity='0.3'/%3E%3C/svg%3E")`,
+               lock: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='15' y='20' width='10' height='8' fill='none' stroke='white' stroke-width='1' opacity='0.3'/%3E%3Cpath d='M17 20v-4a3 3 0 016 0v4' fill='none' stroke='white' stroke-width='1' opacity='0.3'/%3E%3C/svg%3E")`,
+               neural: `url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 50 50' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='25' cy='15' r='2' fill='white' opacity='0.3'/%3E%3Ccircle cx='15' cy='35' r='2' fill='white' opacity='0.3'/%3E%3Ccircle cx='35' cy='35' r='2' fill='white' opacity='0.3'/%3E%3Cpath d='M25 15L15 35M25 15l10 20M15 35h20' stroke='white' stroke-width='0.5' opacity='0.2'/%3E%3C/svg%3E")`
+           };
+           return patterns[type] || '';
+       }
+
+       // Admin function to save subject design (call this from console or admin panel)
+       window.saveSubjectDesign = async function(subjectCode, design) {
+           await setDoc(doc(db, "subjectDesigns", subjectCode), design);
+           subjectDesigns[subjectCode] = design;
+           console.log(`Design saved for ${subjectCode}`);
+       };
 
        onAuthStateChanged(auth, async user => {
            if (user) {
                const snap = await getDoc(doc(db, "users", user.uid));
                if (snap.exists() && snap.data().role === 'student') {
                    currentStudent = { uid: user.uid, ...snap.data() };
+                   await fetchSubjectDesigns(); // Load custom designs
                    initUI(); await fetchSubjects(); switchGlobalView('schedules');
                } else { window.location.href = "login.html"; }
            } else { window.location.href = "login.html"; }
@@ -606,7 +837,6 @@
            document.getElementById('adminInitial').innerText = currentStudent.firstname[0] + currentStudent.lastname[0];
            document.getElementById('studentIdDisplay').innerText = `ID: ${currentStudent.studentId}`;
            
-           // Mobile header
            document.getElementById('mobileHeaderInitial').innerText = currentStudent.firstname[0] + currentStudent.lastname[0];
            document.getElementById('mobileDrawerName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
            document.getElementById('mobileDrawerId').innerText = `ID: ${currentStudent.studentId}`;
@@ -632,7 +862,7 @@
        async function fetchSubjects() {
            const codes = currentStudent.assignedPrograms || []; if (!codes.length) return;
            const q = query(collection(db, "programs"), where("code", "in", codes));
-           const snap = await getDocs(q); programs = snap.docs.map(d => d.data());
+           const snap = await getDocs(q); programs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
            
            // Desktop nav
            const nav = document.getElementById('subjectNavItems'); nav.innerHTML = '';
@@ -650,8 +880,9 @@
            const grid = document.getElementById('mobileSubjectsView');
            grid.innerHTML = '';
            programs.forEach((p, index) => {
+               const design = getSubjectDesign(p.code, p.name);
                const card = document.createElement('div');
-               card.className = `subject-card ${getSubjectColorClass(p.code)}`;
+               card.className = 'subject-card subj-custom';
                card.onclick = () => openMobileDetail(p);
                card.innerHTML = `
                    <div class="subject-card-header">
@@ -664,11 +895,96 @@
                        <i class="fa-solid fa-user-group text-xs"></i>
                        <span>24 students</span>
                    </div>
-                   <i class="fa-solid ${getSubjectIcon(p.code)} subject-icon"></i>
+                   <i class="fa-solid ${design.icon} subject-icon" style="color: ${design.accent}"></i>
                `;
+               applySubjectDesign(card, design, index);
                grid.appendChild(card);
            });
        }
+
+       // Mobile Schedules View
+       window.openMobileSchedules = function() {
+           const view = document.getElementById('mobileSchedulesView');
+           const content = document.getElementById('mobileSchedulesContent');
+           content.innerHTML = '';
+           
+           programs.forEach((p, index) => {
+               const row = document.createElement('div');
+               row.className = 'schedule-row';
+               row.innerHTML = `
+                   <div class="schedule-row-header">
+                       <span class="schedule-subject-name">${p.name}</span>
+                       <span class="schedule-code">${p.code}</span>
+                   </div>
+                   <div class="schedule-details">
+                       <div class="schedule-detail-item">
+                           <i class="fa-solid fa-calendar"></i>
+                           <span>${p.schedule}</span>
+                       </div>
+                       <div class="schedule-detail-item">
+                           <i class="fa-solid fa-clock"></i>
+                           <span>${t12(p.startTime)} - ${t12(p.endTime)}</span>
+                       </div>
+                       <div class="schedule-detail-item">
+                           <i class="fa-solid fa-user-tie"></i>
+                           <span>${p.teacher}</span>
+                       </div>
+                   </div>
+               `;
+               content.appendChild(row);
+           });
+           
+           view.classList.add('active');
+       };
+
+       // Mobile Records View
+       window.openMobileRecords = function() {
+           const view = document.getElementById('mobileRecordsView');
+           const content = document.getElementById('mobileRecordsContent');
+           content.innerHTML = '';
+           
+           programs.forEach(p => {
+               const g = currentStudent.grades?.[p.code] || { prelim: '-', midterm: '-', final: '-', point: '-' };
+               const card = document.createElement('div');
+               card.className = 'grade-card';
+               card.innerHTML = `
+                   <div class="grade-card-header">
+                       <span class="grade-subject">${p.name}</span>
+                       <span class="grade-gpa">${g.point !== '-' ? g.point : '—'}</span>
+                   </div>
+                   <div class="grade-breakdown">
+                       <div class="grade-item">
+                           <div class="grade-label">Prelim</div>
+                           <div class="grade-value" style="color: ${getGradeColor(g.prelim)}">${g.prelim}</div>
+                       </div>
+                       <div class="grade-item">
+                           <div class="grade-label">Midterm</div>
+                           <div class="grade-value" style="color: ${getGradeColor(g.midterm)}">${g.midterm}</div>
+                       </div>
+                       <div class="grade-item">
+                           <div class="grade-label">Final</div>
+                           <div class="grade-value" style="color: ${getGradeColor(g.final)}">${g.final}</div>
+                       </div>
+                   </div>
+               `;
+               content.appendChild(card);
+           });
+           
+           view.classList.add('active');
+       };
+
+       function getGradeColor(grade) {
+           if (grade === '-' || grade === '') return '#6b7280';
+           const num = parseFloat(grade);
+           if (num >= 90) return '#4ade80';
+           if (num >= 80) return '#60a5fa';
+           if (num >= 75) return '#fbbf24';
+           return '#f87171';
+       }
+
+       window.closeMobileFullscreen = function(viewId) {
+           document.getElementById(viewId).classList.remove('active');
+       };
 
        function openMobileDetail(p) {
            mobileCurrentSubj = p;
@@ -771,19 +1087,11 @@
            document.getElementById('subjectToggles').style.display = 'none';
            document.getElementById('exportGroup').classList.remove('hidden');
            
-           // Mobile view handling
            if (window.innerWidth <= 768) {
-               if (mode === 'schedules') {
-                   document.getElementById('mobileSubjectsView').style.display = 'grid';
-                   document.getElementById('workspace').style.display = 'none';
-               } else {
-                   document.getElementById('mobileSubjectsView').style.display = 'none';
-                   document.getElementById('workspace').style.display = 'block';
-                   renderTable();
-               }
-           } else {
-               renderTable();
+               document.getElementById('mobileSubjectsView').style.display = 'none';
+               document.getElementById('workspace').style.display = 'block';
            }
+           renderTable();
        };
 
        window.switchSubjectView = (p) => {
@@ -850,13 +1158,11 @@
            document.getElementById('pID').innerText = currentStudent.studentId; document.getElementById('pCourse').innerText = currentStudent.course;
            document.getElementById('pYearSem').innerText = `YEAR ${currentStudent.year} - ${currentStudent.semester}`;
            
-           // Prepare Print View
            document.getElementById('printHeader').classList.replace('hidden', 'flex');
            document.querySelector('.print-watermark').classList.remove('hidden');
            
            window.print();
            
-           // Revert UI
            document.getElementById('printHeader').classList.replace('flex', 'hidden');
            document.querySelector('.print-watermark').classList.add('hidden');
        };
