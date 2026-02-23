@@ -109,7 +109,7 @@
            .subjects-grid {
                display: flex;
                flex-direction: column;
-               gap: 12px;
+               gap: 0;
                padding: 16px;
                padding-top: 80px;
                padding-bottom: 100px;
@@ -464,8 +464,17 @@
 
            /* Day Section Headers */
            .day-section {
-               margin-bottom: 20px;
+              margin-bottom: 24px;
            }
+          
+            .day-section .subject-card {
+                margin-bottom: 12px;
+            }
+            
+            .day-section .subject-card:last-child {
+                margin-bottom: 0;
+            }
+
 
            .day-header {
                font-size: 12px;
@@ -1477,3 +1486,4 @@
 </body>
 
 </html>
+
