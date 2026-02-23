@@ -1440,15 +1440,59 @@
        };
 
        // Mobile export functions
-       window.exportCSVFromMobile = function(mode) {
-           currentMode = mode;
-           exportCSV();
-       };
+      // Mobile export functions - set currentMode before exporting
+window.exportCSVFromMobile = function(mode) {
+    currentMode = mode;
+    // Render table first to ensure data exists
+    if (mode === 'schedules') {
+        renderPrintTable('schedules');
+    } else if (mode === 'grades') {
+        renderPrintTable('grades');
+    }
+    setTimeout(() => exportCSV(), 100);
+};
 
-       window.exportPDFFromMobile = function(mode) {
-           currentMode = mode;
-           exportPDF();
-       };
+window.exportPDFFromMobile = function(mode) {
+    currentMode = mode;
+    // Render table first to ensure data exists
+    if (mode === 'schedules') {
+        renderPrintTable('schedules');
+    } else if (mode === 'grades') {
+        renderPrintTable('grades');
+    }
+    setTimeout(() => exportPDF(), 100);
+};
+
+// Separate render function for print that doesn't depend on desktop view
+function renderPrintTable(mode) {
+    const head = document.getElementById('tableHead'); 
+    const body = document.getElementById('tableBody'); 
+    body.innerHTML = '';
+    
+    if (mode === 'schedules') {
+        head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject</th><th class="px-8 py-5">Schedule</th><th class="px-8 py-5">Instructor</th></tr>`;
+        programs.forEach(p => { 
+            body.innerHTML += `<tr>
+                <td class="px-8 py-6 font-black text-white">${p.code}</td>
+                <td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td>
+                <td class="px-8 py-6 text-white font-bold">${p.schedule} <br><span class="text-[10px] text-gray-500">${t12(p.startTime)} - ${t12(p.endTime)}</span></td>
+                <td class="px-8 py-6 text-gray-400 font-bold uppercase">${p.teacher}</td>
+            </tr>`; 
+        });
+    } else if (mode === 'grades') {
+        head.innerHTML = `<tr><th class="px-8 py-5">Subject</th><th class="px-8 py-5 text-center">PRE</th><th class="px-8 py-5 text-center">MID</th><th class="px-8 py-5 text-center">FIN</th><th class="px-8 py-5 text-right">POINT</th></tr>`;
+        programs.forEach(p => { 
+            const g = currentStudent.grades?.[p.code] || { prelim: '-', midterm: '-', final: '-', point: '-' };
+            body.innerHTML += `<tr>
+                <td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td>
+                <td class="text-center font-black">${g.prelim}</td>
+                <td class="text-center font-black">${g.midterm}</td>
+                <td class="text-center font-black">${g.final}</td>
+                <td class="text-right px-8 font-black text-blue-400">${g.point}</td>
+            </tr>`; 
+        });
+    }
+}
 
        function openMobileDetail(p) {
            mobileCurrentSubj = p;
@@ -1616,21 +1660,28 @@
            const a = document.createElement('a'); a.href = url; a.download = `${currentStudent.lastname}_${currentMode}.csv`; a.click();
        };
 
-       window.exportPDF = () => {
-           const now = new Date(); document.getElementById('pGenDate').innerText = now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-           document.getElementById('lblReportType').innerText = currentMode === 'schedules' ? "OFFICIAL CLASS SCHEDULE / CERTIFICATE OF MATRICULATION" : (currentMode === 'grades' ? "OFFICIAL STUDENT SCHOLASTIC RECORD" : "STUDENT ATTENDANCE REPORT");
-           document.getElementById('pName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
-           document.getElementById('pID').innerText = currentStudent.studentId; document.getElementById('pCourse').innerText = currentStudent.course;
-           document.getElementById('pYearSem').innerText = `YEAR ${currentStudent.year} - ${currentStudent.semester}`;
-           
-           document.getElementById('printHeader').classList.replace('hidden', 'flex');
-           document.querySelector('.print-watermark').classList.remove('hidden');
-           
-           window.print();
-           
-           document.getElementById('printHeader').classList.replace('flex', 'hidden');
-           document.querySelector('.print-watermark').classList.add('hidden');
-       };
+window.exportPDF = () => {
+    // Ensure table is rendered before printing
+    if (document.getElementById('tableBody').innerHTML === '') {
+        renderTable();
+    }
+    
+    const now = new Date(); 
+    document.getElementById('pGenDate').innerText = now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+    document.getElementById('lblReportType').innerText = currentMode === 'schedules' ? "OFFICIAL CLASS SCHEDULE / CERTIFICATE OF MATRICULATION" : (currentMode === 'grades' ? "OFFICIAL STUDENT SCHOLASTIC RECORD" : "STUDENT ATTENDANCE REPORT");
+    document.getElementById('pName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
+    document.getElementById('pID').innerText = currentStudent.studentId; 
+    document.getElementById('pCourse').innerText = currentStudent.course;
+    document.getElementById('pYearSem').innerText = `YEAR ${currentStudent.year} - ${currentStudent.semester}`;
+    
+    document.getElementById('printHeader').classList.replace('hidden', 'flex');
+    document.querySelector('.print-watermark').classList.remove('hidden');
+    
+    window.print();
+    
+    document.getElementById('printHeader').classList.replace('flex', 'hidden');
+    document.querySelector('.print-watermark').classList.add('hidden');
+};
 
        window.toggleMobileMenu = () => { 
            document.getElementById('mobileDrawer').classList.toggle('active'); 
@@ -1645,4 +1696,5 @@
 </body>
 
 </html>
+
 
