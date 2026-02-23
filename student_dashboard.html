@@ -576,53 +576,134 @@
        }
 
        /* --- PRINT STYLES --- */
-       @media print {
-           @page { margin: 1cm; size: portrait; }
-           html, body { background: white !important; color: black !important; height: auto !important; overflow: visible !important; }
-           body > *:not(#printAreaWrapper), .no-print, header, aside, #infoSummary, #subjectToggles, .mobile-header, .mobile-only { display: none !important; }
-           #printAreaWrapper { display: block !important; position: absolute; top: 0; left: 0; width: 100%; padding-top: 0 !important; }
-           #workspace { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
-           .print-watermark { 
-               display: flex !important; 
-               position: fixed !important; 
-               inset: 0 !important; 
-               justify-content: center !important; 
-               align-items: center !important; 
-               opacity: 0.12 !important; 
-               z-index: -10 !important; 
-               pointer-events: none;
-               -webkit-print-color-adjust: exact;
-           }
-           .print-watermark img { width: 80%; filter: grayscale(1); }
-           .glass-card { border: none !important; background: transparent !important; border-radius: 0 !important; backdrop-filter: none !important; padding: 0 !important; box-shadow: none !important; }
-           table { 
-               width: 100% !important; 
-               border-collapse: collapse !important; 
-               border: 1.5pt solid #000 !important; 
-               min-width: 100% !important; 
-               margin-top: 10px;
-               background: transparent !important;
-               -webkit-print-color-adjust: exact;
-           }
-           th { 
-               border: 1pt solid #000 !important; 
-               background-color: #f3f4f6 !important; 
-               color: black !important; 
-               padding: 8px !important; 
-               font-size: 10px !important; 
-               text-transform: uppercase; 
-               font-weight: 800;
-               -webkit-print-color-adjust: exact;
-           }
-           td { 
-               border: 1pt solid #000 !important; 
-               padding: 6px 10px !important; 
-               color: black !important; 
-               font-size: 10px !important; 
-               background: rgba(255, 255, 255, 0.4) !important;
-           }
-           #printHeader { display: flex !important; }
-       }
+     /* --- PRINT STYLES - Unified for Desktop and Mobile --- */
+@media print {
+    @page { margin: 1cm; size: portrait; }
+    
+    /* Reset all backgrounds */
+    html, body { 
+        background: white !important; 
+        color: black !important; 
+        height: auto !important; 
+        overflow: visible !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    /* Hide all UI elements */
+    body > *:not(#printAreaWrapper), 
+    .no-print, 
+    header, 
+    aside, 
+    #infoSummary, 
+    #subjectToggles, 
+    .mobile-header, 
+    .mobile-only,
+    .mobile-menu-overlay,
+    .mobile-drawer,
+    .mobile-fullscreen-view,
+    .subjects-grid,
+    .mobile-export-bar,
+    .mobile-tab-bar {
+        display: none !important;
+    }
+    
+    /* Show print wrapper */
+    #printAreaWrapper { 
+        display: block !important; 
+        position: static !important; 
+        width: 100% !important; 
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+    }
+    
+    #workspace { 
+        padding: 0 !important; 
+        margin: 0 !important; 
+        max-width: 100% !important;
+    }
+    
+    /* Watermark */
+    .print-watermark { 
+        display: flex !important; 
+        position: fixed !important; 
+        inset: 0 !important; 
+        justify-content: center !important; 
+        align-items: center !important; 
+        opacity: 0.12 !important; 
+        z-index: -10 !important; 
+        pointer-events: none;
+    }
+    .print-watermark img { 
+        width: 80% !important; 
+        filter: grayscale(1) !important; 
+    }
+
+    /* Remove glass effects */
+    .glass-card { 
+        border: none !important; 
+        background: transparent !important; 
+        border-radius: 0 !important; 
+        backdrop-filter: none !important; 
+        padding: 0 !important; 
+        box-shadow: none !important; 
+    }
+    
+    .transparent-table-card {
+        background: transparent !important;
+        backdrop-filter: none !important;
+    }
+
+    /* Table styling */
+    #printArea {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    table { 
+        width: 100% !important; 
+        border-collapse: collapse !important; 
+        border: 1.5pt solid #000 !important; 
+        min-width: 100% !important; 
+        margin-top: 10px !important;
+        background: transparent !important;
+        font-size: 10px !important;
+    }
+    
+    th { 
+        border: 1pt solid #000 !important; 
+        background-color: #f3f4f6 !important; 
+        color: black !important; 
+        padding: 8px !important; 
+        font-size: 10px !important; 
+        text-transform: uppercase; 
+        font-weight: 800 !important;
+    }
+    
+    td { 
+        border: 1pt solid #000 !important; 
+        padding: 6px 10px !important; 
+        color: black !important; 
+        font-size: 10px !important; 
+        background: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    /* Show print header */
+    #printHeader { 
+        display: flex !important; 
+    }
+    
+    /* Ensure table container doesn't scroll */
+    .table-container {
+        overflow: visible !important;
+        cursor: default !important;
+    }
+    
+    #mainTable {
+        min-width: 100% !important;
+    }
+}
    </style>
 </head>
 
@@ -810,38 +891,39 @@
                <div id="workspace" class="max-w-7xl mx-auto space-y-6 md:space-y-10">
                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 no-print" id="infoSummary"></div>
                    
-                   <div id="printArea">
-                       <div class="print-watermark hidden"><img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
-                       
-                       <div id="printHeader" class="hidden flex-col items-center text-center w-full mb-8">
-                           <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="w-16 mb-2">
-                           <h2 class="text-xl font-black text-black uppercase">Central Mindanao Computer School</h2>
-                           <p class="text-[9px] text-black uppercase font-bold">2nd Floor Villasor Building, Burgos Street, Mlang, Cotabato</p>
-                           <p class="w-full border-t-2 border-black mt-4 pt-2 font-black text-black uppercase tracking-widest text-sm" id="lblReportType"></p>
-                           
-                           <div class="grid grid-cols-2 gap-x-12 mt-6 text-left w-full border-b border-black pb-4 text-black text-[10pt]">
-                               <div class="space-y-1">
-                                   <p class="font-bold">Student: <span id="pName" class="font-normal uppercase"></span></p>
-                                   <p class="font-bold">ID Number: <span id="pID" class="font-normal"></span></p>
-                                   <p class="font-bold">Course: <span id="pCourse" class="font-normal uppercase"></span></p>
-                               </div>
-                               <div class="space-y-1">
-                                   <p class="font-bold">Year/Sem: <span id="pYearSem" class="font-normal uppercase"></span></p>
-                                   <p class="font-bold">School Year: <span id="pSY" class="font-normal">2025-2026</span></p>
-                                   <p class="font-bold italic">Date Generated: <span id="pGenDate" class="font-normal not-italic"></span></p>
-                               </div>
-                           </div>
-                       </div>
+<!-- Print Area - Shared between desktop and mobile -->
+<div id="printArea">
+    <div class="print-watermark hidden"><img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
+    
+    <div id="printHeader" class="hidden flex-col items-center text-center w-full mb-8">
+        <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="w-16 mb-2">
+        <h2 class="text-xl font-black text-black uppercase">Central Mindanao Computer School</h2>
+        <p class="text-[9px] text-black uppercase font-bold">2nd Floor Villasor Building, Burgos Street, Mlang, Cotabato</p>
+        <p class="w-full border-t-2 border-black mt-4 pt-2 font-black text-black uppercase tracking-widest text-sm" id="lblReportType"></p>
+        
+        <div class="grid grid-cols-2 gap-x-12 mt-6 text-left w-full border-b border-black pb-4 text-black text-[10pt]">
+            <div class="space-y-1">
+                <p class="font-bold">Student: <span id="pName" class="font-normal uppercase"></span></p>
+                <p class="font-bold">ID Number: <span id="pID" class="font-normal"></span></p>
+                <p class="font-bold">Course: <span id="pCourse" class="font-normal uppercase"></span></p>
+            </div>
+            <div class="space-y-1">
+                <p class="font-bold">Year/Sem: <span id="pYearSem" class="font-normal uppercase"></span></p>
+                <p class="font-bold">School Year: <span id="pSY" class="font-normal">2025-2026</span></p>
+                <p class="font-bold italic">Date Generated: <span id="pGenDate" class="font-normal not-italic"></span></p>
+            </div>
+        </div>
+    </div>
 
-                       <div class="glass-card transparent-table-card overflow-hidden">
-                           <div id="scrollContainer" class="table-container">
-                               <table class="w-full text-left border-collapse" id="mainTable">
-                                   <thead id="tableHead" class="bg-white/5 text-[10px] uppercase font-black text-gray-400"></thead>
-                                   <tbody id="tableBody" class="divide-y divide-white/5 text-sm"></tbody>
-                               </table>
-                           </div>
-                       </div>
-                   </div>
+    <div class="glass-card transparent-table-card overflow-hidden">
+        <div id="scrollContainer" class="table-container">
+            <table class="w-full text-left border-collapse" id="mainTable">
+                <thead id="tableHead" class="bg-white/5 text-[10px] uppercase font-black text-gray-400"></thead>
+                <tbody id="tableBody" class="divide-y divide-white/5 text-sm"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
                </div>
            </div>
        </main>
@@ -1563,3 +1645,4 @@
 </body>
 
 </html>
+
