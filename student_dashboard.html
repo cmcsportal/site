@@ -46,7 +46,7 @@
         }
 
         .sidebar { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
-        .sidebar-btn, .subj-btn { transition: all 0.3s ease; color: #94a3b8; border: 1px solid transparent; }
+        .sidebar-btn, .subj-btn { transition: all 0.3s ease; color: #94a3b8; border: 1px solid transparent; cursor: pointer; }
         .sidebar-btn:hover, .subj-btn:hover { background: rgba(255, 255, 255, 0.05); color: white; }
         .active-nav { background: white !important; color: black !important; font-weight: 800; border-radius: 12px !important; }
 
@@ -58,57 +58,45 @@
             height: 140px;
             transition: transform 0.2s ease;
         }
-        .subject-card:active { transform: scale(0.98); }
         .subject-card-bg {
             position: absolute;
             right: -10%;
             bottom: -10%;
             width: 120px;
             opacity: 0.3;
-            filter: saturate(1.5);
             pointer-events: none;
         }
 
-        /* Bottom Sheet for Mobile Subject View */
-        #mobileSubjectPanel {
+        /* Full Screen Mobile View */
+        #mobileSubjectFullScreen {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 85vh;
+            inset: 0;
             z-index: 100;
-            background: #0a0a0a;
-            border-radius: 2rem 2rem 0 0;
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
+            background: #050505;
+            display: none;
             flex-direction: column;
         }
-        #mobileSubjectPanel.open { transform: translateY(0); }
+        #mobileSubjectFullScreen.open { display: flex; }
 
         /* Print Logic */
         @media print {
             @page { margin: 1cm; size: portrait; }
             html, body { background: white !important; color: black !important; height: auto !important; overflow: visible !important; }
-            body > *:not(#printAreaWrapper), .no-print, header, aside, #infoSummary, .mobile-only, #mobileSubjectPanel { display: none !important; }
-            #printAreaWrapper { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
+            body > *:not(#printAreaWrapper), .no-print, header, aside, #infoSummary, .mobile-only, #mobileSubjectFullScreen { display: none !important; }
+            #printAreaWrapper { display: block !important; position: absolute; top: 0; left: 0; width: 100%; height: auto !important; }
+            #printArea { display: block !important; }
             .print-watermark { display: flex !important; position: fixed !important; inset: 0 !important; justify-content: center !important; align-items: center !important; opacity: 0.12 !important; z-index: -10 !important; -webkit-print-color-adjust: exact; }
-            .print-watermark img { width: 80%; }
-            .glass-card { border: none !important; background: transparent !important; }
-            table { width: 100% !important; border-collapse: collapse !important; border: 1.5pt solid #000 !important; -webkit-print-color-adjust: exact; }
-            th { border: 1pt solid #000 !important; background-color: #f3f4f6 !important; color: black !important; padding: 8px !important; font-size: 10px !important; font-weight: 800; }
-            td { border: 1pt solid #000 !important; padding: 6px 10px !important; color: black !important; font-size: 10px !important; }
+            .print-watermark img { width: 80%; filter: grayscale(1); }
+            .glass-card { border: none !important; background: transparent !important; backdrop-filter: none !important; padding: 0 !important; }
+            table { width: 100% !important; border-collapse: collapse !important; border: 1.5pt solid #000 !important; margin-top: 10px; background: transparent !important; -webkit-print-color-adjust: exact; }
+            th { border: 1pt solid #000 !important; background-color: #f3f4f6 !important; color: black !important; padding: 8px !important; font-size: 10px !important; font-weight: 800; text-transform: uppercase; }
+            td { border: 1pt solid #000 !important; padding: 6px 10px !important; color: black !important; font-size: 10px !important; background: rgba(255, 255, 255, 0.4) !important; }
             #printHeader { display: flex !important; }
         }
 
         @media (max-width: 768px) {
             .desktop-only { display: none !important; }
-            .mobile-only { display: block; }
-            #workspace { padding-bottom: 120px; }
-        }
-
-        @media (min-width: 769px) {
-            .mobile-only { display: none !important; }
+            #workspace { padding-bottom: 160px; }
         }
     </style>
 </head>
@@ -121,7 +109,7 @@
             <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="h-6">
             <div class="font-black text-xs tracking-tighter uppercase">CMCS <span class="text-gray-500">VLS</span></div>
         </div>
-        <button onclick="toggleMobileMenu()" class="text-white p-2 text-xl"><i class="fa-solid fa-user-circle"></i></button>
+        <button onclick="toggleMobileMenu()" class="text-white p-2 text-xl"><i class="fa-solid fa-circle-user"></i></button>
     </div>
 
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-[90] w-72 sidebar transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col no-print md:relative shrink-0">
@@ -132,12 +120,12 @@
             </div>
         </div>
         <nav class="flex-1 py-8 px-4 space-y-6 overflow-y-auto">
-            <div class="desktop-only">
+            <div>
                 <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] mb-4">Core Portal</p>
-                <a onclick="switchGlobalView('schedules');" id="navSched" class="sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2 cursor-pointer">
+                <a onclick="switchGlobalView('schedules'); closeMobileMenu();" id="navSched" class="sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2">
                     <i class="fa-solid fa-calendar-day text-xs"></i> <span class="uppercase">Schedules</span>
                 </a>
-                <a onclick="switchGlobalView('grades');" id="navGrades" class="sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2 cursor-pointer">
+                <a onclick="switchGlobalView('grades'); closeMobileMenu();" id="navGrades" class="sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2">
                     <i class="fa-solid fa-file-invoice text-xs"></i> <span class="uppercase">Records</span>
                 </a>
             </div>
@@ -145,12 +133,9 @@
                 <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] mb-4">Enrolled Subjects</p>
                 <div id="subjectNavItems" class="space-y-2"></div>
             </div>
-            <div class="mobile-only pt-10">
-                <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] mb-4 text-center">User Account</p>
-            </div>
         </nav>
         <div class="p-6 border-t border-white/5">
-            <a href="student_edit.html" class="glass-card p-4 flex items-center gap-3 mb-4 block hover:border-white/20 transition-all">
+            <a href="student_edit.html" class="glass-card p-4 flex items-center gap-3 mb-4 block">
                 <div id="adminInitial" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-xs font-bold text-black uppercase">AD</div>
                 <div class="flex-1 min-w-0">
                     <p class="text-xs font-bold truncate uppercase text-white" id="adminName">Loading...</p>
@@ -167,10 +152,10 @@
         <main class="flex-1 flex flex-col h-full overflow-hidden">
             <header id="mainHeader" class="h-auto py-8 hidden md:flex items-center justify-between px-10 border-b border-white/5 no-print gap-4 shrink-0">
                 <div class="flex flex-col">
-                    <h1 id="headerTitle" class="text-sm font-black uppercase tracking-[0.2em] text-white leading-none">DASHBOARD</h1>
+                    <h1 id="headerTitle" class="text-sm font-black uppercase tracking-[0.2em] text-white leading-none uppercase">Dashboard</h1>
                     <div id="headerContext" class="flex flex-wrap items-center gap-2 mt-3"></div>
                 </div>
-                <div class="header-actions flex items-center gap-3">
+                <div class="flex items-center gap-3">
                     <div id="subjectToggles" class="hidden glass-card !rounded-xl p-1">
                         <button id="btnAtt" onclick="switchSubTab('attendance')" class="px-5 py-2.5 text-[10px] font-black uppercase rounded-lg active-nav">Attendance</button>
                         <button id="btnMat" onclick="switchSubTab('materials')" class="px-5 py-2.5 text-[10px] font-black uppercase rounded-lg text-gray-500">Materials</button>
@@ -186,9 +171,9 @@
                 <div id="workspace" class="max-w-7xl mx-auto space-y-6 md:space-y-10">
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 no-print" id="infoSummary"></div>
                     
-                    <div id="mobileSubjectGrid" class="mobile-only grid grid-cols-1 gap-4"></div>
+                    <div id="mobileSubjectGrid" class="md:hidden grid grid-cols-1 gap-4"></div>
 
-                    <div id="printArea" class="desktop-only">
+                    <div id="printArea">
                         <div class="print-watermark hidden"><img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
                         <div id="printHeader" class="hidden flex-col items-center text-center w-full mb-8">
                             <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="w-16 mb-2">
@@ -209,8 +194,8 @@
                             </div>
                         </div>
 
-                        <div class="glass-card overflow-hidden">
-                            <div id="scrollContainer" class="w-full overflow-x-auto">
+                        <div id="tableCard" class="glass-card overflow-hidden no-print-card">
+                            <div class="w-full overflow-x-auto">
                                 <table class="w-full text-left border-collapse" id="mainTable">
                                     <thead id="tableHead" class="bg-white/5 text-[10px] uppercase font-black text-gray-400"></thead>
                                     <tbody id="tableBody" class="divide-y divide-white/5 text-sm"></tbody>
@@ -218,12 +203,17 @@
                             </div>
                         </div>
                     </div>
+
+                    <div id="mobileExportActions" class="md:hidden hidden flex gap-3 pb-10">
+                        <button onclick="exportCSV()" class="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase">Download CSV</button>
+                        <button onclick="exportPDF()" class="flex-1 py-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl text-[10px] font-black uppercase">Download PDF</button>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <div class="mobile-only fixed bottom-0 left-0 right-0 bg-[#0a0a0a]/90 backdrop-blur-xl border-t border-white/10 flex justify-around items-center h-20 px-4 z-[80] no-print">
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-[#0a0a0a]/90 backdrop-blur-xl border-t border-white/10 flex justify-around items-center h-20 px-4 z-[80] no-print">
         <button onclick="switchGlobalView('subjects')" id="mobNavSubj" class="flex flex-col items-center gap-1 text-white">
             <i class="fa-solid fa-book-open text-lg"></i>
             <span class="text-[9px] font-bold uppercase tracking-wider">Subjects</span>
@@ -238,24 +228,21 @@
         </button>
     </div>
 
-    <div id="mobileSubjectPanel" class="no-print">
-        <div class="h-1.5 w-12 bg-white/20 rounded-full mx-auto mt-3 mb-6"></div>
-        <div class="px-6 flex justify-between items-start mb-6">
-            <div>
-                <h3 id="mobPanelTitle" class="text-lg font-black uppercase">Subject</h3>
-                <p id="mobPanelTeacher" class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1"></p>
+    <div id="mobileSubjectFullScreen" class="no-print">
+        <div class="h-16 flex items-center px-6 border-b border-white/5 shrink-0">
+            <button onclick="closeMobPanel()" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="ml-4 flex-1 truncate">
+                <h3 id="mobPanelTitle" class="text-sm font-black uppercase truncate">Subject Name</h3>
+                <p id="mobPanelTeacher" class="text-[9px] text-gray-500 font-bold uppercase tracking-widest truncate"></p>
             </div>
-            <button onclick="closeMobPanel()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
         </div>
         
-        <div class="px-6 flex gap-2 mb-6">
+        <div class="p-4 flex gap-2">
             <button id="mobTabAtt" onclick="switchMobTab('attendance')" class="flex-1 py-3 rounded-xl bg-white text-black text-[10px] font-black uppercase">Attendance</button>
-            <button id="mobTabMat" onclick="switchMobTab('materials')" class="flex-1 py-3 rounded-xl bg-white/5 text-gray-400 text-[10px] font-black uppercase">Materials</button>
+            <button id="mobTabMat" onclick="switchMobTab('materials')" class="flex-1 py-3 rounded-xl bg-white/5 text-gray-500 text-[10px] font-black uppercase">Materials</button>
         </div>
 
-        <div class="flex-1 overflow-y-auto px-6 pb-24">
-            <div id="mobPanelContent" class="space-y-4"></div>
-        </div>
+        <div id="mobPanelContent" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
     </div>
 
     <script type="module">
@@ -283,7 +270,7 @@
                 if (snap.exists() && snap.data().role === 'student') {
                     currentStudent = { uid: user.uid, ...snap.data() };
                     initUI(); await fetchSubjects(); 
-                    if(window.innerWidth <= 768) { switchGlobalView('subjects'); } else { switchGlobalView('schedules'); }
+                    if(window.innerWidth <= 768) switchGlobalView('subjects'); else switchGlobalView('schedules');
                 } else { window.location.href = "login.html"; }
             } else { window.location.href = "login.html"; }
         });
@@ -309,13 +296,12 @@
             nav.innerHTML = ''; grid.innerHTML = '';
 
             programs.forEach((p, i) => {
-                // Desktop Sidebar
-                const a = document.createElement('a'); a.id = `nav-${p.code}`; a.className = "subj-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[11px] font-black cursor-pointer uppercase mb-1";
+                const color = cardColors[i % cardColors.length];
+                const a = document.createElement('a'); 
+                a.id = `nav-${p.code}`; a.className = "subj-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[11px] font-black uppercase mb-1";
                 a.onclick = () => { switchSubjectView(p); };
                 a.innerHTML = `<i class="fa-solid fa-book-open text-xs"></i> ${p.code}`; nav.appendChild(a);
 
-                // Mobile Card
-                const color = cardColors[i % cardColors.length];
                 grid.innerHTML += `
                     <div onclick="openMobPanel('${p.code}')" class="subject-card ${color.bg} border border-white/5 p-5 flex flex-col justify-between">
                         <img src="${color.icon}" class="subject-card-bg">
@@ -324,35 +310,50 @@
                             <p class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">${p.code}</p>
                         </div>
                         <div class="flex items-center gap-4">
-                            <div class="flex flex-col">
-                                <span class="text-[8px] font-bold text-gray-500 uppercase">Schedule</span>
-                                <span class="text-[10px] font-black text-white uppercase">${p.schedule}</span>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-[8px] font-bold text-gray-500 uppercase">Instructor</span>
-                                <span class="text-[10px] font-black ${color.accent} uppercase">${p.teacher}</span>
-                            </div>
+                            <div class="flex flex-col"><span class="text-[8px] font-bold text-gray-500 uppercase">Schedule</span><span class="text-[10px] font-black text-white uppercase">${p.schedule}</span></div>
+                            <div class="flex flex-col"><span class="text-[8px] font-bold text-gray-500 uppercase">Instructor</span><span class="text-[10px] font-black ${color.accent} uppercase">${p.teacher}</span></div>
                         </div>
                     </div>`;
             });
         }
 
         window.switchGlobalView = (mode) => {
-            currentMode = mode;
+            currentMode = mode; activeSubj = null;
             const isMobile = window.innerWidth <= 768;
 
-            // Handle Active States
             if(isMobile) {
-                document.querySelectorAll('.mobile-only button').forEach(b => b.classList.replace('text-white', 'text-gray-500'));
+                document.querySelectorAll('.md\\:hidden button').forEach(b => b.classList.replace('text-white', 'text-gray-500'));
                 const map = { 'subjects': 'mobNavSubj', 'schedules': 'mobNavSched', 'grades': 'mobNavGrades' };
                 if(map[mode]) document.getElementById(map[mode]).classList.replace('text-gray-500', 'text-white');
+                document.getElementById('mobileExportActions').classList.toggle('hidden', mode === 'subjects');
             }
 
             document.getElementById('mobileSubjectGrid').classList.toggle('hidden', mode !== 'subjects');
-            document.getElementById('printArea').classList.toggle('desktop-only', mode === 'subjects');
-            document.getElementById('headerTitle').innerText = mode === 'schedules' ? "OFFICIAL CLASS SCHEDULES" : (mode === 'grades' ? "SCHOLASTIC PERFORMANCE RECORD" : "SUBJECT DASHBOARD");
+            document.getElementById('tableCard').classList.toggle('hidden', mode === 'subjects');
+            document.getElementById('subjectToggles').classList.add('hidden');
+            document.getElementById('headerTitle').innerText = mode === 'schedules' ? "Official Class Schedules" : (mode === 'grades' ? "Scholastic Performance Record" : "Enrolled Subjects");
+            document.getElementById('headerContext').innerHTML = '';
             
             if (mode !== 'subjects') renderTable();
+        };
+
+        window.switchSubjectView = (p) => {
+            activeSubj = p; currentMode = 'attendance';
+            document.getElementById('headerTitle').innerText = p.name;
+            document.getElementById('headerContext').innerHTML = `
+                <span class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-calendar mr-1"></i> ${p.schedule}</span>
+                <span class="bg-white/10 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-clock mr-1"></i> ${t12(p.startTime)} - ${t12(p.endTime)}</span>
+                <span class="bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-user-tie mr-1"></i> ${p.teacher}</span>`;
+            document.getElementById('subjectToggles').classList.remove('hidden');
+            document.getElementById('tableCard').classList.remove('hidden');
+            switchSubTab('attendance');
+        };
+
+        window.switchSubTab = (tab) => {
+            currentMode = tab;
+            document.getElementById('btnAtt').className = tab === 'attendance' ? 'px-5 py-2.5 text-[10px] font-black uppercase rounded-lg active-nav' : 'px-5 py-2.5 text-[10px] font-black uppercase rounded-lg text-gray-500';
+            document.getElementById('btnMat').className = tab === 'materials' ? 'px-5 py-2.5 text-[10px] font-black uppercase rounded-lg active-nav' : 'px-5 py-2.5 text-[10px] font-black uppercase rounded-lg text-gray-500';
+            renderTable();
         };
 
         async function renderTable() {
@@ -364,51 +365,50 @@
                 head.innerHTML = `<tr><th class="px-8 py-5">Subject</th><th class="px-8 py-5 text-center">PRE</th><th class="px-8 py-5 text-center">MID</th><th class="px-8 py-5 text-center">FIN</th><th class="px-8 py-5 text-right">POINT</th></tr>`;
                 programs.forEach(p => { const g = currentStudent.grades?.[p.code] || { prelim: '-', midterm: '-', final: '-', point: '-' };
                     body.innerHTML += `<tr><td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td><td class="text-center font-black">${g.prelim}</td><td class="text-center font-black">${g.midterm}</td><td class="text-center font-black">${g.final}</td><td class="text-right px-8 font-black text-blue-400">${g.point}</td></tr>`; });
+            } else if (currentMode === 'attendance') {
+                head.innerHTML = `<tr><th class="px-8 py-5">Date</th><th class="px-8 py-5 text-center">Status</th></tr>`;
+                const att = currentStudent.attendance?.[activeSubj.code] || {};
+                Object.keys(att).sort().reverse().forEach(d => {
+                    const color = att[d] === 'P' ? 'text-emerald-400' : 'text-red-500';
+                    body.innerHTML += `<tr><td class="px-8 py-6 font-black text-white">${d}</td><td class="text-center font-black ${color}">${att[d] === 'P' ? 'PRESENT' : 'ABSENT'}</td></tr>`;
+                });
+            } else if (currentMode === 'materials') {
+                head.innerHTML = `<tr><th class="px-8 py-5">Resource Name</th><th class="px-8 py-5 text-right">Action</th></tr>`;
+                const q = query(collection(db, "materials"), where("subjectCode", "==", activeSubj.code));
+                const snap = await getDocs(q);
+                snap.forEach(d => { const m = d.data(); body.innerHTML += `<tr><td class="px-8 py-6 font-bold text-white uppercase">${m.name}</td><td class="px-8 py-6 text-right"><a href="${m.link}" target="_blank" class="bg-white text-black px-4 py-2 rounded-lg text-[10px] font-black uppercase">Open</a></td></tr>`; });
             }
         }
 
-        // MOBILE PANEL LOGIC
         window.openMobPanel = (code) => {
             activeSubj = programs.find(p => p.code === code);
             document.getElementById('mobPanelTitle').innerText = activeSubj.name;
             document.getElementById('mobPanelTeacher').innerText = activeSubj.teacher;
-            document.getElementById('mobileSubjectPanel').classList.add('open');
+            document.getElementById('mobileSubjectFullScreen').classList.add('open');
             switchMobTab('attendance');
         };
 
-        window.closeMobPanel = () => document.getElementById('mobileSubjectPanel').classList.remove('open');
+        window.closeMobPanel = () => document.getElementById('mobileSubjectFullScreen').classList.remove('open');
 
         window.switchMobTab = async (tab) => {
-            const content = document.getElementById('mobPanelContent'); content.innerHTML = '<p class="text-center text-xs py-10 opacity-50">Loading...</p>';
-            
-            document.getElementById('mobTabAtt').className = tab === 'attendance' ? 'flex-1 py-3 rounded-xl bg-white text-black text-[10px] font-black uppercase' : 'flex-1 py-3 rounded-xl bg-white/5 text-gray-400 text-[10px] font-black uppercase';
-            document.getElementById('mobTabMat').className = tab === 'materials' ? 'flex-1 py-3 rounded-xl bg-white text-black text-[10px] font-black uppercase' : 'flex-1 py-3 rounded-xl bg-white/5 text-gray-400 text-[10px] font-black uppercase';
+            const content = document.getElementById('mobPanelContent'); content.innerHTML = '<p class="text-center py-10 opacity-30">Loading...</p>';
+            document.getElementById('mobTabAtt').className = tab === 'attendance' ? 'flex-1 py-3 rounded-xl bg-white text-black text-[10px] font-black uppercase' : 'flex-1 py-3 rounded-xl bg-white/5 text-gray-500 text-[10px] font-black uppercase';
+            document.getElementById('mobTabMat').className = tab === 'materials' ? 'flex-1 py-3 rounded-xl bg-white text-black text-[10px] font-black uppercase' : 'flex-1 py-3 rounded-xl bg-white/5 text-gray-500 text-[10px] font-black uppercase';
 
             if (tab === 'attendance') {
                 const att = currentStudent.attendance?.[activeSubj.code] || {};
-                content.innerHTML = Object.keys(att).length ? '' : '<p class="text-center text-[10px] font-bold text-gray-600 uppercase py-10 tracking-widest">No Records Found</p>';
+                content.innerHTML = Object.keys(att).length ? '' : '<div class="text-center py-20 text-[10px] text-gray-600 font-bold uppercase tracking-widest">No records found</div>';
                 Object.keys(att).sort().reverse().forEach(d => {
                     const isP = att[d] === 'P';
-                    content.innerHTML += `
-                        <div class="flex justify-between items-center p-4 rounded-2xl bg-white/5 border border-white/5">
-                            <span class="text-xs font-black text-white uppercase">${d}</span>
-                            <span class="${isP ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-500 bg-rose-500/10'} px-3 py-1 rounded-lg text-[10px] font-black">${isP ? 'PRESENT' : 'ABSENT'}</span>
-                        </div>`;
+                    content.innerHTML += `<div class="p-4 rounded-2xl bg-white/5 flex justify-between items-center"><span class="text-xs font-black text-white">${d}</span><span class="${isP ? 'text-emerald-400 bg-emerald-400/10' : 'text-red-500 bg-red-500/10'} px-3 py-1 rounded-lg text-[9px] font-black">${isP ? 'PRESENT' : 'ABSENT'}</span></div>`;
                 });
             } else {
                 const q = query(collection(db, "materials"), where("subjectCode", "==", activeSubj.code));
                 const snap = await getDocs(q);
-                content.innerHTML = snap.empty ? '<p class="text-center text-[10px] font-bold text-gray-600 uppercase py-10 tracking-widest">No Materials Available</p>' : '';
+                content.innerHTML = snap.empty ? '<div class="text-center py-20 text-[10px] text-gray-600 font-bold uppercase tracking-widest">No materials available</div>' : '';
                 snap.forEach(d => {
                     const m = d.data();
-                    content.innerHTML += `
-                        <div class="flex justify-between items-center p-4 rounded-2xl bg-white/5 border border-white/5">
-                            <div class="flex items-center gap-3">
-                                <i class="fa-solid fa-file-pdf text-rose-500"></i>
-                                <span class="text-xs font-black text-white uppercase">${m.name}</span>
-                            </div>
-                            <a href="${m.link}" target="_blank" class="text-blue-400 text-[10px] font-black uppercase">Open</a>
-                        </div>`;
+                    content.innerHTML += `<div class="p-4 rounded-2xl bg-white/5 flex justify-between items-center"><div class="flex items-center gap-3"><i class="fa-solid fa-file-lines text-blue-500"></i><span class="text-xs font-black text-white uppercase">${m.name}</span></div><a href="${m.link}" target="_blank" class="text-[10px] font-black text-blue-400 uppercase">Open</a></div>`;
                 });
             }
         };
@@ -417,7 +417,7 @@
             let csv = "STUDENT NAME," + currentStudent.lastname + " " + currentStudent.firstname + "\nID," + currentStudent.studentId + "\nCOURSE," + currentStudent.course + "\n\n";
             if (currentMode === 'schedules') {
                 csv += "CODE,SUBJECT,SCHEDULE,TIME,TEACHER\n"; programs.forEach(p => csv += `${p.code},${p.name},${p.schedule},${p.startTime}-${p.endTime},${p.teacher}\n`);
-            } else if (currentMode === 'grades') {
+            } else if (currentMode === 'grades' || currentMode === 'subjects') {
                 csv += "SUBJECT,PRELIM,MIDTERM,FINAL,GPA\n"; programs.forEach(p => { const g = currentStudent.grades?.[p.code] || {}; csv += `"${p.name}",${g.prelim || '-'},${g.midterm || '-'},${g.final || '-'},${g.point || '-'}\n`; });
             }
             const blob = new Blob([csv], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob);
@@ -436,8 +436,8 @@
         };
 
         window.toggleMobileMenu = () => { document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('sidebarOverlay').classList.toggle('hidden'); };
+        window.closeMobileMenu = () => { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sidebarOverlay').classList.add('hidden'); };
         window.logout = () => signOut(auth).then(() => window.location.href = "login.html");
     </script>
 </body>
-
 </html>
