@@ -18,81 +18,90 @@
             overflow-x: hidden;
         }
 
-        /* Modern Scrollbar Universal */
+        /* iOS Loading Spinner */
+        .ios-loader {
+            width: 24px; height: 24px;
+            display: inline-block;
+            position: relative;
+        }
+        .ios-loader div {
+            position: absolute; width: 2px; height: 6px;
+            background: #8e8e93; left: 11px; top: 0;
+            transform-origin: 1px 12px; border-radius: 2px;
+            animation: ios-fade 1s linear infinite;
+        }
+        @keyframes ios-fade { 0% { opacity: 1; } 100% { opacity: 0; } }
+        .ios-loader div:nth-child(1) { transform: rotate(0deg); animation-delay: -1s; }
+        .ios-loader div:nth-child(2) { transform: rotate(30deg); animation-delay: -0.916s; }
+        .ios-loader div:nth-child(3) { transform: rotate(60deg); animation-delay: -0.833s; }
+        .ios-loader div:nth-child(4) { transform: rotate(90deg); animation-delay: -0.75s; }
+        .ios-loader div:nth-child(5) { transform: rotate(120deg); animation-delay: -0.666s; }
+        .ios-loader div:nth-child(6) { transform: rotate(150deg); animation-delay: -0.583s; }
+        .ios-loader div:nth-child(7) { transform: rotate(180deg); animation-delay: -0.5s; }
+        .ios-loader div:nth-child(8) { transform: rotate(210deg); animation-delay: -0.416s; }
+        .ios-loader div:nth-child(9) { transform: rotate(240deg); animation-delay: -0.333s; }
+        .ios-loader div:nth-child(10) { transform: rotate(270deg); animation-delay: -0.25s; }
+        .ios-loader div:nth-child(11) { transform: rotate(300deg); animation-delay: -0.166s; }
+        .ios-loader div:nth-child(12) { transform: rotate(330deg); animation-delay: -0.083s; }
+
+        /* Liquid Glass Back Button */
+        .liquid-back-btn {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .liquid-back-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+
+        /* iOS Bottom Sheet */
+        #subjectSheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #121212;
+            border-top-left-radius: 20px; border-top-right-radius: 20px;
+            z-index: 150;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+            max-height: 92vh;
+            display: flex; flex-direction: column;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+        }
+        #subjectSheet.open { transform: translateY(0); }
+        .sheet-handle {
+            width: 40px; height: 5px; background: rgba(255,255,255,0.2);
+            border-radius: 3px; margin: 12px auto;
+        }
+
+        /* Existing styles kept... */
         ::-webkit-scrollbar { width: 6px; height: 6px; display: block; }
         ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; border: 1px solid transparent; background-clip: content-box; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); background-clip: content-box; }
 
-        .logo-watermark {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0.04;
-            pointer-events: none;
-        }
-
+        .logo-watermark { position: fixed; inset: 0; z-index: -1; display: flex; justify-content: center; align-items: center; opacity: 0.04; pointer-events: none; }
         .logo-watermark img { height: 75%; filter: grayscale(1) brightness(0.5); }
 
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 1.5rem;
-        }
-
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.5rem; }
         .transparent-table-card { background: rgba(255, 255, 255, 0.01) !important; backdrop-filter: blur(8px); }
-
         .sidebar { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
-
         .sidebar-btn, .subj-btn { transition: all 0.3s ease; color: #94a3b8; border: 1px solid transparent; }
         .sidebar-btn:hover, .subj-btn:hover { background: rgba(255, 255, 255, 0.05); color: white; }
-
         .active-nav { background: white !important; color: black !important; font-weight: 800; border-radius: 12px !important; }
 
         .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; cursor: grab; }
         .table-container:active { cursor: grabbing; }
         table { min-width: 800px; width: 100%; }
 
-        /* Classroom Card Styles */
-        .subject-card {
-            position: relative;
-            overflow: hidden;
-            height: 180px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 16px;
-            color: white;
-            transition: transform 0.2s;
-        }
+        .subject-card { position: relative; overflow: hidden; height: 180px; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; padding: 16px; color: white; transition: transform 0.2s; }
         .subject-card:active { transform: scale(0.98); }
-        .card-bg-gfx {
-            position: absolute;
-            top: 0; right: 0; bottom: 0; left: 0;
-            z-index: 0;
-            opacity: 0.3;
-            background-size: cover;
-            background-position: center;
-        }
+        .card-bg-gfx { position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 0; opacity: 0.3; background-size: cover; background-position: center; }
         .card-content { position: relative; z-index: 10; }
 
-        /* Mobile Bottom Tabs */
-        .mobile-bottom-nav {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: rgba(15, 15, 15, 0.95);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            display: none;
-            z-index: 100;
-            height: 70px;
-        }
+        .mobile-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 255, 255, 0.1); display: none; z-index: 100; height: 70px; }
 
         @media (max-width: 768px) {
             .mobile-bottom-nav { display: flex; }
@@ -101,11 +110,10 @@
             table { min-width: 100%; }
         }
 
-        /* --- PRINT LOGIC --- */
         @media print {
             @page { margin: 1cm; size: portrait; }
             html, body { background: white !important; color: black !important; height: auto !important; overflow: visible !important; }
-            body > *:not(#printAreaWrapper), .no-print, header, aside, #infoSummary, .mobile-bottom-nav { display: none !important; }
+            body > *:not(#printAreaWrapper), .no-print, header, aside, #infoSummary, .mobile-bottom-nav, #subjectSheet { display: none !important; }
             #printAreaWrapper { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
             #workspace { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
             .print-watermark { display: flex !important; position: fixed !important; inset: 0 !important; justify-content: center !important; align-items: center !important; opacity: 0.12 !important; z-index: -10 !important; pointer-events: none; -webkit-print-color-adjust: exact; }
@@ -120,11 +128,17 @@
 </head>
 
 <body class="h-screen flex flex-col md:flex-row overflow-hidden">
+    <div id="iosLoader" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="ios-loader"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+    </div>
+
     <div class="logo-watermark no-print"><img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
 
     <div class="md:hidden sidebar p-4 flex justify-between items-center z-[70] no-print h-16 shrink-0">
         <div class="flex items-center gap-2">
-            <button onclick="goHome()" id="backBtn" class="hidden w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white mr-2 hover:bg-white/20 transition-all"><i class="fa-solid fa-arrow-left"></i></button>
+            <button onclick="goHome(); closeSubjectSheet();" id="backBtn" class="hidden liquid-back-btn text-white mr-2">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
             <div class="font-black text-sm tracking-tighter uppercase">CMCS <span class="text-gray-500">VLS</span></div>
         </div>
         <button onclick="toggleMobileMenu()" class="text-white p-2 text-xl"><i class="fa-solid fa-bars-staggered"></i></button>
@@ -140,10 +154,10 @@
         <nav class="flex-1 py-8 px-4 space-y-6 overflow-y-auto">
             <div>
                 <p class="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] mb-4">Core Portal</p>
-                <a onclick="switchGlobalView('schedules'); closeMobileMenu();" id="navSched" class="sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2 cursor-pointer">
+                <a onclick="switchGlobalView('schedules'); closeMobileMenu(); closeSubjectSheet();" id="navSched" class="sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2 cursor-pointer">
                     <i class="fa-solid fa-calendar-day text-xs"></i> <span class="uppercase">Schedules</span>
                 </a>
-                <a onclick="switchGlobalView('grades'); closeMobileMenu();" id="navGrades" class="sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2 cursor-pointer">
+                <a onclick="switchGlobalView('grades'); closeMobileMenu(); closeSubjectSheet();" id="navGrades" class="sidebar-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold mb-2 cursor-pointer">
                     <i class="fa-solid fa-file-invoice text-xs"></i> <span class="uppercase">Records</span>
                 </a>
             </div>
@@ -185,21 +199,24 @@
                 </div>
             </header>
 
+            <div id="subjectSheet" class="md:hidden">
+                <div class="sheet-handle" onclick="closeSubjectSheet()"></div>
+                <div class="flex-1 overflow-y-auto px-4 pb-10" id="sheetContent">
+                    </div>
+            </div>
+
             <div class="flex-1 overflow-y-auto p-4 md:p-10">
                 <div id="workspace" class="max-w-7xl mx-auto space-y-6 md:space-y-10">
-                    <div id="classroomGrid" class="grid grid-cols-1 gap-4 md:hidden transition-all duration-500 ease-in-out opacity-100 transform translate-y-0"></div>
-
+                    <div id="classroomGrid" class="grid grid-cols-1 gap-4 md:hidden"></div>
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 no-print" id="infoSummary"></div>
                     
                     <div id="printArea">
                         <div class="print-watermark hidden"><img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png"></div>
-                        
                         <div id="printHeader" class="hidden flex-col items-center text-center w-full mb-8">
                             <img src="https://sklepagatesting.github.io/resources/Images/CMCSlogo.png" class="w-16 mb-2">
                             <h2 class="text-xl font-black text-black uppercase">Central Mindanao Computer School</h2>
                             <p class="text-[9px] text-black uppercase font-bold">2nd Floor Villasor Building, Burgos Street, Mlang, Cotabato</p>
                             <p class="w-full border-t-2 border-black mt-4 pt-2 font-black text-black uppercase tracking-widest text-sm" id="lblReportType"></p>
-                            
                             <div class="grid grid-cols-2 gap-x-12 mt-6 text-left w-full border-b border-black pb-4 text-black text-[10pt]">
                                 <div class="space-y-1">
                                     <p class="font-bold">Student: <span id="pName" class="font-normal uppercase"></span></p>
@@ -214,7 +231,7 @@
                             </div>
                         </div>
 
-                        <div id="tableWrapper" class="glass-card transparent-table-card overflow-hidden transition-all duration-500 ease-in-out opacity-0 transform translate-y-4 hidden">
+                        <div id="tableWrapper" class="glass-card transparent-table-card overflow-hidden">
                             <div id="scrollContainer" class="table-container">
                                 <table class="w-full text-left border-collapse" id="mainTable">
                                     <thead id="tableHead" class="bg-white/5 text-[10px] uppercase font-black text-gray-400"></thead>
@@ -238,249 +255,3 @@
             <span class="text-[9px] font-black uppercase">Materials</span>
         </button>
     </nav>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-        const firebaseConfig = { apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ", authDomain: "svls-289ee.firebaseapp.com", projectId: "svls-289ee", storageBucket: "svls-289ee.firebasestorage.app", messagingSenderId: "500705386198", appId: "1:500705386198:web:96f189662bc2aa99cf7377" };
-        const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
-        
-        let currentStudent = null, programs = [], activeSubj = null, currentMode = 'dashboard';
-
-        const bgGfx = [
-            'https://www.gstatic.com/classroom/themes/img_read.jpg',
-            'https://www.gstatic.com/classroom/themes/img_code.jpg',
-            'https://www.gstatic.com/classroom/themes/img_reachout.jpg',
-            'https://www.gstatic.com/classroom/themes/img_bookclub.jpg',
-            'https://www.gstatic.com/classroom/themes/img_breakfast.jpg'
-        ];
-
-        function t12(t) { if (!t) return ""; let [h, m] = t.split(':'); h = parseInt(h); const p = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${m} ${p}`; }
-
-        onAuthStateChanged(auth, async user => {
-            if (user) {
-                const snap = await getDoc(doc(db, "users", user.uid));
-                if (snap.exists() && snap.data().role === 'student') {
-                    currentStudent = { uid: user.uid, ...snap.data() };
-                    initUI(); await fetchSubjects(); 
-                    if(window.innerWidth > 768) switchGlobalView('schedules');
-                    else renderMobileDashboard();
-                } else { window.location.href = "login.html"; }
-            } else { window.location.href = "login.html"; }
-        });
-
-        function initUI() {
-            document.getElementById('adminName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
-            document.getElementById('adminInitial').innerText = currentStudent.firstname[0] + currentStudent.lastname[0];
-            document.getElementById('studentIdDisplay').innerText = `ID: ${currentStudent.studentId}`;
-            document.getElementById('infoSummary').innerHTML = `
-                <div class="glass-card p-5 border-white/5"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">PROGRAM</p><p class="text-xs md:text-sm font-black text-white uppercase truncate">${currentStudent.course}</p></div>
-                <div class="glass-card p-5 border-white/5"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">YEAR/SEM</p><p class="text-xs md:text-sm font-black text-white uppercase">Y${currentStudent.year} - ${currentStudent.semester}</p></div>
-                <div class="glass-card p-5 border-white/5"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">STATUS</p><p class="text-xs md:text-sm font-black text-emerald-400 uppercase">${currentStudent.status || 'ENROLLED'}</p></div>
-                <div class="glass-card p-5 border-white/5"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">SCHOOL YEAR</p><p class="text-xs md:text-sm font-black text-blue-400 uppercase">2025-2026</p></div>`;
-            setupDraggableTable();
-        }
-
-        async function fetchSubjects() {
-            const codes = currentStudent.assignedPrograms || []; if (!codes.length) return;
-            const q = query(collection(db, "programs"), where("code", "in", codes));
-            const snap = await getDocs(q); programs = snap.docs.map(d => d.data());
-            
-            const nav = document.getElementById('subjectNavItems'); nav.innerHTML = '';
-            programs.forEach(p => {
-                const a = document.createElement('a'); a.id = `nav-${p.code}`; a.className = "subj-btn flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[11px] font-black cursor-pointer uppercase mb-1";
-                a.onclick = () => { switchSubjectView(p); closeMobileMenu(); };
-                a.innerHTML = `<i class="fa-solid fa-book-open text-xs"></i> ${p.code}`; nav.appendChild(a);
-            });
-        }
-
-        function renderMobileDashboard() {
-            currentMode = 'dashboard';
-            document.getElementById('classroomGrid').innerHTML = '';
-            document.getElementById('classroomGrid').classList.remove('hidden');
-            document.getElementById('tableWrapper').classList.add('hidden');
-            document.getElementById('mobileBottomNav').style.display = 'none';
-            document.getElementById('backBtn').classList.add('hidden');
-            document.getElementById('headerTitle').innerText = "MY CLASSES";
-            document.getElementById('headerContext').innerHTML = '';
-            document.getElementById('exportGroup').classList.add('hidden');
-
-            programs.forEach((p, i) => {
-                const card = document.createElement('div');
-                card.className = "subject-card";
-                card.style.backgroundColor = ['#1a73e8', '#d93025', '#188038', '#f29900', '#9334e6'][i % 5];
-                card.onclick = () => switchSubjectView(p);
-                card.innerHTML = `
-                    <div class="card-bg-gfx" style="background-image: url('${bgGfx[i % 5]}')"></div>
-                    <div class="card-content flex flex-col h-full justify-between">
-                        <div>
-                            <div class="flex justify-between items-start">
-                                <h3 class="text-lg font-black leading-tight uppercase">${p.name}</h3>
-                                <i class="fa-solid fa-ellipsis-vertical"></i>
-                            </div>
-                            <p class="text-[10px] font-bold opacity-80 mt-1 uppercase">${p.code}</p>
-                        </div>
-                        <div class="text-[10px] font-black flex flex-col gap-0.5">
-                            <span><i class="fa-solid fa-user-tie mr-1 opacity-70"></i> ${p.teacher}</span>
-                            <span><i class="fa-solid fa-calendar mr-1 opacity-70"></i> ${p.schedule}</span>
-                            <span><i class="fa-solid fa-clock mr-1 opacity-70"></i> ${t12(p.startTime)} - ${t12(p.endTime)}</span>
-                        </div>
-                    </div>
-                `;
-                document.getElementById('classroomGrid').appendChild(card);
-            });
-        }
-
-        window.goHome = () => {
-            if(window.innerWidth <= 768) renderMobileDashboard();
-            else switchGlobalView('schedules');
-        };
-
-        window.switchGlobalView = (mode) => {
-            currentMode = mode; activeSubj = null;
-            document.getElementById('classroomGrid').classList.add('hidden');
-            document.getElementById('tableWrapper').classList.remove('hidden');
-            document.getElementById('mobileBottomNav').style.display = 'none';
-            document.getElementById('backBtn').classList.remove('hidden');
-            
-            document.querySelectorAll('.sidebar-btn, .subj-btn').forEach(b => b.classList.remove('active-nav'));
-            const navId = mode === 'schedules' ? 'navSched' : 'navGrades';
-            if(document.getElementById(navId)) document.getElementById(navId).classList.add('active-nav');
-            
-            document.getElementById('headerTitle').innerText = mode === 'schedules' ? "CLASS SCHEDULES" : "SCHOLASTIC RECORDS";
-            document.getElementById('headerContext').innerHTML = '';
-            document.getElementById('subjectToggles').style.display = 'none';
-            document.getElementById('exportGroup').classList.remove('hidden');
-            renderTable();
-        };
-
-        window.switchSubjectView = (p) => {
-            activeSubj = p; currentMode = 'attendance';
-            const grid = document.getElementById('classroomGrid');
-            const table = document.getElementById('tableWrapper');
-            
-            // Fade out grid
-            grid.classList.remove('opacity-100', 'translate-y-0');
-            grid.classList.add('opacity-0', '-translate-y-4');
-            
-            setTimeout(() => {
-                grid.classList.add('hidden');
-                table.classList.remove('hidden');
-                // Trigger reflow
-                void table.offsetWidth;
-                table.classList.remove('opacity-0', 'translate-y-4');
-                table.classList.add('opacity-100', 'translate-y-0');
-            }, 300);
-            
-            document.getElementById('backBtn').classList.remove('hidden');
-            
-            if(window.innerWidth <= 768) {
-                document.getElementById('mobileBottomNav').style.display = 'flex';
-                document.getElementById('subjectToggles').style.display = 'none';
-            } else {
-                document.getElementById('subjectToggles').style.display = 'flex';
-            }
-
-            document.querySelectorAll('.sidebar-btn, .subj-btn').forEach(b => b.classList.remove('active-nav'));
-            const navEl = document.getElementById(`nav-${p.code}`); if (navEl) navEl.classList.add('active-nav');
-            
-            document.getElementById('headerTitle').innerText = p.name;
-            document.getElementById('headerContext').innerHTML = `
-                <span class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-user-tie mr-1"></i> ${p.teacher}</span>
-                <span class="bg-white/10 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-calendar mr-1"></i> ${p.schedule}</span>
-                <span class="bg-white/10 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-clock mr-1"></i> ${t12(p.startTime)} - ${t12(p.endTime)}</span>`;
-            
-            document.getElementById('exportGroup').classList.remove('hidden');
-            switchSubTab('attendance');
-        };
-
-        window.switchSubTab = (tab) => {
-            currentMode = tab;
-            document.getElementById('btnAtt').className = tab === 'attendance' ? 'flex-1 px-5 py-2.5 text-[10px] font-black uppercase rounded-lg active-nav' : 'flex-1 px-5 py-2.5 text-[10px] font-black uppercase rounded-lg text-gray-500';
-            document.getElementById('btnMat').className = tab === 'materials' ? 'flex-1 px-5 py-2.5 text-[10px] font-black uppercase rounded-lg active-nav' : 'flex-1 px-5 py-2.5 text-[10px] font-black uppercase rounded-lg text-gray-500';
-            
-            document.getElementById('mBtnAtt').className = tab === 'attendance' ? 'flex flex-col items-center gap-1 text-white' : 'flex flex-col items-center gap-1 text-gray-500';
-            document.getElementById('mBtnMat').className = tab === 'materials' ? 'flex flex-col items-center gap-1 text-white' : 'flex flex-col items-center gap-1 text-gray-500';
-
-            document.getElementById('exportGroup').classList.toggle('hidden', tab === 'materials');
-            renderTable();
-        };
-
-        async function renderTable() {
-            const body = document.getElementById('tableBody'); body.innerHTML = '';
-            const head = document.getElementById('tableHead');
-            
-            if (currentMode === 'schedules') {
-                head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject</th><th class="px-8 py-5">Schedule</th><th class="px-8 py-5">Instructor</th></tr>`;
-                programs.forEach(p => { body.innerHTML += `<tr><td class="px-8 py-6 font-black text-white">${p.code}</td><td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td><td class="px-8 py-6 text-white font-bold">${p.schedule} <br><span class="text-[10px] text-gray-500">${t12(p.startTime)} - ${t12(p.endTime)}</span></td><td class="px-8 py-6 text-gray-400 font-bold uppercase">${p.teacher}</td></tr>`; });
-            } else if (currentMode === 'grades') {
-                head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject</th><th class="px-8 py-5">Instructor</th><th class="px-8 py-5 text-center">PRE</th><th class="px-8 py-5 text-center">MID</th><th class="px-8 py-5 text-center">FIN</th><th class="px-8 py-5 text-right">POINT</th></tr>`;
-                programs.forEach(p => { 
-                    const g = currentStudent.grades?.[p.code] || { prelim: '-', midterm: '-', final: '-', point: '-' };
-                    body.innerHTML += `<tr>
-                        <td class="px-8 py-6 font-black text-white">${p.code}</td>
-                        <td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td>
-                        <td class="px-8 py-6 text-gray-400 font-bold uppercase">${p.teacher}</td>
-                        <td class="text-center font-black">${g.prelim}</td>
-                        <td class="text-center font-black">${g.midterm}</td>
-                        <td class="text-center font-black">${g.final}</td>
-                        <td class="text-right px-8 font-black text-blue-400">${g.point}</td>
-                    </tr>`; 
-                });
-            } else if (currentMode === 'attendance') {
-                head.innerHTML = `<tr><th class="px-8 py-5">Date</th><th class="px-8 py-5 text-center">Status</th></tr>`;
-                const att = currentStudent.attendance?.[activeSubj.code] || {};
-                Object.keys(att).sort().reverse().forEach(d => { const color = att[d] === 'P' ? 'text-emerald-400' : 'text-red-500';
-                    body.innerHTML += `<tr><td class="px-8 py-6 font-black text-white">${d}</td><td class="text-center font-black ${color}">${att[d] === 'P' ? 'PRESENT' : 'ABSENT'}</td></tr>`; });
-            } else if (currentMode === 'materials') {
-                head.innerHTML = `<tr><th class="px-8 py-5">Resource Name</th><th class="px-8 py-5 text-right">Action</th></tr>`;
-                const q = query(collection(db, "materials"), where("subjectCode", "==", activeSubj.code));
-                const snap = await getDocs(q);
-                snap.forEach(d => { const m = d.data(); body.innerHTML += `<tr><td class="px-8 py-6 font-bold text-white uppercase">${m.name}</td><td class="px-8 py-6 text-right"><a href="${m.link}" target="_blank" class="bg-white text-black px-4 py-2 rounded-lg text-[10px] font-black uppercase">Open</a></td></tr>`; });
-            }
-        }
-
-        window.exportCSV = () => {
-            let csv = "STUDENT NAME," + currentStudent.lastname + " " + currentStudent.firstname + "\nID," + currentStudent.studentId + "\nCOURSE," + currentStudent.course + "\n\n";
-            if (currentMode === 'schedules') {
-                csv += "CODE,SUBJECT,SCHEDULE,TIME,TEACHER\n"; programs.forEach(p => csv += `${p.code},${p.name},${p.schedule},${p.startTime}-${p.endTime},${p.teacher}\n`);
-            } else if (currentMode === 'grades') {
-                csv += "CODE,SUBJECT,TEACHER,PRELIM,MIDTERM,FINAL,GPA\n"; programs.forEach(p => { const g = currentStudent.grades?.[p.code] || {}; csv += `${p.code},"${p.name}","${p.teacher}",${g.prelim || '-'},${g.midterm || '-'},${g.final || '-'},${g.point || '-'}\n`; });
-            } else if (currentMode === 'attendance') {
-                csv += "DATE,STATUS\n"; const att = currentStudent.attendance?.[activeSubj.code] || {}; Object.keys(att).sort().reverse().forEach(d => csv += `${d},${att[d] === 'P' ? 'PRESENT' : 'ABSENT'}\n`);
-            }
-            const blob = new Blob([csv], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `${currentStudent.lastname}_${currentMode}.csv`; a.click();
-        };
-
-        window.exportPDF = () => {
-            const now = new Date(); document.getElementById('pGenDate').innerText = now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-            document.getElementById('lblReportType').innerText = currentMode === 'schedules' ? "OFFICIAL CLASS SCHEDULE / CERTIFICATE OF MATRICULATION" : (currentMode === 'grades' ? "OFFICIAL STUDENT SCHOLASTIC RECORD" : "STUDENT ATTENDANCE REPORT");
-            document.getElementById('pName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
-            document.getElementById('pID').innerText = currentStudent.studentId; document.getElementById('pCourse').innerText = currentStudent.course;
-            document.getElementById('pYearSem').innerText = `YEAR ${currentStudent.year} - ${currentStudent.semester}`;
-            document.getElementById('printHeader').classList.replace('hidden', 'flex');
-            document.querySelector('.print-watermark').classList.remove('hidden');
-            window.print();
-            document.getElementById('printHeader').classList.replace('flex', 'hidden');
-            document.querySelector('.print-watermark').classList.add('hidden');
-        };
-
-        function setupDraggableTable() {
-            const slider = document.getElementById('scrollContainer');
-            let isDown = false, startX, scrollLeft;
-            slider.addEventListener('mousedown', (e) => { isDown = true; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
-            slider.addEventListener('mouseleave', () => isDown = false);
-            slider.addEventListener('mouseup', () => isDown = false);
-            slider.addEventListener('mousemove', (e) => { if(!isDown) return; e.preventDefault(); const x = e.pageX - slider.offsetLeft; const walk = (x - startX) * 2; slider.scrollLeft = scrollLeft - walk; });
-        }
-
-        window.toggleMobileMenu = () => { document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('sidebarOverlay').classList.toggle('hidden'); };
-        window.closeMobileMenu = () => { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sidebarOverlay').classList.add('hidden'); };
-        window.logout = () => signOut(auth).then(() => window.location.href = "login.html");
-    </script>
-</body>
-
-</html>
