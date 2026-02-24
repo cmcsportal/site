@@ -62,7 +62,7 @@
         .subject-card {
             position: relative;
             overflow: hidden;
-            height: 160px;
+            height: 180px;
             border-radius: 12px;
             display: flex;
             flex-direction: column;
@@ -101,18 +101,19 @@
             table { min-width: 100%; }
         }
 
-        /* Print Logic */
+        /* --- PRINT LOGIC --- */
         @media print {
-            @page { margin: 1cm; size: portrait; }
+            @page { margin: 1cm; size: landscape; }
             html, body { background: white !important; color: black !important; height: auto !important; overflow: visible !important; }
             body > *:not(#printAreaWrapper), .no-print, header, aside, #infoSummary, .mobile-bottom-nav { display: none !important; }
             #printAreaWrapper { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
+            #workspace { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
             .print-watermark { display: flex !important; position: fixed !important; inset: 0 !important; justify-content: center !important; align-items: center !important; opacity: 0.12 !important; z-index: -10 !important; pointer-events: none; -webkit-print-color-adjust: exact; }
             .print-watermark img { width: 80%; filter: grayscale(1); }
             .glass-card { border: none !important; background: transparent !important; border-radius: 0 !important; backdrop-filter: none !important; padding: 0 !important; box-shadow: none !important; }
             table { width: 100% !important; border-collapse: collapse !important; border: 1.5pt solid #000 !important; min-width: 100% !important; margin-top: 10px; background: transparent !important; -webkit-print-color-adjust: exact; }
-            th { border: 1pt solid #000 !important; background-color: #f3f4f6 !important; color: black !important; padding: 8px !important; font-size: 10px !important; text-transform: uppercase; font-weight: 800; -webkit-print-color-adjust: exact; }
-            td { border: 1pt solid #000 !important; padding: 6px 10px !important; color: black !important; font-size: 10px !important; background: rgba(255, 255, 255, 0.4) !important; }
+            th { border: 1pt solid #000 !important; background-color: #f3f4f6 !important; color: black !important; padding: 8px !important; font-size: 9px !important; text-transform: uppercase; font-weight: 800; -webkit-print-color-adjust: exact; }
+            td { border: 1pt solid #000 !important; padding: 6px 8px !important; color: black !important; font-size: 9px !important; background: rgba(255, 255, 255, 0.4) !important; }
             #printHeader { display: flex !important; }
         }
     </style>
@@ -321,9 +322,10 @@
                             </div>
                             <p class="text-[10px] font-bold opacity-80 mt-1 uppercase">${p.code}</p>
                         </div>
-                        <div class="text-[10px] font-black flex flex-col">
-                            <span><i class="fa-solid fa-calendar mr-1"></i> ${p.schedule}</span>
-                            <span><i class="fa-solid fa-clock mr-1"></i> ${t12(p.startTime)} - ${t12(p.endTime)}</span>
+                        <div class="text-[10px] font-black flex flex-col gap-0.5">
+                            <span><i class="fa-solid fa-user-tie mr-1 opacity-70"></i> ${p.teacher}</span>
+                            <span><i class="fa-solid fa-calendar mr-1 opacity-70"></i> ${p.schedule}</span>
+                            <span><i class="fa-solid fa-clock mr-1 opacity-70"></i> ${t12(p.startTime)} - ${t12(p.endTime)}</span>
                         </div>
                     </div>
                 `;
@@ -372,7 +374,8 @@
             
             document.getElementById('headerTitle').innerText = p.name;
             document.getElementById('headerContext').innerHTML = `
-                <span class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-calendar mr-1"></i> ${p.schedule}</span>
+                <span class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-user-tie mr-1"></i> ${p.teacher}</span>
+                <span class="bg-white/10 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-calendar mr-1"></i> ${p.schedule}</span>
                 <span class="bg-white/10 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-clock mr-1"></i> ${t12(p.startTime)} - ${t12(p.endTime)}</span>`;
             
             document.getElementById('exportGroup').classList.remove('hidden');
@@ -381,11 +384,9 @@
 
         window.switchSubTab = (tab) => {
             currentMode = tab;
-            // Desktop Toggles
             document.getElementById('btnAtt').className = tab === 'attendance' ? 'flex-1 px-5 py-2.5 text-[10px] font-black uppercase rounded-lg active-nav' : 'flex-1 px-5 py-2.5 text-[10px] font-black uppercase rounded-lg text-gray-500';
             document.getElementById('btnMat').className = tab === 'materials' ? 'flex-1 px-5 py-2.5 text-[10px] font-black uppercase rounded-lg active-nav' : 'flex-1 px-5 py-2.5 text-[10px] font-black uppercase rounded-lg text-gray-500';
             
-            // Mobile Toggles
             document.getElementById('mBtnAtt').className = tab === 'attendance' ? 'flex flex-col items-center gap-1 text-white' : 'flex flex-col items-center gap-1 text-gray-500';
             document.getElementById('mBtnMat').className = tab === 'materials' ? 'flex flex-col items-center gap-1 text-white' : 'flex flex-col items-center gap-1 text-gray-500';
 
@@ -401,9 +402,19 @@
                 head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject</th><th class="px-8 py-5">Schedule</th><th class="px-8 py-5">Instructor</th></tr>`;
                 programs.forEach(p => { body.innerHTML += `<tr><td class="px-8 py-6 font-black text-white">${p.code}</td><td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td><td class="px-8 py-6 text-white font-bold">${p.schedule} <br><span class="text-[10px] text-gray-500">${t12(p.startTime)} - ${t12(p.endTime)}</span></td><td class="px-8 py-6 text-gray-400 font-bold uppercase">${p.teacher}</td></tr>`; });
             } else if (currentMode === 'grades') {
-                head.innerHTML = `<tr><th class="px-8 py-5">Subject</th><th class="px-8 py-5 text-center">PRE</th><th class="px-8 py-5 text-center">MID</th><th class="px-8 py-5 text-center">FIN</th><th class="px-8 py-5 text-right">POINT</th></tr>`;
-                programs.forEach(p => { const g = currentStudent.grades?.[p.code] || { prelim: '-', midterm: '-', final: '-', point: '-' };
-                    body.innerHTML += `<tr><td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td><td class="text-center font-black">${g.prelim}</td><td class="text-center font-black">${g.midterm}</td><td class="text-center font-black">${g.final}</td><td class="text-right px-8 font-black text-blue-400">${g.point}</td></tr>`; });
+                head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject</th><th class="px-8 py-5">Instructor</th><th class="px-8 py-5 text-center">PRE</th><th class="px-8 py-5 text-center">MID</th><th class="px-8 py-5 text-center">FIN</th><th class="px-8 py-5 text-right">POINT</th></tr>`;
+                programs.forEach(p => { 
+                    const g = currentStudent.grades?.[p.code] || { prelim: '-', midterm: '-', final: '-', point: '-' };
+                    body.innerHTML += `<tr>
+                        <td class="px-8 py-6 font-black text-white">${p.code}</td>
+                        <td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td>
+                        <td class="px-8 py-6 text-gray-400 font-bold uppercase">${p.teacher}</td>
+                        <td class="text-center font-black">${g.prelim}</td>
+                        <td class="text-center font-black">${g.midterm}</td>
+                        <td class="text-center font-black">${g.final}</td>
+                        <td class="text-right px-8 font-black text-blue-400">${g.point}</td>
+                    </tr>`; 
+                });
             } else if (currentMode === 'attendance') {
                 head.innerHTML = `<tr><th class="px-8 py-5">Date</th><th class="px-8 py-5 text-center">Status</th></tr>`;
                 const att = currentStudent.attendance?.[activeSubj.code] || {};
@@ -422,7 +433,7 @@
             if (currentMode === 'schedules') {
                 csv += "CODE,SUBJECT,SCHEDULE,TIME,TEACHER\n"; programs.forEach(p => csv += `${p.code},${p.name},${p.schedule},${p.startTime}-${p.endTime},${p.teacher}\n`);
             } else if (currentMode === 'grades') {
-                csv += "SUBJECT,PRELIM,MIDTERM,FINAL,GPA\n"; programs.forEach(p => { const g = currentStudent.grades?.[p.code] || {}; csv += `"${p.name}",${g.prelim || '-'},${g.midterm || '-'},${g.final || '-'},${g.point || '-'}\n`; });
+                csv += "CODE,SUBJECT,TEACHER,PRELIM,MIDTERM,FINAL,GPA\n"; programs.forEach(p => { const g = currentStudent.grades?.[p.code] || {}; csv += `${p.code},"${p.name}","${p.teacher}",${g.prelim || '-'},${g.midterm || '-'},${g.final || '-'},${g.point || '-'}\n`; });
             } else if (currentMode === 'attendance') {
                 csv += "DATE,STATUS\n"; const att = currentStudent.attendance?.[activeSubj.code] || {}; Object.keys(att).sort().reverse().forEach(d => csv += `${d},${att[d] === 'P' ? 'PRESENT' : 'ABSENT'}\n`);
             }
