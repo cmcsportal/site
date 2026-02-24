@@ -31,13 +31,21 @@
             background: #050505; display: flex; align-items: center; justify-content: center;
             transition: opacity 0.4s ease-out, visibility 0.4s;
         }
-        .ios-spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.1); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .ios-spinner { 
+            width: 32px; height: 32px; 
+            border: 3px solid rgba(255,255,255,0.1); 
+            border-top-color: #007AFF; 
+            border-radius: 50%; 
+            animation: spin 0.8s linear infinite; 
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* --- iOS TRANSITIONS --- */
-        .page-transition { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease; }
-        .slide-out { transform: translateX(-20%); opacity: 0.5; }
-        .slide-in { transform: translateX(0); opacity: 1; }
+        /* --- iOS WINDOW TRANSITIONS --- */
+        .page-transition { 
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease; 
+        }
+        .slide-out { transform: scale(0.95); opacity: 0; }
+        .slide-in { transform: scale(1); opacity: 1; }
 
         .logo-watermark {
             position: fixed; inset: 0; z-index: -1; display: flex;
@@ -54,11 +62,11 @@
         /* iOS Style Back Button */
         .ios-back-btn {
             display: flex; align-items: center; gap: 4px;
-            color: #007AFF; font-weight: 500; font-size: 16px;
-            background: rgba(255, 255, 255, 0.05); padding: 6px 12px;
-            border-radius: 20px; transition: opacity 0.2s;
+            color: #007AFF; font-weight: 500; font-size: 17px;
+            padding: 6px 0; transition: opacity 0.2s;
+            cursor: pointer;
         }
-        .ios-back-btn:active { opacity: 0.5; }
+        .ios-back-btn:active { opacity: 0.3; }
 
         .sidebar { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
         .sidebar-btn, .subj-btn { transition: all 0.3s ease; color: #94a3b8; border: 1px solid transparent; }
@@ -79,24 +87,31 @@
 
         .mobile-bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(15, 15, 15, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            background: rgba(15, 15, 15, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
             border-top: 1px solid rgba(255, 255, 255, 0.1); display: none; z-index: 100; height: 84px; padding-bottom: 20px;
         }
 
+        /* Improved Empty States */
         .empty-state {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 60px 20px; color: #4b5563; text-align: center;
+            padding: 80px 20px; text-align: center;
         }
-        .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.2; }
+        .empty-state-icon {
+            width: 80px; height: 80px; background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px; display: flex; items-center; justify-content: center;
+            margin-bottom: 16px; border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .empty-state-icon i { font-size: 32px; color: rgba(255, 255, 255, 0.2); }
+        .empty-state-text { font-size: 11px; font-weight: 800; color: #4b5563; letter-spacing: 0.15em; text-transform: uppercase; }
 
         @media (max-width: 768px) {
             .mobile-bottom-nav { display: flex; }
             .desktop-toggles { display: none !important; }
-            #mainHeader { padding: 1rem; border: none; }
+            #mainHeader { padding: 1.25rem 1rem; border: none; }
             table { min-width: 100%; }
         }
 
-        /* --- PRINT LOGIC (UNTOUCHED) --- */
+        /* --- PRINT LAYOUT (STRICTLY UNTOUCHED) --- */
         @media print {
             @page { margin: 1cm; size: portrait; }
             html, body { background: white !important; color: black !important; height: auto !important; overflow: visible !important; }
@@ -241,7 +256,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, doc, getDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ", authDomain: "svls-289ee.firebaseapp.com", projectId: "svls-289ee", storageBucket: "svls-289ee.firebasestorage.app", messagingSenderId: "500705386198", appId: "1:500705386198:web:96f189662bc2aa99cf7377" };
@@ -262,10 +277,10 @@
         function triggerTransition() {
             const main = document.getElementById('mainContainer');
             main.classList.remove('slide-in');
-            main.style.opacity = '0';
+            main.classList.add('slide-out');
             setTimeout(() => {
+                main.classList.remove('slide-out');
                 main.classList.add('slide-in');
-                main.style.opacity = '1';
             }, 50);
         }
 
@@ -278,12 +293,11 @@
                     if(window.innerWidth > 768) switchGlobalView('schedules');
                     else renderMobileDashboard();
                     
-                    // Hide iOS Loader
                     setTimeout(() => {
                         const loader = document.getElementById('ios-loader');
                         loader.style.opacity = '0';
                         setTimeout(() => loader.style.visibility = 'hidden', 400);
-                    }, 800);
+                    }, 1000);
                 } else { window.location.href = "login.html"; }
             } else { window.location.href = "login.html"; }
         });
@@ -327,7 +341,7 @@
             document.getElementById('exportGroup').classList.add('hidden');
 
             if(programs.length === 0) {
-                document.getElementById('classroomGrid').innerHTML = `<div class="empty-state"><i class="fa-solid fa-graduation-cap"></i><p class="text-xs font-black uppercase tracking-widest">No classes enrolled</p></div>`;
+                document.getElementById('classroomGrid').innerHTML = `<div class="empty-state"><div class="empty-state-icon"><i class="fa-solid fa-graduation-cap"></i></div><p class="empty-state-text">No active enrollments</p></div>`;
                 return;
             }
 
@@ -351,8 +365,7 @@
                             <span><i class="fa-solid fa-calendar mr-1 opacity-70"></i> ${p.schedule}</span>
                             <span><i class="fa-solid fa-clock mr-1 opacity-70"></i> ${t12(p.startTime)} - ${t12(p.endTime)}</span>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 document.getElementById('classroomGrid').appendChild(card);
             });
         }
@@ -428,7 +441,7 @@
             
             if (currentMode === 'schedules') {
                 head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject</th><th class="px-8 py-5">Schedule</th><th class="px-8 py-5">Instructor</th></tr>`;
-                if(programs.length === 0) body.innerHTML = `<tr><td colspan="4"><div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><p class="text-xs font-black uppercase tracking-widest">No schedules found</p></div></td></tr>`;
+                if(programs.length === 0) body.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-state-icon"><i class="fa-solid fa-calendar-xmark"></i></div><p class="empty-state-text">No classes scheduled</p></div></td></tr>`;
                 programs.forEach(p => { body.innerHTML += `<tr><td class="px-8 py-6 font-black text-white">${p.code}</td><td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td><td class="px-8 py-6 text-white font-bold">${p.schedule} <br><span class="text-[10px] text-gray-500">${t12(p.startTime)} - ${t12(p.endTime)}</span></td><td class="px-8 py-6 text-gray-400 font-bold uppercase">${p.teacher}</td></tr>`; });
             } else if (currentMode === 'grades') {
                 head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject</th><th class="px-8 py-5">Instructor</th><th class="px-8 py-5 text-center">PRE</th><th class="px-8 py-5 text-center">MID</th><th class="px-8 py-5 text-center">FIN</th><th class="px-8 py-5 text-right">POINT</th></tr>`;
@@ -448,15 +461,33 @@
                 head.innerHTML = `<tr><th class="px-8 py-5">Date</th><th class="px-8 py-5 text-center">Status</th></tr>`;
                 const att = currentStudent.attendance?.[activeSubj.code] || {};
                 const keys = Object.keys(att);
-                if(keys.length === 0) body.innerHTML = `<tr><td colspan="2"><div class="empty-state"><i class="fa-solid fa-clipboard-question"></i><p class="text-xs font-black uppercase tracking-widest">No attendance logs</p></div></td></tr>`;
+                if(keys.length === 0) body.innerHTML = `<tr><td colspan="2"><div class="empty-state"><div class="empty-state-icon"><i class="fa-solid fa-clipboard-question"></i></div><p class="empty-state-text">No attendance logs found</p></div></td></tr>`;
                 keys.sort().reverse().forEach(d => { const color = att[d] === 'P' ? 'text-emerald-400' : 'text-red-500';
                     body.innerHTML += `<tr><td class="px-8 py-6 font-black text-white">${d}</td><td class="text-center font-black ${color}">${att[d] === 'P' ? 'PRESENT' : 'ABSENT'}</td></tr>`; });
             } else if (currentMode === 'materials') {
-                head.innerHTML = `<tr><th class="px-8 py-5">Resource Name</th><th class="px-8 py-5 text-right">Action</th></tr>`;
-                const q = query(collection(db, "materials"), where("subjectCode", "==", activeSubj.code));
+                // ADDED: Added Description and Date (createdAt) to the header
+                head.innerHTML = `<tr><th class="px-8 py-5">Resource Name</th><th class="px-8 py-5">Description</th><th class="px-8 py-5">Posted Date</th><th class="px-8 py-5 text-right">Action</th></tr>`;
+                
+                const q = query(collection(db, "materials"), where("subjectCode", "==", activeSubj.code), orderBy("createdAt", "desc"));
                 const snap = await getDocs(q);
-                if(snap.empty) body.innerHTML = `<tr><td colspan="2"><div class="empty-state"><i class="fa-solid fa-folder-open"></i><p class="text-xs font-black uppercase tracking-widest">No materials available</p></div></td></tr>`;
-                snap.forEach(d => { const m = d.data(); body.innerHTML += `<tr><td class="px-8 py-6 font-bold text-white uppercase">${m.name}</td><td class="px-8 py-6 text-right"><a href="${m.link}" target="_blank" class="bg-white text-black px-4 py-2 rounded-lg text-[10px] font-black uppercase">Open</a></td></tr>`; });
+                
+                if(snap.empty) {
+                    body.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-state-icon"><i class="fa-solid fa-folder-open"></i></div><p class="empty-state-text">No study materials available</p></div></td></tr>`;
+                }
+                
+                snap.forEach(d => { 
+                    const m = d.data();
+                    const dateObj = m.createdAt?.toDate ? m.createdAt.toDate() : new Date();
+                    const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    
+                    // ADDED: Displayed 'desc' and 'createdAt' in the row
+                    body.innerHTML += `<tr>
+                        <td class="px-8 py-6 font-bold text-white uppercase">${m.name || 'Untitled'}</td>
+                        <td class="px-8 py-6 text-gray-400 text-xs">${m.desc || 'No description provided'}</td>
+                        <td class="px-8 py-6 text-gray-500 text-xs font-bold uppercase">${formattedDate}</td>
+                        <td class="px-8 py-6 text-right"><a href="${m.link}" target="_blank" class="bg-white/10 hover:bg-white hover:text-black transition-colors px-4 py-2 rounded-lg text-[10px] font-black uppercase inline-block">Open</a></td>
+                    </tr>`; 
+                });
             }
         }
 
