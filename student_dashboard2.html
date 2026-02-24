@@ -298,4 +298,189 @@
 
         function renderMobileDashboard() {
             currentMode = 'dashboard';
-      
+            document.getElementById('classroomGrid').innerHTML = '';
+            document.getElementById('classroomGrid').classList.remove('hidden');
+            document.getElementById('tableWrapper').classList.add('hidden');
+            document.getElementById('mobileBottomNav').style.display = 'none';
+            document.getElementById('backBtn').classList.add('hidden');
+            document.getElementById('headerTitle').innerText = "MY CLASSES";
+            document.getElementById('headerContext').innerHTML = '';
+            document.getElementById('exportGroup').classList.add('hidden');
+
+            programs.forEach((p, i) => {
+                const card = document.createElement('div');
+                card.className = "subject-card";
+                card.style.backgroundColor = ['#1a73e8', '#d93025', '#188038', '#f29900', '#9334e6'][i % 5];
+                card.onclick = () => switchSubjectView(p);
+                card.innerHTML = `
+                    <div class="card-bg-gfx" style="background-image: url('${bgGfx[i % 5]}')"></div>
+                    <div class="card-content flex flex-col h-full justify-between">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="text-lg font-black leading-tight uppercase">${p.name}</h3>
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </div>
+                            <p class="text-[10px] font-bold opacity-80 mt-1 uppercase">${p.code}</p>
+                        </div>
+                        <div class="text-[10px] font-black flex flex-col gap-0.5">
+                            <span><i class="fa-solid fa-user-tie mr-1 opacity-70"></i> ${p.teacher}</span>
+                            <span><i class="fa-solid fa-calendar mr-1 opacity-70"></i> ${p.schedule}</span>
+                            <span><i class="fa-solid fa-clock mr-1 opacity-70"></i> ${t12(p.startTime)} - ${t12(p.endTime)}</span>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('classroomGrid').appendChild(card);
+            });
+        }
+
+        window.goHome = () => {
+            if(window.innerWidth <= 768) renderMobileDashboard();
+            else switchGlobalView('schedules');
+        };
+
+        window.switchGlobalView = (mode) => {
+            currentMode = mode; activeSubj = null;
+            document.getElementById('classroomGrid').classList.add('hidden');
+            document.getElementById('tableWrapper').classList.remove('hidden');
+            document.getElementById('mobileBottomNav').style.display = 'none';
+            document.getElementById('backBtn').classList.remove('hidden');
+            
+            document.querySelectorAll('.sidebar-btn, .subj-btn').forEach(b => b.classList.remove('active-nav'));
+            const navId = mode === 'schedules' ? 'navSched' : 'navGrades';
+            if(document.getElementById(navId)) document.getElementById(navId).classList.add('active-nav');
+            
+            document.getElementById('headerTitle').innerText = mode === 'schedules' ? "CLASS SCHEDULES" : "SCHOLASTIC RECORDS";
+            document.getElementById('headerContext').innerHTML = '';
+            document.getElementById('subjectToggles').style.display = 'none';
+            document.getElementById('exportGroup').classList.remove('hidden');
+            renderTable();
+        };
+
+        window.switchSubjectView = (p) => {
+            activeSubj = p; currentMode = 'attendance';
+            const grid = document.getElementById('classroomGrid');
+            const table = document.getElementById('tableWrapper');
+            
+            // Fade out grid
+            grid.classList.remove('opacity-100', 'translate-y-0');
+            grid.classList.add('opacity-0', '-translate-y-4');
+            
+            setTimeout(() => {
+                grid.classList.add('hidden');
+                table.classList.remove('hidden');
+                // Trigger reflow
+                void table.offsetWidth;
+                table.classList.remove('opacity-0', 'translate-y-4');
+                table.classList.add('opacity-100', 'translate-y-0');
+            }, 300);
+            
+            document.getElementById('backBtn').classList.remove('hidden');
+            
+            if(window.innerWidth <= 768) {
+                document.getElementById('mobileBottomNav').style.display = 'flex';
+                document.getElementById('subjectToggles').style.display = 'none';
+            } else {
+                document.getElementById('subjectToggles').style.display = 'flex';
+            }
+
+            document.querySelectorAll('.sidebar-btn, .subj-btn').forEach(b => b.classList.remove('active-nav'));
+            const navEl = document.getElementById(`nav-${p.code}`); if (navEl) navEl.classList.add('active-nav');
+            
+            document.getElementById('headerTitle').innerText = p.name;
+            document.getElementById('headerContext').innerHTML = `
+                <span class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-user-tie mr-1"></i> ${p.teacher}</span>
+                <span class="bg-white/10 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-calendar mr-1"></i> ${p.schedule}</span>
+                <span class="bg-white/10 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-clock mr-1"></i> ${t12(p.startTime)} - ${t12(p.endTime)}</span>`;
+            
+            document.getElementById('exportGroup').classList.remove('hidden');
+            switchSubTab('attendance');
+        };
+
+        window.switchSubTab = (tab) => {
+            currentMode = tab;
+            document.getElementById('btnAtt').className = tab === 'attendance' ? 'flex-1 px-5 py-2.5 text-[10px] font-black uppercase rounded-lg active-nav' : 'flex-1 px-5 py-2.5 text-[10px] font-black uppercase rounded-lg text-gray-500';
+            document.getElementById('btnMat').className = tab === 'materials' ? 'flex-1 px-5 py-2.5 text-[10px] font-black uppercase rounded-lg active-nav' : 'flex-1 px-5 py-2.5 text-[10px] font-black uppercase rounded-lg text-gray-500';
+            
+            document.getElementById('mBtnAtt').className = tab === 'attendance' ? 'flex flex-col items-center gap-1 text-white' : 'flex flex-col items-center gap-1 text-gray-500';
+            document.getElementById('mBtnMat').className = tab === 'materials' ? 'flex flex-col items-center gap-1 text-white' : 'flex flex-col items-center gap-1 text-gray-500';
+
+            document.getElementById('exportGroup').classList.toggle('hidden', tab === 'materials');
+            renderTable();
+        };
+
+        async function renderTable() {
+            const body = document.getElementById('tableBody'); body.innerHTML = '';
+            const head = document.getElementById('tableHead');
+            
+            if (currentMode === 'schedules') {
+                head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject</th><th class="px-8 py-5">Schedule</th><th class="px-8 py-5">Instructor</th></tr>`;
+                programs.forEach(p => { body.innerHTML += `<tr><td class="px-8 py-6 font-black text-white">${p.code}</td><td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td><td class="px-8 py-6 text-white font-bold">${p.schedule} <br><span class="text-[10px] text-gray-500">${t12(p.startTime)} - ${t12(p.endTime)}</span></td><td class="px-8 py-6 text-gray-400 font-bold uppercase">${p.teacher}</td></tr>`; });
+            } else if (currentMode === 'grades') {
+                head.innerHTML = `<tr><th class="px-8 py-5">Code</th><th class="px-8 py-5">Subject</th><th class="px-8 py-5">Instructor</th><th class="px-8 py-5 text-center">PRE</th><th class="px-8 py-5 text-center">MID</th><th class="px-8 py-5 text-center">FIN</th><th class="px-8 py-5 text-right">POINT</th></tr>`;
+                programs.forEach(p => { 
+                    const g = currentStudent.grades?.[p.code] || { prelim: '-', midterm: '-', final: '-', point: '-' };
+                    body.innerHTML += `<tr>
+                        <td class="px-8 py-6 font-black text-white">${p.code}</td>
+                        <td class="px-8 py-6 font-bold text-white uppercase">${p.name}</td>
+                        <td class="px-8 py-6 text-gray-400 font-bold uppercase">${p.teacher}</td>
+                        <td class="text-center font-black">${g.prelim}</td>
+                        <td class="text-center font-black">${g.midterm}</td>
+                        <td class="text-center font-black">${g.final}</td>
+                        <td class="text-right px-8 font-black text-blue-400">${g.point}</td>
+                    </tr>`; 
+                });
+            } else if (currentMode === 'attendance') {
+                head.innerHTML = `<tr><th class="px-8 py-5">Date</th><th class="px-8 py-5 text-center">Status</th></tr>`;
+                const att = currentStudent.attendance?.[activeSubj.code] || {};
+                Object.keys(att).sort().reverse().forEach(d => { const color = att[d] === 'P' ? 'text-emerald-400' : 'text-red-500';
+                    body.innerHTML += `<tr><td class="px-8 py-6 font-black text-white">${d}</td><td class="text-center font-black ${color}">${att[d] === 'P' ? 'PRESENT' : 'ABSENT'}</td></tr>`; });
+            } else if (currentMode === 'materials') {
+                head.innerHTML = `<tr><th class="px-8 py-5">Resource Name</th><th class="px-8 py-5 text-right">Action</th></tr>`;
+                const q = query(collection(db, "materials"), where("subjectCode", "==", activeSubj.code));
+                const snap = await getDocs(q);
+                snap.forEach(d => { const m = d.data(); body.innerHTML += `<tr><td class="px-8 py-6 font-bold text-white uppercase">${m.name}</td><td class="px-8 py-6 text-right"><a href="${m.link}" target="_blank" class="bg-white text-black px-4 py-2 rounded-lg text-[10px] font-black uppercase">Open</a></td></tr>`; });
+            }
+        }
+
+        window.exportCSV = () => {
+            let csv = "STUDENT NAME," + currentStudent.lastname + " " + currentStudent.firstname + "\nID," + currentStudent.studentId + "\nCOURSE," + currentStudent.course + "\n\n";
+            if (currentMode === 'schedules') {
+                csv += "CODE,SUBJECT,SCHEDULE,TIME,TEACHER\n"; programs.forEach(p => csv += `${p.code},${p.name},${p.schedule},${p.startTime}-${p.endTime},${p.teacher}\n`);
+            } else if (currentMode === 'grades') {
+                csv += "CODE,SUBJECT,TEACHER,PRELIM,MIDTERM,FINAL,GPA\n"; programs.forEach(p => { const g = currentStudent.grades?.[p.code] || {}; csv += `${p.code},"${p.name}","${p.teacher}",${g.prelim || '-'},${g.midterm || '-'},${g.final || '-'},${g.point || '-'}\n`; });
+            } else if (currentMode === 'attendance') {
+                csv += "DATE,STATUS\n"; const att = currentStudent.attendance?.[activeSubj.code] || {}; Object.keys(att).sort().reverse().forEach(d => csv += `${d},${att[d] === 'P' ? 'PRESENT' : 'ABSENT'}\n`);
+            }
+            const blob = new Blob([csv], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `${currentStudent.lastname}_${currentMode}.csv`; a.click();
+        };
+
+        window.exportPDF = () => {
+            const now = new Date(); document.getElementById('pGenDate').innerText = now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+            document.getElementById('lblReportType').innerText = currentMode === 'schedules' ? "OFFICIAL CLASS SCHEDULE / CERTIFICATE OF MATRICULATION" : (currentMode === 'grades' ? "OFFICIAL STUDENT SCHOLASTIC RECORD" : "STUDENT ATTENDANCE REPORT");
+            document.getElementById('pName').innerText = `${currentStudent.lastname}, ${currentStudent.firstname}`;
+            document.getElementById('pID').innerText = currentStudent.studentId; document.getElementById('pCourse').innerText = currentStudent.course;
+            document.getElementById('pYearSem').innerText = `YEAR ${currentStudent.year} - ${currentStudent.semester}`;
+            document.getElementById('printHeader').classList.replace('hidden', 'flex');
+            document.querySelector('.print-watermark').classList.remove('hidden');
+            window.print();
+            document.getElementById('printHeader').classList.replace('flex', 'hidden');
+            document.querySelector('.print-watermark').classList.add('hidden');
+        };
+
+        function setupDraggableTable() {
+            const slider = document.getElementById('scrollContainer');
+            let isDown = false, startX, scrollLeft;
+            slider.addEventListener('mousedown', (e) => { isDown = true; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
+            slider.addEventListener('mouseleave', () => isDown = false);
+            slider.addEventListener('mouseup', () => isDown = false);
+            slider.addEventListener('mousemove', (e) => { if(!isDown) return; e.preventDefault(); const x = e.pageX - slider.offsetLeft; const walk = (x - startX) * 2; slider.scrollLeft = scrollLeft - walk; });
+        }
+
+        window.toggleMobileMenu = () => { document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('sidebarOverlay').classList.toggle('hidden'); };
+        window.closeMobileMenu = () => { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sidebarOverlay').classList.add('hidden'); };
+        window.logout = () => signOut(auth).then(() => window.location.href = "login.html");
+    </script>
+</body>
+
+</html>
