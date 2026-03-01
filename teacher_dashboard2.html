@@ -26,10 +26,9 @@
         .loader { border: 2px solid rgba(255,255,255,0.1); border-top: 2px solid white; border-radius: 50%; width: 14px; height: 14px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* Print Engine from Version 1 */
         @media print {
             body { background: white !important; color: black !important; }
-            aside, header, .no-print, .input-box, .radio-group { display: none !important; }
+            aside, header, .no-print, .input-box, .radio-group, #materialUploadSection { display: none !important; }
             #workspace { display: block !important; margin: 0; padding: 0; }
             #printArea, #printArea * { visibility: visible; color: black !important; }
             #printArea { position: absolute; left: 0; top: 0; width: 100%; }
@@ -37,10 +36,9 @@
             .glass-card { border: none; background: transparent; backdrop-filter: none; }
             table { border-collapse: collapse; width: 100%; border: 1px solid #000; }
             th, td { border: 1px solid #000 !important; padding: 8px; font-size: 10pt; }
-            .logo-watermark { display: none; }
         }
         .print-val { display: none; }
-        input, textarea { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; outline: none; transition: 0.2s; }
+        input, textarea { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; outline: none; }
         input:focus { border-color: rgba(255,255,255,0.4) !important; }
     </style>
 </head>
@@ -169,14 +167,12 @@
 
         let currentTeacherName = "", activeSubj = "", currentView = 'attendance', roster = [], subjContext = null, searchTerm = "";
 
-        // --- Core UI Helpers ---
         window.showAlert = (title, message, type = 'success', onConfirm = null) => {
             const overlay = document.getElementById('modalOverlay');
             const icon = document.getElementById('modalIcon');
             const btnContainer = document.getElementById('modalButtons');
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalBody').innerText = message;
-            
             btnContainer.innerHTML = '';
             if(onConfirm) {
                 const cBtn = document.createElement('button');
@@ -190,24 +186,21 @@
             closeBtn.innerText = onConfirm ? "Cancel" : "Dismiss";
             closeBtn.onclick = closeModal;
             btnContainer.appendChild(closeBtn);
-
             icon.innerHTML = type === 'success' ? '<i class="fa-solid fa-circle-check text-green-500"></i>' : '<i class="fa-solid fa-triangle-exclamation text-red-500"></i>';
             overlay.classList.replace('hidden', 'flex');
         };
-
         window.closeModal = () => document.getElementById('modalOverlay').classList.replace('flex', 'hidden');
 
-        // --- Auth & Data Loading ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const snap = await getDoc(doc(db, "users", user.uid));
-                if (snap.exists() && snap.data().role === 'teacher') {
+                if (snap.exists()) {
                     const d = snap.data();
                     currentTeacherName = `${d.lastname}, ${d.firstname}`.toUpperCase();
                     document.getElementById('adminName').innerText = currentTeacherName;
                     document.getElementById('adminInitial').innerText = (d.firstname[0] + d.lastname[0]).toUpperCase();
                     loadSubjects();
-                } else { window.location.href = "login.html"; }
+                }
             } else { window.location.href = "login.html"; }
         });
 
@@ -233,7 +226,7 @@
         function selectSubject(s) {
             subjContext = s; activeSubj = s.code;
             document.getElementById('activeSubjectTitle').innerText = s.name;
-            document.getElementById('subjectSubDetails').innerText = `${s.course} ${s.year} | ${s.schedule} | ${s.semester}`;
+            document.getElementById('subjectSubDetails').innerText = `${s.course} ${s.year} | ${s.schedule}`;
             document.getElementById('placeholder').classList.add('hidden');
             document.getElementById('workspace').classList.remove('hidden');
             document.getElementById('viewToggles').classList.remove('hidden');
@@ -256,7 +249,10 @@
             renderTable();
         };
 
-        window.handleSearch = (val) => { searchTerm = val.toLowerCase(); renderTable(); };
+        window.handleSearch = (val) => { 
+            searchTerm = val.toLowerCase(); 
+            renderTable(); 
+        };
 
         window.handleDateChange = () => {
             const body = document.getElementById('tableBody');
@@ -271,8 +267,7 @@
             body.innerHTML = '';
 
             const filtered = roster.filter(s => 
-                s.lastname?.toLowerCase().includes(searchTerm) || 
-                s.firstname?.toLowerCase().includes(searchTerm) ||
+                (s.lastname + " " + s.firstname).toLowerCase().includes(searchTerm) || 
                 s.studentId?.toLowerCase().includes(searchTerm)
             ).sort((a,b) => a.lastname.localeCompare(b.lastname));
 
@@ -293,7 +288,7 @@
                         <td class="px-8 py-5 font-bold uppercase">${s.lastname}, ${s.firstname}<div class="text-[9px] text-gray-500 font-normal mt-1">${s.studentId}</div></td>
                         <td class="px-8 py-5 text-center text-gray-500 font-bold">${s.gender || '-'}</td>
                         <td class="px-8 py-5 text-center">
-                            <div class="radio-group flex justify-center gap-4 font-black text-[10px]">
+                            <div class="radio-group flex justify-center gap-4 font-black text-[10px] no-print">
                                 <label><input type="radio" name="att_${s.id}" value="P" ${status==='P'?'checked':''}> P</label>
                                 <label class="text-yellow-500"><input type="radio" name="att_${s.id}" value="L" ${status==='L'?'checked':''}> L</label>
                                 <label class="text-red-500"><input type="radio" name="att_${s.id}" value="A" ${status==='A'?'checked':''}> A</label>
@@ -323,7 +318,7 @@
                         const m = dSnap.data();
                         body.innerHTML += `<tr class="hover:bg-white/[0.02]">
                             <td class="px-8 py-5 font-bold uppercase">${m.name}<div class="text-[9px] text-gray-500 font-normal mt-1">${m.schedule}</div></td>
-                            <td class="px-8 py-5"><a href="${m.link}" target="_blank" class="text-blue-400 font-bold text-[10px] uppercase tracking-widest">Open Link</a></td>
+                            <td class="px-8 py-5"><a href="${m.link}" target="_blank" class="text-blue-400 font-bold text-[10px] uppercase tracking-widest">Open Resource</a></td>
                             <td class="px-8 py-5 text-right">
                                 <button onclick="editMat('${dSnap.id}')" class="w-8 h-8 rounded-full border border-white/10 hover:bg-white hover:text-black transition-all mx-1"><i class="fa-solid fa-pen text-[10px]"></i></button>
                                 <button onclick="deleteMatConfirm('${dSnap.id}')" class="w-8 h-8 rounded-full border border-red-500/20 text-red-500 hover:bg-red-500 transition-all"><i class="fa-solid fa-trash text-[10px]"></i></button>
@@ -333,7 +328,6 @@
             }
         }
 
-        // --- Logic Engine (Combined) ---
         window.calcPt = (id) => {
             const p = parseFloat(document.getElementById(`pre_${id}`).value || 0);
             const m = parseFloat(document.getElementById(`mid_${id}`).value || 0);
@@ -354,7 +348,8 @@
                     const ref = doc(db, "users", s.id);
                     let p = {};
                     if(currentView === 'attendance') {
-                        p[`attendance.${activeSubj}.${date}`] = document.querySelector(`input[name="att_${s.id}"]:checked`).value;
+                        const val = document.querySelector(`input[name="att_${s.id}"]:checked`).value;
+                        p[`attendance.${activeSubj}.${date}`] = val;
                     } else if(currentView === 'grades') {
                         p[`grades.${activeSubj}`] = {
                             prelim: document.getElementById(`pre_${s.id}`).value,
@@ -372,15 +367,15 @@
         };
 
         window.exportCSV = () => {
-            let csv = "Student ID,Name,";
+            let csv = "Student ID,Lastname,Firstname,";
             if (currentView === 'attendance') {
                 const d = document.getElementById('attDate').value; csv += `Status (${d})\n`;
-                roster.forEach(s => csv += `${s.studentId},"${s.lastname}, ${s.firstname}",${s.attendance?.[activeSubj]?.[d] || 'P'}\n`);
+                roster.forEach(s => csv += `${s.studentId},${s.lastname},${s.firstname},${s.attendance?.[activeSubj]?.[d] || 'P'}\n`);
             } else {
                 csv += "Prelim,Midterm,Final,Point\n";
                 roster.forEach(s => {
                     const g = s.grades?.[activeSubj] || { prelim:0, midterm:0, final:0, point:'5.0' };
-                    csv += `${s.studentId},"${s.lastname}, ${s.firstname}",${g.prelim},${g.midterm},${g.final},${g.point}\n`;
+                    csv += `${s.studentId},${s.lastname},${s.firstname},${g.prelim},${g.midterm},${g.final},${g.point}\n`;
                 });
             }
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -390,14 +385,13 @@
         window.exportPDF = () => {
             document.getElementById('lblCourse').innerText = subjContext.course;
             document.getElementById('lblYear').innerText = subjContext.year;
-            document.getElementById('lblSem').innerText = subjContext.semester;
+            document.getElementById('lblSem').innerText = subjContext.semester || "N/A";
             document.getElementById('lblTime').innerText = new Date().toLocaleString();
             document.getElementById('printHeader').classList.remove('hidden');
             window.print();
             document.getElementById('printHeader').classList.add('hidden');
         };
 
-        // Material CRUD Logic
         document.getElementById('materialForm').onsubmit = async (e) => {
             e.preventDefault();
             const mid = document.getElementById('editMatId').value;
@@ -440,7 +434,7 @@
         };
 
         window.deleteMatConfirm = (id) => {
-            showAlert("Delete Resource", "Permanently remove this resource from the student feed?", "danger", async () => {
+            showAlert("Delete Resource", "Permanently remove this resource?", "danger", async () => {
                 await deleteDoc(doc(db, "materials", id));
             });
         };
