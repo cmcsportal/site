@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime Snakes & Ladders</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --cell-size: 55px;
+            --bg: #0f172a;
+            --primary: #3b82f6;
+            --accent: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Screen Management */
+        .screen { display: none; text-align: center; max-width: 500px; width: 100%; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+        .active-screen { display: block; }
+
+        /* Board Layout */
+        #game-layout { display: none; gap: 30px; flex-wrap: wrap; justify-content: center; }
+        
+        #board-container { position: relative; border: 8px solid #334155; border-radius: 8px; overflow: hidden; }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(10, var(--cell-size));
+            grid-template-rows: repeat(10, var(--cell-size));
+            background: #f8fafc;
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 0.75rem;
+            font-weight: bold;
+            box-sizing: border-box;
+        }
+        .cell:nth-child(even) { background: #f1f5f9; }
+
+        /* Tokens */
+        .token {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            position: absolute;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+            border: 2px solid white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        /* SVG Overlays */
+        #vfx-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+        .ladder-line { stroke: #22c55e; stroke-width: 10; stroke-linecap: round; opacity: 0.6; }
+        .snake-line { stroke: #ef4444; stroke-width: 8; fill: none; opacity: 0.6; }
+
+        /* UI Panel */
+        #ui-panel { width: 280px; background: #1e293b; padding: 20px; border-radius: 12px; text-align: center; }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+        button:hover { opacity: 0.9; }
+        button:disabled { background: #475569; cursor: not-allowed; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: white;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* Dice */
+        #dice-box { font-size: 4rem; margin: 20px 0; min-height: 80px; transition: 0.3s; }
+        .shake { animation: shakeDice 0.5s infinite; }
+
+        @keyframes shakeDice {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(20deg); }
+            75% { transform: rotate(-20deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .pending-card {
+            background: #334155;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 style="color: var(--primary)">SNAKE & LADDER <span style="color: white; font-weight: 200;">LIVE</span></h1>
+
+    <div id="entry-screen" class="screen active-screen">
+        <input type="text" id="player-name" placeholder="Your Name">
+        <button onclick="createRoom()">Create Room</button>
+        <div style="margin: 20px 0; opacity: 0.5;">— OR —</div>
+        <input type="text" id="join-code" placeholder="6-Character Code">
+        <button onclick="joinRoom()" style="background: #6366f1;">Join Room</button>
+    </div>
+
+    <div id="lobby-screen" class="screen">
+        <h2>Code: <span id="display-code" style="color: var(--primary)">------</span></h2>
+        <div id="player-list-lobby" style="margin: 20px 0; text-align: left;"></div>
+        <div id="admin-section" style="border-top: 1px solid #334155; padding-top: 15px;">
+            <p style="font-size: 0.8rem; color: #94a3b8;">Pending Requests:</p>
+            <div id="pending-list"></div>
+        </div>
+        <button id="start-btn" onclick="startGameTrigger()" style="display:none; background: #22c55e;">Start Game</button>
+        <p id="wait-msg" style="font-size: 0.9rem; color: #94a3b8;">Waiting for host...</p>
+    </div>
+
+    <div id="game-layout">
+        <div id="board-container">
+            <div id="board"></div>
+            <div id="tokens-layer"></div>
+            <svg id="vfx-layer" viewBox="0 0 550 550"></svg>
+        </div>
+
+        <div id="ui-panel">
+            <div id="turn-indicator" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">Waiting...</div>
+            <div id="dice-box">🎲</div>
+            <button id="roll-btn" onclick="handleRoll()">Roll Dice</button>
+            <div id="game-stats" style="margin-top: 20px; text-align: left; font-size: 0.9rem;"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG ---
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ", 
+            authDomain: "svls-289ee.firebaseapp.com", 
+            projectId: "svls-289ee",
+            databaseURL: "https://svls-289ee-default-rtdb.firebaseio.com",
+            storageBucket: "svls-289ee.firebasestorage.app", 
+            messagingSenderId: "500705386198", 
+            appId: "1:500705386198:web:96f189662bc2aa99cf7377"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let roomCode = null;
+        let myId = "p" + Math.floor(Math.random() * 1000000);
+        let myName = "";
+        let isHost = false;
+        let localState = null;
+
+        const ladders = { 2: 38, 7: 14, 8: 31, 15: 26, 21: 42, 28: 84, 51: 67, 71: 91, 87: 94 };
+        const snakes = { 16: 6, 46: 25, 49: 11, 62: 19, 64: 60, 74: 53, 89: 68, 95: 75, 99: 80 };
+        const colors = ['#f59e0b', '#3b82f6', '#ec4899', '#10b981', '#a855f7'];
+
+        // --- LOBBY FUNCTIONS ---
+
+        function createRoom() {
+            myName = document.getElementById('player-name').value || "Host";
+            roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            isHost = true;
+
+            const init = {
+                host: myId,
+                status: 'lobby',
+                turnIndex: 0,
+                players: { [myId]: { name: myName, pos: 1, color: colors[0] } },
+                order: [myId],
+                lastRoll: 0
+            };
+
+            db.ref('rooms/' + roomCode).set(init).then(() => {
+                enterLobby();
+                startListening();
+            });
+        }
+
+        function joinRoom() {
+            roomCode = document.getElementById('join-code').value.toUpperCase();
+            myName = document.getElementById('player-name').value || "Player";
+            if(!roomCode) return;
+
+            db.ref('rooms/' + roomCode + '/pending/' + myId).set({ name: myName });
+            document.getElementById('entry-screen').innerHTML = "<h3>Waiting for admission...</h3>";
+            startListening();
+        }
+
+        function startListening() {
+            db.ref('rooms/' + roomCode).on('value', (snap) => {
+                const data = snap.val();
+                if(!data) return;
+                localState = data;
+
+                if(data.players && data.players[myId]) {
+                    enterLobby();
+                    updateLobbyUI(data);
+                }
+
+                if(data.status === 'playing') {
+                    showGameScreen();
+                    renderGameState(data);
+                }
+            });
+        }
+
+        function updateLobbyUI(data) {
+            const list = document.getElementById('player-list-lobby');
+            list.innerHTML = "<strong>In Lobby:</strong><br>";
+            Object.values(data.players).forEach(p => {
+                list.innerHTML += `• ${p.name}<br>`;
+            });
+
+            const pendingList = document.getElementById('pending-list');
+            pendingList.innerHTML = "";
+            if(data.pending) {
+                Object.keys(data.pending).forEach(pid => {
+                    const p = data.pending[pid];
+                    pendingList.innerHTML += `
+                        <div class="pending-card">
+                            <span>${p.name}</span>
+                            <button onclick="admit('${pid}', '${p.name}')" style="width: auto; padding: 5px 10px; margin:0;">Admit</button>
+                        </div>`;
+                });
+            }
+
+            if(isHost) {
+                document.getElementById('start-btn').style.display = 'block';
+                document.getElementById('wait-msg').style.display = 'none';
+            }
+        }
+
+        function admit(pid, name) {
+            const playerCount = Object.keys(localState.players).length;
+            const updates = {};
+            updates[`players/${pid}`] = { name: name, pos: 1, color: colors[playerCount % colors.length] };
+            updates[`pending/${pid}`] = null;
+            
+            const newOrder = localState.order || [];
+            newOrder.push(pid);
+            updates[`order`] = newOrder;
+
+            db.ref('rooms/' + roomCode).update(updates);
+        }
+
+        function enterLobby() {
+            document.getElementById('entry-screen').classList.remove('active-screen');
+            document.getElementById('lobby-screen').classList.add('active-screen');
+            document.getElementById('display-code').innerText = roomCode;
+        }
+
+        function startGameTrigger() {
+            db.ref('rooms/' + roomCode).update({ status: 'playing' });
+        }
+
+        // --- GAME ENGINE ---
+
+        function showGameScreen() {
+            document.getElementById('lobby-screen').classList.remove('active-screen');
+            document.getElementById('game-layout').style.display = 'flex';
+            if(!document.getElementById('cell-1')) buildBoard();
+        }
+
+        function buildBoard() {
+            const board = document.getElementById('board');
+            for (let row = 9; row >= 0; row--) {
+                for (let col = 0; col < 10; col++) {
+                    let num = (row % 2 !== 0) ? (row * 10) + (10 - col) : (row * 10) + (col + 1);
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-${num}`;
+                    cell.innerText = num;
+                    board.appendChild(cell);
+                }
+            }
+            drawLaddersAndSnakes();
+        }
+
+        function renderGameState(data) {
+            // Turn Logic
+            const activeId = data.order[data.turnIndex];
+            const isMyTurn = (activeId === myId);
+            const activeName = data.players[activeId].name;
+
+            document.getElementById('turn-indicator').innerText = isMyTurn ? "YOUR TURN!" : `${activeName}'s Turn`;
+            document.getElementById('turn-indicator').style.color = isMyTurn ? "#22c55e" : "white";
+            document.getElementById('roll-btn').disabled = !isMyTurn;
+
+            // Dice
+            const diceIcons = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+            if(data.lastRoll > 0) document.getElementById('dice-box').innerText = diceIcons[data.lastRoll - 1];
+
+            // Tokens
+            const layer = document.getElementById('tokens-layer');
+            Object.keys(data.players).forEach((pid, idx) => {
+                let t = document.getElementById(`t-${pid}`);
+                if(!t) {
+                    t = document.createElement('div');
+                    t.className = 'token';
+                    t.id = `t-${pid}`;
+                    t.style.background = data.players[pid].color;
+                    layer.appendChild(t);
+                }
+                const cell = document.getElementById(`cell-${data.players[pid].pos}`);
+                const offset = idx * 3;
+                t.style.left = (cell.offsetLeft + 12 + offset) + 'px';
+                t.style.top = (cell.offsetTop + 12 + offset) + 'px';
+            });
+        }
+
+        async function handleRoll() {
+            const dice = document.getElementById('dice-box');
+            dice.classList.add('shake');
+            document.getElementById('roll-btn').disabled = true;
+
+            setTimeout(async () => {
+                dice.classList.remove('shake');
+                const roll = Math.floor(Math.random() * 6) + 1;
+                
+                let pPos = localState.players[myId].pos;
+                let newPos = pPos + roll;
+
+                if(newPos > 100) newPos = 100;
+                if(ladders[newPos]) newPos = ladders[newPos];
+                if(snakes[newPos]) newPos = snakes[newPos];
+
+                const nextIdx = (localState.turnIndex + 1) % localState.order.length;
+
+                const up = {};
+                up[`players/${myId}/pos`] = newPos;
+                up[`turnIndex`] = nextIdx;
+                up[`lastRoll`] = roll;
+
+                if(newPos === 100) {
+                    alert("VICTORY!");
+                    up[`status`] = 'finished';
+                }
+
+                await db.ref('rooms/' + roomCode).update(up);
+            }, 600);
+        }
+
+        function drawLaddersAndSnakes() {
+            const svg = document.getElementById('vfx-layer');
+            const getC = (n) => {
+                const el = document.getElementById(`cell-${n}`);
+                return { x: el.offsetLeft + 27, y: el.offsetTop + 27 };
+            };
+
+            const draw = (obj, cls) => {
+                for(let s in obj) {
+                    const start = getC(s), end = getC(obj[s]);
+                    const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    l.setAttribute("x1", start.x); l.setAttribute("y1", start.y);
+                    l.setAttribute("x2", end.x); l.setAttribute("y2", end.y);
+                    l.setAttribute("class", cls);
+                    svg.appendChild(l);
+                }
+            };
+            draw(ladders, 'ladder-line');
+            draw(snakes, 'snake-line');
+        }
+    </script>
+</body>
+</html>
