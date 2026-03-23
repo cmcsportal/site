@@ -618,6 +618,10 @@ function buildBoard() {
   });
 
   // Snakes (cubic bezier curves)
+  // Store control points globally for animation reuse
+  window.snakePathData = {};
+  const snakePathData = window.snakePathData;
+
   const snakeColorPairs = [
     ['#e53935','#b71c1c'], ['#43a047','#1b5e20'],
     ['#8e24aa','#4a148c'], ['#e91e63','#880e4f'],
@@ -630,6 +634,8 @@ function buildBoard() {
     // Control points for an S-curve
     const mx = (f.cx + t.cx) / 2 + (Math.random()-0.5)*80;
     const my = (f.cy + t.cy) / 2 + (Math.random()-0.5)*80;
+    // Store for animation
+    snakePathData[+from] = { mx, my, toTile: +to };
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
     const d = `M ${f.cx} ${f.cy} Q ${mx} ${my} ${t.cx} ${t.cy}`;
     path.setAttribute('d', d);
@@ -672,18 +678,25 @@ function buildBoard() {
 }
 
 // ── TOKENS ──
+// Track current displayed positions separately from Firebase state
+const tokenDisplayPos = {}; // id -> current displayed tile number
+const tokenAnimating = {}; // id -> bool
+
 function getOrCreateToken(svg, id, color) {
   let el = document.getElementById('tok-' + id);
   if (!el) {
     const g = document.createElementNS('http://www.w3.org/2000/svg','g');
     g.id = 'tok-' + id;
+    g.style.transition = 'none';
     // Shadow
     const shadow = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    shadow.id = 'tok-shadow-' + id;
     shadow.setAttribute('r', '14'); shadow.setAttribute('fill', 'rgba(0,0,0,0.3)');
     shadow.setAttribute('cx', '2'); shadow.setAttribute('cy', '4');
     g.appendChild(shadow);
     // Body
     const circ = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circ.id = 'tok-body-' + id;
     circ.setAttribute('r', '13'); circ.setAttribute('fill', color);
     circ.setAttribute('stroke', 'white'); circ.setAttribute('stroke-width', '3');
     g.appendChild(circ);
@@ -699,12 +712,125 @@ function getOrCreateToken(svg, id, color) {
   return el;
 }
 
-function placeToken(svg, id, n, offset) {
-  const el = getOrCreateToken(svg, id, '');
+// Instantly place token at tile n (no animation)
+function snapToken(id, n, playerIndex) {
+  const svg = document.getElementById('overlay-svg');
+  const tok = getOrCreateToken(svg, id, '');
   const { cx, cy } = cellCoord(n);
-  const ox = (offset % 2) * 16 - 8;
-  const oy = Math.floor(offset / 2) * 16 - 8;
-  el.setAttribute('transform', `translate(${cx + ox},${cy + oy})`);
+  const ox = (playerIndex % 2) * 16 - 8;
+  const oy = Math.floor(playerIndex / 2) * 16 - 8;
+  tok.setAttribute('transform', `translate(${cx + ox},${cy + oy})`);
+  tokenDisplayPos[id] = n;
+}
+
+// Animate token moving step-by-step from fromTile to toTile
+async function animateSteps(id, fromTile, toTile, playerIndex) {
+  const svg = document.getElementById('overlay-svg');
+  const tok = getOrCreateToken(svg, id, '');
+  const STEP_MS = 160; // ms per tile hop
+  const BOUNCE_HEIGHT = 22;
+
+  let cur = fromTile;
+  const dir = toTile > fromTile ? 1 : -1;
+
+  while (cur !== toTile) {
+    cur += dir;
+    const { cx, cy } = cellCoord(cur);
+    const ox = (playerIndex % 2) * 16 - 8;
+    const oy = Math.floor(playerIndex / 2) * 16 - 8;
+    const tx = cx + ox, ty = cy + oy;
+
+    // Hop arc: go up, then land
+    await animateTokenArc(tok, tx, ty - BOUNCE_HEIGHT, 70);
+    await animateTokenArc(tok, tx, ty, 80);
+
+    // Squash on land
+    await squashToken(tok, tx, ty);
+
+    // Flash cell highlight
+    flashCell(cur);
+    tokenDisplayPos[id] = cur;
+  }
+}
+
+// Animate token following a snake path (quadratic bezier)
+async function animateSnakePath(id, fromTile, toTile, playerIndex, pathD) {
+  const svg = document.getElementById('overlay-svg');
+  const tok = getOrCreateToken(svg, id, '');
+  const DURATION = 900;
+  const STEPS = 30;
+
+  // Get stored bezier control points for this snake
+  const pathInfo = window.snakePathData && window.snakePathData[fromTile];
+  if (!pathInfo) { snapToken(id, toTile, playerIndex); return; }
+
+  // Parse the Q path to get control points for interpolation
+  const { cx: fx, cy: fy } = cellCoord(fromTile);
+  const { cx: tx2, cy: ty2 } = cellCoord(toTile);
+
+  const { mx, my } = pathInfo;
+  const ox = (playerIndex % 2) * 16 - 8;
+  const oy = Math.floor(playerIndex / 2) * 16 - 8;
+
+  for (let i = 0; i <= STEPS; i++) {
+    const t = i / STEPS;
+    // Quadratic bezier interpolation
+    const bx = (1-t)*(1-t)*fx + 2*(1-t)*t*mx + t*t*tx2;
+    const by = (1-t)*(1-t)*fy + 2*(1-t)*t*my + t*t*ty2;
+    tok.setAttribute('transform', `translate(${bx + ox},${by + oy})`);
+    await wait(DURATION / STEPS);
+  }
+  tokenDisplayPos[id] = toTile;
+}
+
+// Animate token climbing a ladder (linear interpolation)
+async function animateLadderClimb(id, fromTile, toTile, playerIndex) {
+  const svg = document.getElementById('overlay-svg');
+  const tok = getOrCreateToken(svg, id, '');
+  const DURATION = 700;
+  const STEPS = 25;
+  const { cx: fx, cy: fy } = cellCoord(fromTile);
+  const { cx: tx, cy: ty } = cellCoord(toTile);
+  const ox = (playerIndex % 2) * 16 - 8;
+  const oy = Math.floor(playerIndex / 2) * 16 - 8;
+
+  // Slight wobble as climbing
+  for (let i = 0; i <= STEPS; i++) {
+    const t = i / STEPS;
+    const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // easeInOut
+    const bx = fx + (tx - fx) * ease;
+    const by = fy + (ty - fy) * ease;
+    const wobble = Math.sin(t * Math.PI * 6) * 3;
+    tok.setAttribute('transform', `translate(${bx + ox + wobble},${by + oy})`);
+    await wait(DURATION / STEPS);
+  }
+  tokenDisplayPos[id] = toTile;
+}
+
+function animateTokenArc(tok, tx, ty, ms) {
+  return new Promise(resolve => {
+    tok.setAttribute('transform', `translate(${tx},${ty})`);
+    setTimeout(resolve, ms);
+  });
+}
+
+async function squashToken(tok, tx, ty) {
+  const body = tok.querySelector('circle:nth-child(2)') || tok.querySelectorAll('circle')[1];
+  // Squash
+  if (body) {
+    body.setAttribute('transform', 'scale(1.35,0.7)');
+    await wait(60);
+    body.setAttribute('transform', 'scale(0.9,1.15)');
+    await wait(60);
+    body.setAttribute('transform', 'scale(1,1)');
+  }
+}
+
+function flashCell(n) {
+  const cell = document.getElementById('cell-' + n);
+  if (!cell) return;
+  cell.style.filter = 'brightness(1.6)';
+  setTimeout(() => { cell.style.filter = ''; }, 180);
 }
 
 // ── GAME ──
@@ -714,6 +840,9 @@ function showGame(data) {
   if (!boardBuilt) buildBoard();
   updateVisuals(data);
 }
+
+// Previous positions for change-detection
+const prevPositions = {};
 
 function updateVisuals(data) {
   if (!data.order) return;
@@ -747,21 +876,81 @@ function updateVisuals(data) {
   const rollBtn = document.getElementById('roll-btn');
   rollBtn.disabled = !isMyTurn || rolling;
 
-  // Tokens
-  const svg = document.getElementById('overlay-svg');
-  data.order.forEach((id, i) => {
-    const tok = getOrCreateToken(svg, id, data.players[id].color);
-    // update color
-    tok.querySelectorAll('circle')[1]?.setAttribute('fill', data.players[id].color);
-    const { cx, cy } = cellCoord(data.players[id].pos);
-    const ox = (i % 2) * 16 - 8;
-    const oy = Math.floor(i / 2) * 16 - 8;
-    tok.setAttribute('transform', `translate(${cx + ox},${cy + oy})`);
-  });
-
   // Dice
   rotateDice(data.lastRoll || 1);
   document.getElementById('dice-num').innerText = data.lastRoll ? `Rolled: ${data.lastRoll}` : '–';
+
+  // Tokens — detect position changes and animate
+  const svg = document.getElementById('overlay-svg');
+  data.order.forEach((id, i) => {
+    const p = data.players[id];
+    const tok = getOrCreateToken(svg, id, p.color);
+    tok.querySelectorAll('circle')[1]?.setAttribute('fill', p.color);
+
+    const prev = prevPositions[id];
+    const cur = p.pos;
+
+    if (prev === undefined) {
+      // First time: snap into place
+      snapToken(id, cur, i);
+      prevPositions[id] = cur;
+    } else if (prev !== cur && !tokenAnimating[id]) {
+      // Position changed: run animation sequence
+      tokenAnimating[id] = true;
+      prevPositions[id] = cur;
+
+      // Figure out intermediate position before snake/ladder
+      // We need to find where the player WOULD have landed before special tiles
+      let rawLand = cur;
+      // Check if a snake took them here
+      for (const [from, to] of Object.entries(snakes)) {
+        if (+to === cur && prev < +from && +from <= prev + 6) { rawLand = +from; break; }
+      }
+      // Check if a ladder took them here
+      for (const [from, to] of Object.entries(ladders)) {
+        if (+to === cur && prev < +from && +from <= prev + 6) { rawLand = +from; break; }
+      }
+
+      const wasSnake  = rawLand !== cur && snakes[rawLand]  === cur;
+      const wasLadder = rawLand !== cur && ladders[rawLand] === cur;
+
+      (async () => {
+        // Step 1: walk step by step to the raw landing tile
+        await animateSteps(id, prev, rawLand, i);
+
+        // Step 2: if snake, slide down
+        if (wasSnake) {
+          await wait(300);
+          showToast('🐍 Snake! Sliding down…', 'snake');
+          tok.querySelectorAll('circle')[1]?.setAttribute('fill', '#ef5350');
+          await animateSnakePath(id, rawLand, cur, i);
+          await wait(100);
+          tok.querySelectorAll('circle')[1]?.setAttribute('fill', p.color);
+        }
+        // Step 2: if ladder, climb up
+        else if (wasLadder) {
+          await wait(300);
+          showToast('🪜 Ladder! Climbing up!', 'ladder');
+          tok.querySelectorAll('circle')[1]?.setAttribute('fill', '#66bb6a');
+          await animateLadderClimb(id, rawLand, cur, i);
+          await wait(100);
+          tok.querySelectorAll('circle')[1]?.setAttribute('fill', p.color);
+        }
+
+        // Step 3: victory bounce if on 100
+        if (cur === 100) {
+          for (let b = 0; b < 3; b++) {
+            const { cx, cy } = cellCoord(100);
+            const ox2 = (i%2)*16-8, oy2 = Math.floor(i/2)*16-8;
+            await animateTokenArc(tok, cx+ox2, cy-30+oy2, 120);
+            await animateTokenArc(tok, cx+ox2, cy+oy2, 120);
+          }
+        }
+
+        tokenAnimating[id] = false;
+      })();
+    }
+  });
 }
 
 function rotateDice(val) {
@@ -773,7 +962,6 @@ function rotateDice(val) {
     5: 'rotateX(-90deg)',
     6: 'rotateX(90deg)'
   };
-  document.getElementById('dice3d') ? null : null;
   document.getElementById('dice').style.transform = rots[val] || rots[1];
 }
 
@@ -785,20 +973,20 @@ async function handleRoll() {
   const roll = Math.floor(Math.random() * 6) + 1;
   const dice = document.getElementById('dice');
 
-  // Shake animation
-  dice.style.transition = '0.4s ease';
-  dice.style.transform = `rotateX(${Math.random()*720}deg) rotateY(${Math.random()*720}deg)`;
+  // Multi-spin shake
+  dice.style.transition = '0.15s ease';
+  for (let s = 0; s < 4; s++) {
+    dice.style.transform = `rotateX(${Math.random()*720}deg) rotateY(${Math.random()*720}deg) rotateZ(${(Math.random()-0.5)*40}deg)`;
+    await wait(150);
+  }
+  dice.style.transition = '0.7s cubic-bezier(0.17,0.67,0.83,0.67)';
 
-  await wait(450);
-  dice.style.transition = '0.8s cubic-bezier(0.17,0.67,0.83,0.67)';
+  let rawPos = localState.players[myId].pos + roll;
+  if (rawPos > 100) rawPos = localState.players[myId].pos;
 
-  let nPos = localState.players[myId].pos + roll;
-  if (nPos > 100) nPos = localState.players[myId].pos; // can't go over 100, stay
-
-  const hitSnake = !!snakes[nPos];
-  const hitLadder = !!ladders[nPos];
-  if (hitSnake) nPos = snakes[nPos];
-  if (hitLadder) nPos = ladders[nPos];
+  let nPos = rawPos;
+  if (snakes[nPos])  nPos = snakes[nPos];
+  if (ladders[nPos]) nPos = ladders[nPos];
 
   const nextTurn = (localState.turnIndex + 1) % localState.order.length;
   const up = {};
@@ -809,16 +997,14 @@ async function handleRoll() {
 
   await db.ref('rooms/' + roomCode).update(up);
 
-  // Show toast after update
-  setTimeout(() => {
-    if (hitSnake) showToast('🐍 Snake! Slid down!', 'snake');
-    else if (hitLadder) showToast('🪜 Ladder! Climbed up!', 'ladder');
-  }, 400);
-
   if (nPos === 100) {
-    setTimeout(() => showWin(localState.players[myId].name), 600);
+    // Wait for animation to finish then show win
+    setTimeout(() => showWin(localState.players[myId].name), 2800);
   }
-  rolling = false;
+
+  // Re-enable roll only after animations complete
+  const animWait = roll * 170 + (snakes[rawPos] || ladders[rawPos] ? 1200 : 400);
+  setTimeout(() => { rolling = false; }, animWait);
 }
 
 // Also listen for someone else winning
