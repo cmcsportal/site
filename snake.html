@@ -3,168 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Realtime Snakes & Ladders</title>
+    <title>Snakes & Ladders: Plastic Edition</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
         :root {
-            --cell-size: 55px;
-            --bg: #0f172a;
-            --primary: #3b82f6;
-            --accent: #ef4444;
+            --plastic-blue: #3b82f6;
+            --plastic-red: #ef4444;
+            --plastic-green: #22c55e;
+            --plastic-yellow: #eab308;
+            --glass: rgba(255, 255, 255, 0.1);
+            --gloss: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%);
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg);
+            font-family: 'Arial Rounded MT Bold', 'Helvetica', sans-serif;
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
             color: white;
             display: flex;
             flex-direction: column;
             align-items: center;
             margin: 0;
             padding: 20px;
+            overflow-x: hidden;
         }
 
-        /* Screen Management */
-        .screen { display: none; text-align: center; max-width: 500px; width: 100%; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+        /* Plastic Button Style */
+        button {
+            position: relative;
+            background: var(--plastic-blue);
+            border: none;
+            padding: 15px 25px;
+            border-radius: 15px;
+            color: white;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #1d4ed8, 0 8px 15px rgba(0,0,0,0.4);
+            transition: all 0.1s;
+            overflow: hidden;
+        }
+        button::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%;
+            background: var(--gloss); pointer-events: none;
+        }
+        button:active { transform: translateY(4px); box-shadow: 0 1px 0 #1d4ed8; }
+
+        /* Screens */
+        .screen { display: none; background: #334155; padding: 40px; border-radius: 25px; border: 4px solid #475569; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
         .active-screen { display: block; }
 
-        /* Board Layout */
-        #game-layout { display: none; gap: 30px; flex-wrap: wrap; justify-content: center; }
+        /* Board Container */
+        #game-layout { display: none; gap: 20px; align-items: flex-start; margin-top: 20px; }
         
-        #board-container { position: relative; border: 8px solid #334155; border-radius: 8px; overflow: hidden; }
+        #board-wrapper {
+            position: relative;
+            background: #cbd5e1;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.2);
+        }
+
         #board {
             display: grid;
-            grid-template-columns: repeat(10, var(--cell-size));
-            grid-template-rows: repeat(10, var(--cell-size));
-            background: #f8fafc;
+            grid-template-columns: repeat(10, 50px);
+            grid-template-rows: repeat(10, 50px);
+            border: 2px solid #94a3b8;
         }
 
         .cell {
-            width: var(--cell-size);
-            height: var(--cell-size);
-            border: 1px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #64748b;
-            font-size: 0.75rem;
-            font-weight: bold;
-            box-sizing: border-box;
+            width: 50px; height: 50px; border: 0.5px solid rgba(0,0,0,0.05);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; color: #64748b; font-weight: bold; position: relative;
         }
-        .cell:nth-child(even) { background: #f1f5f9; }
+        .cell:nth-child(odd) { background: #f8fafc; }
+        .cell:nth-child(even) { background: #e2e8f0; }
 
         /* Tokens */
         .token {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            position: absolute;
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 10;
-            border: 2px solid white;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            width: 25px; height: 25px; border-radius: 50%; position: absolute;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 20; border: 3px solid rgba(255,255,255,0.8);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
         }
 
-        /* SVG Overlays */
-        #vfx-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
-        .ladder-line { stroke: #22c55e; stroke-width: 10; stroke-linecap: round; opacity: 0.6; }
-        .snake-line { stroke: #ef4444; stroke-width: 8; fill: none; opacity: 0.6; }
-
-        /* UI Panel */
-        #ui-panel { width: 280px; background: #1e293b; padding: 20px; border-radius: 12px; text-align: center; }
-        
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-            transition: 0.2s;
+        /* 3D Dice */
+        .scene { width: 60px; height: 60px; perspective: 300px; margin: 20px auto; }
+        .dice {
+            width: 100%; height: 100%; position: relative; transform-style: preserve-3d;
+            transition: transform 1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
         }
-        button:hover { opacity: 0.9; }
-        button:disabled { background: #475569; cursor: not-allowed; }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            border: 1px solid #334155;
-            background: #0f172a;
-            color: white;
-            box-sizing: border-box;
-            text-align: center;
+        .dice-face {
+            position: absolute; width: 60px; height: 60px; background: white;
+            border: 2px solid #ddd; border-radius: 10px; display: flex; align-items: center;
+            justify-content: center; font-size: 2rem; color: #333; box-shadow: inset 0 0 10px #ccc;
         }
+        .f1 { transform: rotateY(0deg) translateZ(30px); }
+        .f2 { transform: rotateY(90deg) translateZ(30px); }
+        .f3 { transform: rotateY(180deg) translateZ(30px); }
+        .f4 { transform: rotateY(-90deg) translateZ(30px); }
+        .f5 { transform: rotateX(90deg) translateZ(30px); }
+        .f6 { transform: rotateX(-90deg) translateZ(30px); }
 
-        /* Dice */
-        #dice-box { font-size: 4rem; margin: 20px 0; min-height: 80px; transition: 0.3s; }
-        .shake { animation: shakeDice 0.5s infinite; }
-
-        @keyframes shakeDice {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(20deg); }
-            75% { transform: rotate(-20deg); }
-            100% { transform: rotate(0deg); }
+        /* Side Panel: Leaderboard & Scores */
+        .panel {
+            width: 260px; background: #1e293b; padding: 20px; border-radius: 20px;
+            border: 4px solid #334155; box-shadow: 10px 10px 0 rgba(0,0,0,0.2);
         }
-
-        .pending-card {
-            background: #334155;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .score-row {
+            display: flex; justify-content: space-between; padding: 10px;
+            margin-bottom: 5px; border-radius: 10px; background: rgba(0,0,0,0.2);
         }
+        .active-turn { border: 2px solid var(--plastic-green); box-shadow: 0 0 15px var(--plastic-green); }
+
+        /* Snake Images Layer */
+        #snake-images-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 5; }
+        .snake-img { position: absolute; width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--plastic-red); opacity: 0.8; }
     </style>
 </head>
 <body>
 
-    <h1 style="color: var(--primary)">SNAKE & LADDER <span style="color: white; font-weight: 200;">LIVE</span></h1>
+    <h1 style="text-shadow: 0 4px 0 #000;">PLASTIC REPTILES <span style="color: var(--plastic-red);">3D</span></h1>
 
     <div id="entry-screen" class="screen active-screen">
-        <input type="text" id="player-name" placeholder="Your Name">
+        <input type="text" id="player-name" placeholder="ENTER NAME" style="width: 100%; padding: 15px; border-radius: 10px; border:none; margin-bottom: 15px; font-size: 1.2rem; text-align: center;">
         <button onclick="createRoom()">Create Room</button>
-        <div style="margin: 20px 0; opacity: 0.5;">— OR —</div>
-        <input type="text" id="join-code" placeholder="6-Character Code">
-        <button onclick="joinRoom()" style="background: #6366f1;">Join Room</button>
+        <div style="margin: 20px 0; font-weight: bold; opacity: 0.5;">- OR -</div>
+        <input type="text" id="join-code" placeholder="6-CHAR CODE" style="width: 100%; padding: 15px; border-radius: 10px; border:none; margin-bottom: 15px; text-align: center;">
+        <button onclick="joinRoom()" style="background: var(--plastic-green); box-shadow: 0 5px 0 #15803d;">Join Room</button>
     </div>
 
     <div id="lobby-screen" class="screen">
-        <h2>Code: <span id="display-code" style="color: var(--primary)">------</span></h2>
-        <div id="player-list-lobby" style="margin: 20px 0; text-align: left;"></div>
-        <div id="admin-section" style="border-top: 1px solid #334155; padding-top: 15px;">
-            <p style="font-size: 0.8rem; color: #94a3b8;">Pending Requests:</p>
-            <div id="pending-list"></div>
-        </div>
-        <button id="start-btn" onclick="startGameTrigger()" style="display:none; background: #22c55e;">Start Game</button>
-        <p id="wait-msg" style="font-size: 0.9rem; color: #94a3b8;">Waiting for host...</p>
+        <h2>ROOM: <span id="display-code" style="color: var(--plastic-yellow);">------</span></h2>
+        <div id="player-list-lobby" style="margin: 20px 0; min-height: 100px;"></div>
+        <div id="pending-list"></div>
+        <button id="start-btn" onclick="startGameTrigger()" style="display:none; background: var(--plastic-red); box-shadow: 0 5px 0 #991b1b;">Launch Game</button>
     </div>
 
     <div id="game-layout">
-        <div id="board-container">
+        <div id="board-wrapper">
             <div id="board"></div>
             <div id="tokens-layer"></div>
-            <svg id="vfx-layer" viewBox="0 0 550 550"></svg>
+            <div id="snake-images-layer"></div>
+            <svg id="vfx-layer" viewBox="0 0 500 500" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:4;"></svg>
         </div>
 
-        <div id="ui-panel">
-            <div id="turn-indicator" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">Waiting...</div>
-            <div id="dice-box">🎲</div>
-            <button id="roll-btn" onclick="handleRoll()">Roll Dice</button>
-            <div id="game-stats" style="margin-top: 20px; text-align: left; font-size: 0.9rem;"></div>
+        <div class="panel">
+            <h3 style="margin-top:0;">Scoreboard</h3>
+            <div id="score-list"></div>
+            <hr style="border: 1px solid #334155;">
+            
+            <div class="scene">
+                <div class="dice" id="dice">
+                    <div class="dice-face f1">1</div>
+                    <div class="dice-face f2">2</div>
+                    <div class="dice-face f3">3</div>
+                    <div class="dice-face f4">4</div>
+                    <div class="dice-face f5">5</div>
+                    <div class="dice-face f6">6</div>
+                </div>
+            </div>
+
+            <button id="roll-btn" onclick="handleRoll()">Shake & Roll</button>
+            <p id="turn-text" style="font-size: 0.8rem; margin-top: 15px; color: #94a3b8;"></p>
         </div>
     </div>
 
     <script>
-        // --- CONFIG ---
+        // --- FIREBASE SETUP ---
         const firebaseConfig = { 
             apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ", 
             authDomain: "svls-289ee.firebaseapp.com", 
@@ -183,215 +191,182 @@
         let isHost = false;
         let localState = null;
 
-        const ladders = { 2: 38, 7: 14, 8: 31, 15: 26, 21: 42, 28: 84, 51: 67, 71: 91, 87: 94 };
-        const snakes = { 16: 6, 46: 25, 49: 11, 62: 19, 64: 60, 74: 53, 89: 68, 95: 75, 99: 80 };
-        const colors = ['#f59e0b', '#3b82f6', '#ec4899', '#10b981', '#a855f7'];
+        const snakes = { 17: 4, 54: 34, 62: 19, 98: 79, 87: 36, 95: 75 };
+        const ladders = { 3: 22, 8: 30, 28: 84, 58: 77, 71: 91 };
+        const snakeImgs = [
+            "https://images.unsplash.com/photo-1531386151447-fd76ad500b2a?auto=format&fit=crop&w=100&q=80",
+            "https://images.unsplash.com/photo-1629190844820-0084f728f3e5?auto=format&fit=crop&w=100&q=80"
+        ];
 
-        // --- LOBBY FUNCTIONS ---
-
+        // --- ROOM LOGIC ---
         function createRoom() {
-            myName = document.getElementById('player-name').value || "Host";
+            myName = document.getElementById('player-name').value.toUpperCase() || "PLAYER 1";
             roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
             isHost = true;
-
             const init = {
-                host: myId,
-                status: 'lobby',
-                turnIndex: 0,
-                players: { [myId]: { name: myName, pos: 1, color: colors[0] } },
-                order: [myId],
-                lastRoll: 0
+                status: 'lobby', host: myId, turnIndex: 0, lastRoll: 1,
+                players: { [myId]: { name: myName, pos: 1, color: '#3b82f6', score: 0 } },
+                order: [myId]
             };
-
-            db.ref('rooms/' + roomCode).set(init).then(() => {
-                enterLobby();
-                startListening();
-            });
+            db.ref('rooms/' + roomCode).set(init).then(() => { enterLobby(); listen(); });
         }
 
         function joinRoom() {
             roomCode = document.getElementById('join-code').value.toUpperCase();
-            myName = document.getElementById('player-name').value || "Player";
+            myName = document.getElementById('player-name').value.toUpperCase() || "PLAYER";
             if(!roomCode) return;
-
             db.ref('rooms/' + roomCode + '/pending/' + myId).set({ name: myName });
-            document.getElementById('entry-screen').innerHTML = "<h3>Waiting for admission...</h3>";
-            startListening();
+            document.getElementById('entry-screen').innerHTML = "<h2>Awaiting Admission...</h2>";
+            listen();
         }
 
-        function startListening() {
-            db.ref('rooms/' + roomCode).on('value', (snap) => {
-                const data = snap.val();
-                if(!data) return;
+        function listen() {
+            db.ref('rooms/' + roomCode).on('value', snap => {
+                const data = snap.val(); if(!data) return;
                 localState = data;
-
                 if(data.players && data.players[myId]) {
                     enterLobby();
                     updateLobbyUI(data);
                 }
-
-                if(data.status === 'playing') {
-                    showGameScreen();
-                    renderGameState(data);
-                }
+                if(data.status === 'playing') showGame(data);
             });
+        }
+
+        function enterLobby() {
+            document.getElementById('entry-screen').className = 'screen';
+            document.getElementById('lobby-screen').className = 'screen active-screen';
+            document.getElementById('display-code').innerText = roomCode;
         }
 
         function updateLobbyUI(data) {
             const list = document.getElementById('player-list-lobby');
-            list.innerHTML = "<strong>In Lobby:</strong><br>";
-            Object.values(data.players).forEach(p => {
-                list.innerHTML += `• ${p.name}<br>`;
-            });
-
-            const pendingList = document.getElementById('pending-list');
-            pendingList.innerHTML = "";
+            list.innerHTML = "<h4>PLAYERS:</h4>" + Object.values(data.players).map(p => `<div>• ${p.name}</div>`).join('');
+            
+            const pending = document.getElementById('pending-list');
+            pending.innerHTML = "";
             if(data.pending) {
                 Object.keys(data.pending).forEach(pid => {
-                    const p = data.pending[pid];
-                    pendingList.innerHTML += `
-                        <div class="pending-card">
-                            <span>${p.name}</span>
-                            <button onclick="admit('${pid}', '${p.name}')" style="width: auto; padding: 5px 10px; margin:0;">Admit</button>
-                        </div>`;
+                    pending.innerHTML += `<div style="display:flex; justify-content:space-between; margin-top:10px;">
+                        <span>${data.pending[pid].name}</span>
+                        <button onclick="admit('${pid}', '${data.pending[pid].name}')" style="padding:5px; font-size:0.7rem;">Admit</button>
+                    </div>`;
                 });
             }
-
-            if(isHost) {
-                document.getElementById('start-btn').style.display = 'block';
-                document.getElementById('wait-msg').style.display = 'none';
-            }
+            if(isHost) document.getElementById('start-btn').style.display = 'block';
         }
 
         function admit(pid, name) {
-            const playerCount = Object.keys(localState.players).length;
-            const updates = {};
-            updates[`players/${pid}`] = { name: name, pos: 1, color: colors[playerCount % colors.length] };
-            updates[`pending/${pid}`] = null;
-            
-            const newOrder = localState.order || [];
-            newOrder.push(pid);
-            updates[`order`] = newOrder;
-
-            db.ref('rooms/' + roomCode).update(updates);
+            const colors = ['#ef4444', '#22c55e', '#eab308', '#a855f7'];
+            const count = Object.keys(localState.players).length;
+            const up = {};
+            up[`players/${pid}`] = { name: name, pos: 1, color: colors[count-1] || '#fff', score: 0 };
+            up[`pending/${pid}`] = null;
+            const newOrder = localState.order || []; newOrder.push(pid);
+            up[`order`] = newOrder;
+            db.ref('rooms/' + roomCode).update(up);
         }
 
-        function enterLobby() {
-            document.getElementById('entry-screen').classList.remove('active-screen');
-            document.getElementById('lobby-screen').classList.add('active-screen');
-            document.getElementById('display-code').innerText = roomCode;
-        }
+        function startGameTrigger() { db.ref('rooms/' + roomCode).update({ status: 'playing' }); }
 
-        function startGameTrigger() {
-            db.ref('rooms/' + roomCode).update({ status: 'playing' });
-        }
-
-        // --- GAME ENGINE ---
-
-        function showGameScreen() {
-            document.getElementById('lobby-screen').classList.remove('active-screen');
+        // --- GAMEPLAY ---
+        function showGame(data) {
+            document.getElementById('lobby-screen').className = 'screen';
             document.getElementById('game-layout').style.display = 'flex';
-            if(!document.getElementById('cell-1')) buildBoard();
+            if(!document.getElementById('cell-1')) {
+                buildBoard();
+                placeDecoration();
+            }
+            updateVisuals(data);
         }
 
         function buildBoard() {
             const board = document.getElementById('board');
-            for (let row = 9; row >= 0; row--) {
-                for (let col = 0; col < 10; col++) {
-                    let num = (row % 2 !== 0) ? (row * 10) + (10 - col) : (row * 10) + (col + 1);
+            for(let r=9; r>=0; r--) {
+                for(let c=0; c<10; c++) {
+                    let n = (r % 2 !== 0) ? (r*10)+(10-c) : (r*10)+(c+1);
                     const cell = document.createElement('div');
-                    cell.className = 'cell';
-                    cell.id = `cell-${num}`;
-                    cell.innerText = num;
+                    cell.className = 'cell'; cell.id = `cell-${n}`; cell.innerText = n;
                     board.appendChild(cell);
                 }
             }
-            drawLaddersAndSnakes();
         }
 
-        function renderGameState(data) {
-            // Turn Logic
-            const activeId = data.order[data.turnIndex];
-            const isMyTurn = (activeId === myId);
-            const activeName = data.players[activeId].name;
-
-            document.getElementById('turn-indicator').innerText = isMyTurn ? "YOUR TURN!" : `${activeName}'s Turn`;
-            document.getElementById('turn-indicator').style.color = isMyTurn ? "#22c55e" : "white";
-            document.getElementById('roll-btn').disabled = !isMyTurn;
-
-            // Dice
-            const diceIcons = ['⚀','⚁','⚂','⚃','⚄','⚅'];
-            if(data.lastRoll > 0) document.getElementById('dice-box').innerText = diceIcons[data.lastRoll - 1];
-
-            // Tokens
-            const layer = document.getElementById('tokens-layer');
-            Object.keys(data.players).forEach((pid, idx) => {
-                let t = document.getElementById(`t-${pid}`);
-                if(!t) {
-                    t = document.createElement('div');
-                    t.className = 'token';
-                    t.id = `t-${pid}`;
-                    t.style.background = data.players[pid].color;
-                    layer.appendChild(t);
-                }
-                const cell = document.getElementById(`cell-${data.players[pid].pos}`);
-                const offset = idx * 3;
-                t.style.left = (cell.offsetLeft + 12 + offset) + 'px';
-                t.style.top = (cell.offsetTop + 12 + offset) + 'px';
+        function placeDecoration() {
+            const layer = document.getElementById('snake-images-layer');
+            Object.keys(snakes).forEach((s, i) => {
+                const cell = document.getElementById(`cell-${s}`);
+                const img = document.createElement('img');
+                img.src = snakeImgs[i % 2]; img.className = 'snake-img';
+                img.style.left = cell.offsetLeft + 'px'; img.style.top = cell.offsetTop + 'px';
+                layer.appendChild(img);
             });
         }
 
-        async function handleRoll() {
-            const dice = document.getElementById('dice-box');
-            dice.classList.add('shake');
-            document.getElementById('roll-btn').disabled = true;
+        function updateVisuals(data) {
+            // Scores & Turn
+            const activeId = data.order[data.turnIndex];
+            const isMyTurn = (activeId === myId);
+            document.getElementById('roll-btn').disabled = !isMyTurn;
+            document.getElementById('turn-text').innerText = isMyTurn ? "IT IS YOUR TURN!" : `WAITING FOR ${data.players[activeId].name}...`;
 
-            setTimeout(async () => {
-                dice.classList.remove('shake');
-                const roll = Math.floor(Math.random() * 6) + 1;
-                
-                let pPos = localState.players[myId].pos;
-                let newPos = pPos + roll;
+            const scoreDiv = document.getElementById('score-list');
+            scoreDiv.innerHTML = data.order.map(id => {
+                const p = data.players[id];
+                return `<div class="score-row ${id === activeId ? 'active-turn' : ''}">
+                    <span style="color:${p.color}">● ${p.name}</span>
+                    <span>Tile: ${p.pos}</span>
+                </div>`;
+            }).join('');
 
-                if(newPos > 100) newPos = 100;
-                if(ladders[newPos]) newPos = ladders[newPos];
-                if(snakes[newPos]) newPos = snakes[newPos];
-
-                const nextIdx = (localState.turnIndex + 1) % localState.order.length;
-
-                const up = {};
-                up[`players/${myId}/pos`] = newPos;
-                up[`turnIndex`] = nextIdx;
-                up[`lastRoll`] = roll;
-
-                if(newPos === 100) {
-                    alert("VICTORY!");
-                    up[`status`] = 'finished';
+            // Tokens
+            const tLayer = document.getElementById('tokens-layer');
+            data.order.forEach((id, i) => {
+                let t = document.getElementById(`t-${id}`);
+                if(!t) {
+                    t = document.createElement('div'); t.className = 'token'; t.id = `t-${id}`;
+                    t.style.backgroundColor = data.players[id].color;
+                    tLayer.appendChild(t);
                 }
+                const cell = document.getElementById(`cell-${data.players[id].pos}`);
+                t.style.left = (cell.offsetLeft + 10 + (i*4)) + 'px';
+                t.style.top = (cell.offsetTop + 10 + (i*4)) + 'px';
+            });
 
-                await db.ref('rooms/' + roomCode).update(up);
-            }, 600);
+            // Sync Dice Rotation
+            rotateDice(data.lastRoll);
         }
 
-        function drawLaddersAndSnakes() {
-            const svg = document.getElementById('vfx-layer');
-            const getC = (n) => {
-                const el = document.getElementById(`cell-${n}`);
-                return { x: el.offsetLeft + 27, y: el.offsetTop + 27 };
-            };
+        function rotateDice(val) {
+            const d = document.getElementById('dice');
+            const rots = { 1:'rotateX(0deg) rotateY(0deg)', 2:'rotateY(-90deg)', 3:'rotateY(-180deg)', 4:'rotateY(90deg)', 5:'rotateX(-90deg)', 6:'rotateX(90deg)' };
+            d.style.transform = rots[val];
+        }
 
-            const draw = (obj, cls) => {
-                for(let s in obj) {
-                    const start = getC(s), end = getC(obj[s]);
-                    const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                    l.setAttribute("x1", start.x); l.setAttribute("y1", start.y);
-                    l.setAttribute("x2", end.x); l.setAttribute("y2", end.y);
-                    l.setAttribute("class", cls);
-                    svg.appendChild(l);
-                }
-            };
-            draw(ladders, 'ladder-line');
-            draw(snakes, 'snake-line');
+        async function handleRoll() {
+            const roll = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('roll-btn').disabled = true;
+            
+            // Random spin animation
+            const d = document.getElementById('dice');
+            d.style.transition = '0.5s';
+            d.style.transform = `rotateX(${Math.random()*360}deg) rotateY(${Math.random()*360}deg)`;
+
+            setTimeout(async () => {
+                d.style.transition = '1s';
+                let nPos = localState.players[myId].pos + roll;
+                if(nPos > 100) nPos = 100;
+                if(snakes[nPos]) nPos = snakes[nPos];
+                if(ladders[nPos]) nPos = ladders[nPos];
+
+                const nextTurn = (localState.turnIndex + 1) % localState.order.length;
+                const up = {};
+                up[`players/${myId}/pos`] = nPos;
+                up[`turnIndex`] = nextTurn;
+                up[`lastRoll`] = roll;
+                
+                if(nPos === 100) alert("WINNER!");
+                await db.ref('rooms/' + roomCode).update(up);
+            }, 600);
         }
     </script>
 </body>
