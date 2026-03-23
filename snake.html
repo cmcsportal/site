@@ -448,7 +448,7 @@ function createRoom() {
   isHost = true;
   const init = {
     status: 'lobby', host: myId, turnIndex: 0, lastRoll: 1,
-    players: { [myId]: { name: myName, pos: 1, color: PLAYER_COLORS[0], score: 0 } },
+    players: { [myId]: { name: myName, pos: 1, rawPos: 1, color: PLAYER_COLORS[0], score: 0 } },
     order: [myId]
   };
   db.ref('rooms/' + roomCode).set(init).then(() => { enterLobby(); listen(); });
@@ -516,7 +516,7 @@ function updateLobbyUI(data) {
 function admit(pid, name) {
   const count = Object.keys(localState.players).length;
   const up = {};
-  up[`players/${pid}`] = { name: name, pos: 1, color: PLAYER_COLORS[count % PLAYER_COLORS.length], score: 0 };
+  up[`players/${pid}`] = { name: name, pos: 1, rawPos: 1, color: PLAYER_COLORS[count % PLAYER_COLORS.length], score: 0 };
   up[`pending/${pid}`] = null;
   const newOrder = [...(localState.order || []), pid];
   up[`order`] = newOrder;
@@ -880,7 +880,7 @@ function updateVisuals(data) {
   rotateDice(data.lastRoll || 1);
   document.getElementById('dice-num').innerText = data.lastRoll ? `Rolled: ${data.lastRoll}` : '–';
 
-  // Tokens — detect position changes and animate
+  // Tokens — detect position changes and animate for ALL players
   const svg = document.getElementById('overlay-svg');
   data.order.forEach((id, i) => {
     const p = data.players[id];
@@ -888,56 +888,49 @@ function updateVisuals(data) {
     tok.querySelectorAll('circle')[1]?.setAttribute('fill', p.color);
 
     const prev = prevPositions[id];
-    const cur = p.pos;
+    const cur  = p.pos;
+    // rawPos is the tile BEFORE snake/ladder teleport (stored in Firebase by rolling player)
+    // Fall back to cur if not yet present (e.g. game just started)
+    const rawLand = (p.rawPos !== undefined && p.rawPos !== null) ? p.rawPos : cur;
 
     if (prev === undefined) {
-      // First time: snap into place
+      // First time seeing this player — snap into place, no animation
       snapToken(id, cur, i);
       prevPositions[id] = cur;
     } else if (prev !== cur && !tokenAnimating[id]) {
-      // Position changed: run animation sequence
+      // Position changed — animate the full sequence
       tokenAnimating[id] = true;
       prevPositions[id] = cur;
-
-      // Figure out intermediate position before snake/ladder
-      // We need to find where the player WOULD have landed before special tiles
-      let rawLand = cur;
-      // Check if a snake took them here
-      for (const [from, to] of Object.entries(snakes)) {
-        if (+to === cur && prev < +from && +from <= prev + 6) { rawLand = +from; break; }
-      }
-      // Check if a ladder took them here
-      for (const [from, to] of Object.entries(ladders)) {
-        if (+to === cur && prev < +from && +from <= prev + 6) { rawLand = +from; break; }
-      }
 
       const wasSnake  = rawLand !== cur && snakes[rawLand]  === cur;
       const wasLadder = rawLand !== cur && ladders[rawLand] === cur;
 
+      const playerName = p.name;
+
       (async () => {
-        // Step 1: walk step by step to the raw landing tile
+        // Step 1: hop cell-by-cell to the raw landing tile
         await animateSteps(id, prev, rawLand, i);
 
-        // Step 2: if snake, slide down
+        // Step 2a: snake — slide along the bezier curve
         if (wasSnake) {
-          await wait(300);
-          showToast('🐍 Snake! Sliding down…', 'snake');
+          await wait(280);
+          showToast(`🐍 ${playerName} hit a snake!`, 'snake');
           tok.querySelectorAll('circle')[1]?.setAttribute('fill', '#ef5350');
           await animateSnakePath(id, rawLand, cur, i);
           await wait(100);
           tok.querySelectorAll('circle')[1]?.setAttribute('fill', p.color);
         }
-        // Step 2: if ladder, climb up
+        // Step 2b: ladder — wobble climb up
         else if (wasLadder) {
-          await wait(300);
-          showToast('🪜 Ladder! Climbing up!', 'ladder');
+          await wait(280);
+          showToast(`🪜 ${playerName} climbed a ladder!`, 'ladder');
           tok.querySelectorAll('circle')[1]?.setAttribute('fill', '#66bb6a');
           await animateLadderClimb(id, rawLand, cur, i);
           await wait(100);
           tok.querySelectorAll('circle')[1]?.setAttribute('fill', p.color);
         }
 
-        // Step 3: victory bounce if on 100
+        // Step 3: victory bounce on tile 100
         if (cur === 100) {
           for (let b = 0; b < 3; b++) {
             const { cx, cy } = cellCoord(100);
@@ -990,15 +983,15 @@ async function handleRoll() {
 
   const nextTurn = (localState.turnIndex + 1) % localState.order.length;
   const up = {};
-  up[`players/${myId}/pos`] = nPos;
+  up[`players/${myId}/pos`]     = nPos;
+  up[`players/${myId}/rawPos`]  = rawPos;  // ← store intermediate tile for all clients
   up[`turnIndex`] = nextTurn;
-  up[`lastRoll`] = roll;
+  up[`lastRoll`]  = roll;
   if (nPos === 100) up[`winner`] = myId;
 
   await db.ref('rooms/' + roomCode).update(up);
 
   if (nPos === 100) {
-    // Wait for animation to finish then show win
     setTimeout(() => showWin(localState.players[myId].name), 2800);
   }
 
