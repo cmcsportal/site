@@ -1,373 +1,850 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snakes & Ladders: Plastic Edition</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snakes & Ladders</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<style>
+  :root {
+    --cell: 52px;
+    --cols: 10;
+    --board-size: calc(var(--cell) * var(--cols));
+    --green-light: #8bc34a;
+    --green-dark: #558b2f;
+    --cream: #fdf6e3;
+    --wood: #795548;
+    --wood-dark: #4e342e;
+    --red: #e53935;
+    --blue: #1e88e5;
+    --yellow: #fdd835;
+    --purple: #8e24aa;
+    --orange: #fb8c00;
+    --sky: #e1f5fe;
+  }
 
-    <style>
-        :root {
-            --plastic-blue: #3b82f6;
-            --plastic-red: #ef4444;
-            --plastic-green: #22c55e;
-            --plastic-yellow: #eab308;
-            --glass: rgba(255, 255, 255, 0.1);
-            --gloss: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%);
-        }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: 'Arial Rounded MT Bold', 'Helvetica', sans-serif;
-            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            padding: 20px;
-            overflow-x: hidden;
-        }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #2d5a27;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, #3a7a32 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #1a3a16 0%, transparent 50%),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+  }
 
-        /* Plastic Button Style */
-        button {
-            position: relative;
-            background: var(--plastic-blue);
-            border: none;
-            padding: 15px 25px;
-            border-radius: 15px;
-            color: white;
-            font-weight: 800;
-            text-transform: uppercase;
-            cursor: pointer;
-            box-shadow: 0 5px 0 #1d4ed8, 0 8px 15px rgba(0,0,0,0.4);
-            transition: all 0.1s;
-            overflow: hidden;
-        }
-        button::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%;
-            background: var(--gloss); pointer-events: none;
-        }
-        button:active { transform: translateY(4px); box-shadow: 0 1px 0 #1d4ed8; }
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.4rem;
+    color: #fff;
+    text-shadow: 0 3px 0 #1a3a16, 0 6px 12px rgba(0,0,0,0.4);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  h1 .emoji { font-size: 2rem; }
 
-        /* Screens */
-        .screen { display: none; background: #334155; padding: 40px; border-radius: 25px; border: 4px solid #475569; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
-        .active-screen { display: block; }
+  /* ── SCREENS ── */
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; gap: 14px; }
 
-        /* Board Container */
-        #game-layout { display: none; gap: 20px; align-items: flex-start; margin-top: 20px; }
-        
-        #board-wrapper {
-            position: relative;
-            background: #cbd5e1;
-            padding: 15px;
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.2);
-        }
+  .card {
+    background: var(--cream);
+    border-radius: 20px;
+    padding: 32px 36px;
+    width: 340px;
+    box-shadow: 0 8px 0 var(--wood-dark), 0 16px 40px rgba(0,0,0,0.4);
+    border: 3px solid var(--wood);
+  }
+  .card h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    color: var(--wood-dark);
+    text-align: center;
+    margin-bottom: 20px;
+  }
 
-        #board {
-            display: grid;
-            grid-template-columns: repeat(10, 50px);
-            grid-template-rows: repeat(10, 50px);
-            border: 2px solid #94a3b8;
-        }
+  .field {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 3px solid #c8b89a;
+    background: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #333;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field:focus { border-color: var(--green-dark); }
+  .field::placeholder { color: #bbb; font-weight: 600; }
 
-        .cell {
-            width: 50px; height: 50px; border: 0.5px solid rgba(0,0,0,0.05);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.7rem; color: #64748b; font-weight: bold; position: relative;
-        }
-        .cell:nth-child(odd) { background: #f8fafc; }
-        .cell:nth-child(even) { background: #e2e8f0; }
+  .divider { text-align: center; color: #aaa; font-weight: 800; font-size: 0.85rem; }
 
-        /* Tokens */
-        .token {
-            width: 25px; height: 25px; border-radius: 50%; position: absolute;
-            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            z-index: 20; border: 3px solid rgba(255,255,255,0.8);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-        }
+  .btn {
+    width: 100%;
+    padding: 14px 20px;
+    border-radius: 14px;
+    border: none;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.1s, box-shadow 0.1s;
+    overflow: hidden;
+  }
+  .btn::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 45%;
+    background: rgba(255,255,255,0.25);
+    border-radius: 14px 14px 50% 50%;
+    pointer-events: none;
+  }
+  .btn:active { transform: translateY(3px); box-shadow: none !important; }
+  .btn-create { background: var(--blue); color: white; box-shadow: 0 5px 0 #1256a0; }
+  .btn-join   { background: var(--green-light); color: white; box-shadow: 0 5px 0 var(--green-dark); }
+  .btn-start  { background: var(--red); color: white; box-shadow: 0 5px 0 #911; }
+  .btn-roll   { background: var(--yellow); color: #333; box-shadow: 0 5px 0 #b8960c; font-size: 1.3rem; width: 100%; }
+  .btn-roll:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; box-shadow: 0 5px 0 #b8960c !important; }
 
-        /* 3D Dice */
-        .scene { width: 60px; height: 60px; perspective: 300px; margin: 20px auto; }
-        .dice {
-            width: 100%; height: 100%; position: relative; transform-style: preserve-3d;
-            transition: transform 1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-        }
-        .dice-face {
-            position: absolute; width: 60px; height: 60px; background: white;
-            border: 2px solid #ddd; border-radius: 10px; display: flex; align-items: center;
-            justify-content: center; font-size: 2rem; color: #333; box-shadow: inset 0 0 10px #ccc;
-        }
-        .f1 { transform: rotateY(0deg) translateZ(30px); }
-        .f2 { transform: rotateY(90deg) translateZ(30px); }
-        .f3 { transform: rotateY(180deg) translateZ(30px); }
-        .f4 { transform: rotateY(-90deg) translateZ(30px); }
-        .f5 { transform: rotateX(90deg) translateZ(30px); }
-        .f6 { transform: rotateX(-90deg) translateZ(30px); }
+  /* ── LOBBY ── */
+  .room-code {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.2rem;
+    letter-spacing: 8px;
+    color: var(--yellow);
+    text-shadow: 0 2px 0 #7a5500;
+    text-align: center;
+    background: var(--wood-dark);
+    padding: 10px 20px;
+    border-radius: 12px;
+  }
+  .player-chip {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    background: white;
+    border-radius: 12px;
+    border: 2px solid #ddd;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .color-dot { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(0,0,0,0.15); }
+  .pending-chip {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; background: #fff8e1; border-radius: 10px;
+    border: 2px dashed #f9a825; font-weight: 700;
+  }
+  .admit-btn {
+    background: var(--green-light); color: white; border: none; padding: 5px 12px;
+    border-radius: 8px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.8rem;
+    cursor: pointer; box-shadow: 0 2px 0 var(--green-dark);
+  }
+  .admit-btn:active { transform: translateY(2px); box-shadow: none; }
 
-        /* Side Panel: Leaderboard & Scores */
-        .panel {
-            width: 260px; background: #1e293b; padding: 20px; border-radius: 20px;
-            border: 4px solid #334155; box-shadow: 10px 10px 0 rgba(0,0,0,0.2);
-        }
-        .score-row {
-            display: flex; justify-content: space-between; padding: 10px;
-            margin-bottom: 5px; border-radius: 10px; background: rgba(0,0,0,0.2);
-        }
-        .active-turn { border: 2px solid var(--plastic-green); box-shadow: 0 0 15px var(--plastic-green); }
+  /* ── GAME LAYOUT ── */
+  #game-layout {
+    display: none;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 
-        /* Snake Images Layer */
-        #snake-images-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 5; }
-        .snake-img { position: absolute; width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--plastic-red); opacity: 0.8; }
-    </style>
+  /* ── BOARD ── */
+  #board-wrapper {
+    position: relative;
+    background: var(--wood);
+    padding: 14px;
+    border-radius: 18px;
+    box-shadow: 0 10px 0 var(--wood-dark), 0 20px 50px rgba(0,0,0,0.5);
+    border: 4px solid var(--wood-dark);
+  }
+
+  #board {
+    display: grid;
+    grid-template-columns: repeat(10, var(--cell));
+    grid-template-rows: repeat(10, var(--cell));
+    border: 2px solid rgba(0,0,0,0.2);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .cell {
+    width: var(--cell); height: var(--cell);
+    display: flex; align-items: flex-start; justify-content: flex-end;
+    padding: 3px 5px;
+    font-size: 0.65rem; font-weight: 800;
+    color: rgba(0,0,0,0.35);
+    position: relative;
+    user-select: none;
+  }
+  .cell-light { background: #c8e6c9; }
+  .cell-dark  { background: #a5d6a7; }
+  .cell.snake-head { background: #ffcdd2 !important; }
+  .cell.ladder-base { background: #fff9c4 !important; }
+
+  /* tokens layer sits on top */
+  #overlay-svg {
+    position: absolute; top: 0; left: 0;
+    width: var(--board-size); height: var(--board-size);
+    pointer-events: none; z-index: 10;
+    overflow: visible;
+  }
+
+  .token-circle {
+    transition: cx 0.55s cubic-bezier(0.34,1.56,0.64,1), cy 0.55s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  /* ── SIDE PANEL ── */
+  .panel {
+    width: 220px;
+    background: var(--cream);
+    border-radius: 18px;
+    padding: 18px;
+    border: 3px solid var(--wood);
+    box-shadow: 0 8px 0 var(--wood-dark), 0 16px 30px rgba(0,0,0,0.3);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .panel-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem; color: var(--wood-dark);
+    text-align: center; border-bottom: 2px solid #e0d4c0; padding-bottom: 8px;
+  }
+
+  .score-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 12px; border-radius: 12px;
+    background: white; border: 2px solid #e5dac8;
+    font-weight: 700; font-size: 0.9rem;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  .score-row.my-turn {
+    border-color: var(--green-dark);
+    box-shadow: 0 0 0 3px #c8e6c9, inset 0 0 8px rgba(88,167,22,0.12);
+  }
+  .score-row .tile-num {
+    margin-left: auto;
+    font-size: 0.78rem; color: #888; font-weight: 700;
+  }
+
+  /* ── 3D DICE ── */
+  .dice-scene {
+    perspective: 260px;
+    width: 60px; height: 60px;
+    margin: 0 auto;
+  }
+  .dice3d {
+    width: 60px; height: 60px;
+    position: relative; transform-style: preserve-3d;
+    transition: transform 0.9s cubic-bezier(0.17,0.67,0.83,0.67);
+  }
+  .d-face {
+    position: absolute; width: 60px; height: 60px;
+    background: white; border-radius: 10px;
+    border: 2px solid #ddd;
+    box-shadow: inset 0 0 8px #ccc;
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    padding: 8px; gap: 4px;
+  }
+  .pip { background: #222; border-radius: 50%; }
+  .pip.empty { background: transparent; }
+  .df1 { transform: rotateY(0deg)   translateZ(30px); }
+  .df2 { transform: rotateY(90deg)  translateZ(30px); }
+  .df3 { transform: rotateY(180deg) translateZ(30px); }
+  .df4 { transform: rotateY(-90deg) translateZ(30px); }
+  .df5 { transform: rotateX(90deg)  translateZ(30px); }
+  .df6 { transform: rotateX(-90deg) translateZ(30px); }
+
+  .turn-text {
+    font-size: 0.82rem; text-align: center; font-weight: 700;
+    min-height: 38px;
+    color: #666;
+    line-height: 1.4;
+  }
+  .turn-text.my-turn { color: var(--green-dark); font-size: 0.9rem; }
+
+  /* ── WIN OVERLAY ── */
+  #win-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 100; align-items: center; justify-content: center;
+  }
+  #win-overlay.show { display: flex; }
+  .win-card {
+    background: var(--cream);
+    border-radius: 24px; padding: 44px 48px;
+    text-align: center;
+    border: 4px solid var(--wood);
+    box-shadow: 0 12px 0 var(--wood-dark);
+    animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .win-title { font-family: 'Fredoka One', cursive; font-size: 2.8rem; color: var(--green-dark); }
+  .win-sub { font-size: 1.1rem; color: #555; margin: 10px 0 24px; font-weight: 700; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: #333; color: white; padding: 12px 24px; border-radius: 50px;
+    font-weight: 700; font-size: 0.95rem;
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 200; pointer-events: none;
+    white-space: nowrap;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.snake { background: var(--red); }
+  #toast.ladder { background: var(--green-dark); }
+
+  @media (max-width: 640px) {
+    :root { --cell: 34px; }
+    h1 { font-size: 1.6rem; }
+    .panel { width: 100%; flex-direction: row; flex-wrap: wrap; }
+    #board-wrapper { padding: 8px; border-radius: 12px; }
+  }
+</style>
 </head>
 <body>
 
-    <h1 style="text-shadow: 0 4px 0 #000;">PLASTIC REPTILES <span style="color: var(--plastic-red);">3D</span></h1>
+<h1><span class="emoji">🐍</span> Snakes &amp; Ladders <span class="emoji">🪜</span></h1>
 
-    <div id="entry-screen" class="screen active-screen">
-        <input type="text" id="player-name" placeholder="ENTER NAME" style="width: 100%; padding: 15px; border-radius: 10px; border:none; margin-bottom: 15px; font-size: 1.2rem; text-align: center;">
-        <button onclick="createRoom()">Create Room</button>
-        <div style="margin: 20px 0; font-weight: bold; opacity: 0.5;">- OR -</div>
-        <input type="text" id="join-code" placeholder="6-CHAR CODE" style="width: 100%; padding: 15px; border-radius: 10px; border:none; margin-bottom: 15px; text-align: center;">
-        <button onclick="joinRoom()" style="background: var(--plastic-green); box-shadow: 0 5px 0 #15803d;">Join Room</button>
-    </div>
+<!-- ENTRY SCREEN -->
+<div id="entry-screen" class="screen active">
+  <div class="card">
+    <h2>🎮 Join the Game</h2>
+    <input class="field" id="player-name" placeholder="Your Name" maxlength="18" style="margin-bottom:10px;">
+    <button class="btn btn-create" onclick="createRoom()">Create New Room</button>
+    <div class="divider" style="margin:14px 0;">— or —</div>
+    <input class="field" id="join-code" placeholder="Room Code (6 chars)" maxlength="6" style="margin-bottom:10px; text-transform:uppercase; letter-spacing:4px; text-align:center;">
+    <button class="btn btn-join" onclick="joinRoom()">Join Room</button>
+  </div>
+</div>
 
-    <div id="lobby-screen" class="screen">
-        <h2>ROOM: <span id="display-code" style="color: var(--plastic-yellow);">------</span></h2>
-        <div id="player-list-lobby" style="margin: 20px 0; min-height: 100px;"></div>
-        <div id="pending-list"></div>
-        <button id="start-btn" onclick="startGameTrigger()" style="display:none; background: var(--plastic-red); box-shadow: 0 5px 0 #991b1b;">Launch Game</button>
-    </div>
+<!-- LOBBY SCREEN -->
+<div id="lobby-screen" class="screen">
+  <div class="card">
+    <h2>🏠 Lobby</h2>
+    <div class="room-code" id="display-code">------</div>
+    <p style="text-align:center; font-size:0.8rem; color:#888; margin-top:6px;">Share this code with friends</p>
+    <div id="player-list-lobby" style="display:flex; flex-direction:column; gap:8px; margin-top:16px;"></div>
+    <div id="pending-list" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
+    <button class="btn btn-start" id="start-btn" onclick="startGameTrigger()" style="display:none; margin-top:18px;">🚀 Start Game</button>
+    <p id="waiting-msg" style="text-align:center; color:#aaa; font-size:0.85rem; margin-top:8px;"></p>
+  </div>
+</div>
 
-    <div id="game-layout">
-        <div id="board-wrapper">
-            <div id="board"></div>
-            <div id="tokens-layer"></div>
-            <div id="snake-images-layer"></div>
-            <svg id="vfx-layer" viewBox="0 0 500 500" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:4;"></svg>
+<!-- GAME -->
+<div id="game-layout">
+  <div id="board-wrapper">
+    <div id="board"></div>
+    <!-- SVG overlay: snakes, ladders, tokens -->
+    <svg id="overlay-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Scoreboard</div>
+    <div id="score-list"></div>
+
+    <div style="border-top: 2px solid #e0d4c0; padding-top: 12px;">
+      <div class="dice-scene">
+        <div class="dice3d" id="dice">
+          <!-- Faces with proper pip layouts -->
+          <div class="d-face df1" id="df1"></div>
+          <div class="d-face df2" id="df2"></div>
+          <div class="d-face df3" id="df3"></div>
+          <div class="d-face df4" id="df4"></div>
+          <div class="d-face df5" id="df5"></div>
+          <div class="d-face df6" id="df6"></div>
         </div>
-
-        <div class="panel">
-            <h3 style="margin-top:0;">Scoreboard</h3>
-            <div id="score-list"></div>
-            <hr style="border: 1px solid #334155;">
-            
-            <div class="scene">
-                <div class="dice" id="dice">
-                    <div class="dice-face f1">1</div>
-                    <div class="dice-face f2">2</div>
-                    <div class="dice-face f3">3</div>
-                    <div class="dice-face f4">4</div>
-                    <div class="dice-face f5">5</div>
-                    <div class="dice-face f6">6</div>
-                </div>
-            </div>
-
-            <button id="roll-btn" onclick="handleRoll()">Shake & Roll</button>
-            <p id="turn-text" style="font-size: 0.8rem; margin-top: 15px; color: #94a3b8;"></p>
-        </div>
+      </div>
+      <div style="text-align:center; margin: 8px 0 4px; font-family: 'Fredoka One'; font-size:1.4rem; color: var(--wood-dark);" id="dice-num">–</div>
+      <button class="btn btn-roll" id="roll-btn" onclick="handleRoll()" disabled>🎲 Roll!</button>
+      <div class="turn-text" id="turn-text"></div>
     </div>
+  </div>
+</div>
 
-    <script>
-        // --- FIREBASE SETUP ---
-        const firebaseConfig = { 
-            apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ", 
-            authDomain: "svls-289ee.firebaseapp.com", 
-            projectId: "svls-289ee",
-            databaseURL: "https://svls-289ee-default-rtdb.firebaseio.com",
-            storageBucket: "svls-289ee.firebasestorage.app", 
-            messagingSenderId: "500705386198", 
-            appId: "1:500705386198:web:96f189662bc2aa99cf7377"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+<div id="win-overlay">
+  <div class="win-card">
+    <div style="font-size:4rem;">🏆</div>
+    <div class="win-title" id="win-name">You Won!</div>
+    <div class="win-sub" id="win-sub"></div>
+    <button class="btn btn-start" onclick="location.reload()" style="width:auto; padding:14px 36px;">Play Again</button>
+  </div>
+</div>
 
-        let roomCode = null;
-        let myId = "p" + Math.floor(Math.random() * 1000000);
-        let myName = "";
-        let isHost = false;
-        let localState = null;
+<div id="toast">🐍 Oops! Snake!</div>
 
-        const snakes = { 17: 4, 54: 34, 62: 19, 98: 79, 87: 36, 95: 75 };
-        const ladders = { 3: 22, 8: 30, 28: 84, 58: 77, 71: 91 };
-        const snakeImgs = [
-            "https://images.unsplash.com/photo-1531386151447-fd76ad500b2a?auto=format&fit=crop&w=100&q=80",
-            "https://images.unsplash.com/photo-1629190844820-0084f728f3e5?auto=format&fit=crop&w=100&q=80"
-        ];
+<script>
+// ── FIREBASE ──
+const firebaseConfig = {
+  apiKey: "AIzaSyDaeNQF4qmW0vvwxUPp_NztnT0hoLzm1BQ",
+  authDomain: "svls-289ee.firebaseapp.com",
+  projectId: "svls-289ee",
+  databaseURL: "https://svls-289ee-default-rtdb.firebaseio.com",
+  storageBucket: "svls-289ee.firebasestorage.app",
+  messagingSenderId: "500705386198",
+  appId: "1:500705386198:web:96f189662bc2aa99cf7377"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-        // --- ROOM LOGIC ---
-        function createRoom() {
-            myName = document.getElementById('player-name').value.toUpperCase() || "PLAYER 1";
-            roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-            isHost = true;
-            const init = {
-                status: 'lobby', host: myId, turnIndex: 0, lastRoll: 1,
-                players: { [myId]: { name: myName, pos: 1, color: '#3b82f6', score: 0 } },
-                order: [myId]
-            };
-            db.ref('rooms/' + roomCode).set(init).then(() => { enterLobby(); listen(); });
-        }
+const PLAYER_COLORS = ['#e53935','#1e88e5','#43a047','#f9a825','#8e24aa','#00897b'];
 
-        function joinRoom() {
-            roomCode = document.getElementById('join-code').value.toUpperCase();
-            myName = document.getElementById('player-name').value.toUpperCase() || "PLAYER";
-            if(!roomCode) return;
-            db.ref('rooms/' + roomCode + '/pending/' + myId).set({ name: myName });
-            document.getElementById('entry-screen').innerHTML = "<h2>Awaiting Admission...</h2>";
-            listen();
-        }
+const snakes  = { 98:10, 95:75, 87:36, 62:19, 54:34, 44:22, 23:3, 17:4 };
+const ladders = { 3:22, 8:30, 25:55, 28:76, 36:57, 58:77, 71:91 };
 
-        function listen() {
-            db.ref('rooms/' + roomCode).on('value', snap => {
-                const data = snap.val(); if(!data) return;
-                localState = data;
-                if(data.players && data.players[myId]) {
-                    enterLobby();
-                    updateLobbyUI(data);
-                }
-                if(data.status === 'playing') showGame(data);
-            });
-        }
+// ── STATE ──
+let roomCode = null;
+let myId = "p" + Math.random().toString(36).slice(2,8);
+let myName = "";
+let isHost = false;
+let localState = null;
+let boardBuilt = false;
+let rolling = false;
 
-        function enterLobby() {
-            document.getElementById('entry-screen').className = 'screen';
-            document.getElementById('lobby-screen').className = 'screen active-screen';
-            document.getElementById('display-code').innerText = roomCode;
-        }
+// ── DICE PIPS ──
+const PIP_LAYOUTS = {
+  1: ['','','', '','X','', '','',''],
+  2: ['X','','', '','','', '','','X'],
+  3: ['X','','', '','X','', '','','X'],
+  4: ['X','','X', '','','', 'X','','X'],
+  5: ['X','','X', '','X','', 'X','','X'],
+  6: ['X','','X', 'X','','X', 'X','','X'],
+};
+function buildDiceFace(el, val) {
+  el.innerHTML = '';
+  PIP_LAYOUTS[val].forEach(p => {
+    const d = document.createElement('div');
+    d.className = p === 'X' ? 'pip' : 'pip empty';
+    el.appendChild(d);
+  });
+}
+[1,2,3,4,5,6].forEach(v => buildDiceFace(document.getElementById(`df${v}`), v));
 
-        function updateLobbyUI(data) {
-            const list = document.getElementById('player-list-lobby');
-            list.innerHTML = "<h4>PLAYERS:</h4>" + Object.values(data.players).map(p => `<div>• ${p.name}</div>`).join('');
-            
-            const pending = document.getElementById('pending-list');
-            pending.innerHTML = "";
-            if(data.pending) {
-                Object.keys(data.pending).forEach(pid => {
-                    pending.innerHTML += `<div style="display:flex; justify-content:space-between; margin-top:10px;">
-                        <span>${data.pending[pid].name}</span>
-                        <button onclick="admit('${pid}', '${data.pending[pid].name}')" style="padding:5px; font-size:0.7rem;">Admit</button>
-                    </div>`;
-                });
-            }
-            if(isHost) document.getElementById('start-btn').style.display = 'block';
-        }
+// ── ENTRY SCREENS ──
+function setScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
 
-        function admit(pid, name) {
-            const colors = ['#ef4444', '#22c55e', '#eab308', '#a855f7'];
-            const count = Object.keys(localState.players).length;
-            const up = {};
-            up[`players/${pid}`] = { name: name, pos: 1, color: colors[count-1] || '#fff', score: 0 };
-            up[`pending/${pid}`] = null;
-            const newOrder = localState.order || []; newOrder.push(pid);
-            up[`order`] = newOrder;
-            db.ref('rooms/' + roomCode).update(up);
-        }
+function createRoom() {
+  myName = (document.getElementById('player-name').value.trim() || 'Player 1').toUpperCase();
+  roomCode = Math.random().toString(36).substring(2,8).toUpperCase();
+  isHost = true;
+  const init = {
+    status: 'lobby', host: myId, turnIndex: 0, lastRoll: 1,
+    players: { [myId]: { name: myName, pos: 1, color: PLAYER_COLORS[0], score: 0 } },
+    order: [myId]
+  };
+  db.ref('rooms/' + roomCode).set(init).then(() => { enterLobby(); listen(); });
+}
 
-        function startGameTrigger() { db.ref('rooms/' + roomCode).update({ status: 'playing' }); }
+function joinRoom() {
+  roomCode = (document.getElementById('join-code').value.trim() || '').toUpperCase();
+  myName = (document.getElementById('player-name').value.trim() || 'Player').toUpperCase();
+  if (!roomCode) return;
+  db.ref('rooms/' + roomCode + '/pending/' + myId).set({ name: myName });
+  setScreen('lobby-screen');
+  document.getElementById('display-code').innerText = roomCode;
+  document.getElementById('waiting-msg').innerText = '⏳ Waiting for host to admit you…';
+  listen();
+}
 
-        // --- GAMEPLAY ---
-        function showGame(data) {
-            document.getElementById('lobby-screen').className = 'screen';
-            document.getElementById('game-layout').style.display = 'flex';
-            if(!document.getElementById('cell-1')) {
-                buildBoard();
-                placeDecoration();
-            }
-            updateVisuals(data);
-        }
+function listen() {
+  db.ref('rooms/' + roomCode).on('value', snap => {
+    const data = snap.val(); if (!data) return;
+    localState = data;
+    if (data.players && data.players[myId]) {
+      enterLobby();
+      updateLobbyUI(data);
+    }
+    if (data.status === 'playing') showGame(data);
+  });
+}
 
-        function buildBoard() {
-            const board = document.getElementById('board');
-            for(let r=9; r>=0; r--) {
-                for(let c=0; c<10; c++) {
-                    let n = (r % 2 !== 0) ? (r*10)+(10-c) : (r*10)+(c+1);
-                    const cell = document.createElement('div');
-                    cell.className = 'cell'; cell.id = `cell-${n}`; cell.innerText = n;
-                    board.appendChild(cell);
-                }
-            }
-        }
+function enterLobby() {
+  setScreen('lobby-screen');
+  document.getElementById('display-code').innerText = roomCode;
+  document.getElementById('waiting-msg').innerText = '';
+}
 
-        function placeDecoration() {
-            const layer = document.getElementById('snake-images-layer');
-            Object.keys(snakes).forEach((s, i) => {
-                const cell = document.getElementById(`cell-${s}`);
-                const img = document.createElement('img');
-                img.src = snakeImgs[i % 2]; img.className = 'snake-img';
-                img.style.left = cell.offsetLeft + 'px'; img.style.top = cell.offsetTop + 'px';
-                layer.appendChild(img);
-            });
-        }
+function updateLobbyUI(data) {
+  const list = document.getElementById('player-list-lobby');
+  list.innerHTML = '';
+  (data.order || []).forEach(id => {
+    const p = data.players[id];
+    const chip = document.createElement('div');
+    chip.className = 'player-chip';
+    chip.innerHTML = `<div class="color-dot" style="background:${p.color}"></div>${p.name}${id === data.host ? ' 👑' : ''}`;
+    list.appendChild(chip);
+  });
 
-        function updateVisuals(data) {
-            // Scores & Turn
-            const activeId = data.order[data.turnIndex];
-            const isMyTurn = (activeId === myId);
-            document.getElementById('roll-btn').disabled = !isMyTurn;
-            document.getElementById('turn-text').innerText = isMyTurn ? "IT IS YOUR TURN!" : `WAITING FOR ${data.players[activeId].name}...`;
+  const pend = document.getElementById('pending-list');
+  pend.innerHTML = '';
+  if (data.pending) {
+    Object.keys(data.pending).forEach(pid => {
+      const pc = document.createElement('div');
+      pc.className = 'pending-chip';
+      pc.innerHTML = `<span>🔔 ${data.pending[pid].name}</span>`;
+      if (isHost) {
+        const ab = document.createElement('button');
+        ab.className = 'admit-btn'; ab.innerText = 'Admit';
+        ab.onclick = () => admit(pid, data.pending[pid].name);
+        pc.appendChild(ab);
+      }
+      pend.appendChild(pc);
+    });
+  }
+  if (isHost) document.getElementById('start-btn').style.display = 'block';
+}
 
-            const scoreDiv = document.getElementById('score-list');
-            scoreDiv.innerHTML = data.order.map(id => {
-                const p = data.players[id];
-                return `<div class="score-row ${id === activeId ? 'active-turn' : ''}">
-                    <span style="color:${p.color}">● ${p.name}</span>
-                    <span>Tile: ${p.pos}</span>
-                </div>`;
-            }).join('');
+function admit(pid, name) {
+  const count = Object.keys(localState.players).length;
+  const up = {};
+  up[`players/${pid}`] = { name: name, pos: 1, color: PLAYER_COLORS[count % PLAYER_COLORS.length], score: 0 };
+  up[`pending/${pid}`] = null;
+  const newOrder = [...(localState.order || []), pid];
+  up[`order`] = newOrder;
+  db.ref('rooms/' + roomCode).update(up);
+}
 
-            // Tokens
-            const tLayer = document.getElementById('tokens-layer');
-            data.order.forEach((id, i) => {
-                let t = document.getElementById(`t-${id}`);
-                if(!t) {
-                    t = document.createElement('div'); t.className = 'token'; t.id = `t-${id}`;
-                    t.style.backgroundColor = data.players[id].color;
-                    tLayer.appendChild(t);
-                }
-                const cell = document.getElementById(`cell-${data.players[id].pos}`);
-                t.style.left = (cell.offsetLeft + 10 + (i*4)) + 'px';
-                t.style.top = (cell.offsetTop + 10 + (i*4)) + 'px';
-            });
+function startGameTrigger() { db.ref('rooms/' + roomCode).update({ status: 'playing' }); }
 
-            // Sync Dice Rotation
-            rotateDice(data.lastRoll);
-        }
+// ── BOARD ──
+function cellCoord(n) {
+  // n: 1–100 → row (0=bottom), col (0=left)
+  const idx = n - 1;
+  const row = Math.floor(idx / 10); // 0 = bottom row (cells 1-10)
+  const col = (row % 2 === 0) ? (idx % 10) : (9 - idx % 10);
+  const gridRow = 9 - row; // SVG row 0 = top
+  return {
+    cx: col * 52 + 26,
+    cy: gridRow * 52 + 26
+  };
+}
 
-        function rotateDice(val) {
-            const d = document.getElementById('dice');
-            const rots = { 1:'rotateX(0deg) rotateY(0deg)', 2:'rotateY(-90deg)', 3:'rotateY(-180deg)', 4:'rotateY(90deg)', 5:'rotateX(-90deg)', 6:'rotateX(90deg)' };
-            d.style.transform = rots[val];
-        }
+function buildBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  // Build grid: top-left is cell 100, bottom-left is cell 1
+  // Row 0 of grid = row 9 of cells (91-100), alternating direction
+  for (let gr = 0; gr < 10; gr++) {
+    const cellRow = 9 - gr; // cellRow 0 = cells 1-10
+    for (let gc = 0; gc < 10; gc++) {
+      let cellNum;
+      if (cellRow % 2 === 0) {
+        cellNum = cellRow * 10 + gc + 1;
+      } else {
+        cellNum = cellRow * 10 + (9 - gc) + 1;
+      }
+      const cell = document.createElement('div');
+      const isLight = (gr + gc) % 2 === 0;
+      cell.className = 'cell ' + (isLight ? 'cell-light' : 'cell-dark');
+      cell.id = 'cell-' + cellNum;
+      cell.dataset.n = cellNum;
+      if (snakes[cellNum]) cell.classList.add('snake-head');
+      if (ladders[cellNum]) cell.classList.add('ladder-base');
+      // Special cell 100
+      if (cellNum === 100) {
+        cell.innerHTML = `<span style="font-size:1.1rem; position:absolute; top:50%; left:50%; transform:translate(-50%,-55%);">⭐</span>`;
+      } else {
+        cell.innerHTML = `<span style="position:relative; z-index:1;">${cellNum}</span>`;
+      }
+      board.appendChild(cell);
+    }
+  }
 
-        async function handleRoll() {
-            const roll = Math.floor(Math.random() * 6) + 1;
-            document.getElementById('roll-btn').disabled = true;
-            
-            // Random spin animation
-            const d = document.getElementById('dice');
-            d.style.transition = '0.5s';
-            d.style.transform = `rotateX(${Math.random()*360}deg) rotateY(${Math.random()*360}deg)`;
+  // Draw snakes & ladders in SVG overlay
+  const svg = document.getElementById('overlay-svg');
+  const CELL = 52, BOARD = 520;
+  svg.setAttribute('viewBox', `0 0 ${BOARD} ${BOARD}`);
+  svg.setAttribute('width', BOARD);
+  svg.setAttribute('height', BOARD);
+  svg.innerHTML = '';
 
-            setTimeout(async () => {
-                d.style.transition = '1s';
-                let nPos = localState.players[myId].pos + roll;
-                if(nPos > 100) nPos = 100;
-                if(snakes[nPos]) nPos = snakes[nPos];
-                if(ladders[nPos]) nPos = ladders[nPos];
+  // Ladders
+  Object.entries(ladders).forEach(([from, to]) => {
+    const f = cellCoord(+from), t = cellCoord(+to);
+    const dx = t.cx - f.cx, dy = t.cy - f.cy;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    const ux = -dy/len * 6, uy = dx/len * 6;
+    // Two rails + rungs
+    const railColors = ['#f57f17','#f9a825'];
+    [1,-1].forEach((side, si) => {
+      const r1x = f.cx + ux*side, r1y = f.cy + uy*side;
+      const r2x = t.cx + ux*side, r2y = t.cy + uy*side;
+      const rail = document.createElementNS('http://www.w3.org/2000/svg','line');
+      rail.setAttribute('x1', r1x); rail.setAttribute('y1', r1y);
+      rail.setAttribute('x2', r2x); rail.setAttribute('y2', r2y);
+      rail.setAttribute('stroke', railColors[si]);
+      rail.setAttribute('stroke-width', '5');
+      rail.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(rail);
+    });
+    // Rungs
+    const steps = Math.round(len / 20);
+    for (let i = 1; i < steps; i++) {
+      const t2 = i / steps;
+      const mx = f.cx + dx*t2, my = f.cy + dy*t2;
+      const rung = document.createElementNS('http://www.w3.org/2000/svg','line');
+      rung.setAttribute('x1', mx + ux*1.5); rung.setAttribute('y1', my + uy*1.5);
+      rung.setAttribute('x2', mx - ux*1.5); rung.setAttribute('y2', my - uy*1.5);
+      rung.setAttribute('stroke', '#fdd835');
+      rung.setAttribute('stroke-width', '3.5');
+      rung.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(rung);
+    }
+    // Arrow tip at top
+    const tip = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    tip.setAttribute('cx', t.cx); tip.setAttribute('cy', t.cy);
+    tip.setAttribute('r', '6');
+    tip.setAttribute('fill', '#f57f17');
+    svg.appendChild(tip);
+  });
 
-                const nextTurn = (localState.turnIndex + 1) % localState.order.length;
-                const up = {};
-                up[`players/${myId}/pos`] = nPos;
-                up[`turnIndex`] = nextTurn;
-                up[`lastRoll`] = roll;
-                
-                if(nPos === 100) alert("WINNER!");
-                await db.ref('rooms/' + roomCode).update(up);
-            }, 600);
-        }
-    </script>
+  // Snakes (cubic bezier curves)
+  const snakeColorPairs = [
+    ['#e53935','#b71c1c'], ['#43a047','#1b5e20'],
+    ['#8e24aa','#4a148c'], ['#e91e63','#880e4f'],
+    ['#ff6d00','#bf360c'], ['#00897b','#004d40'],
+    ['#1565c0','#0d47a1'], ['#6d4c41','#3e2723'],
+  ];
+  Object.entries(snakes).forEach(([from, to], idx) => {
+    const f = cellCoord(+from), t = cellCoord(+to);
+    const [col1, col2] = snakeColorPairs[idx % snakeColorPairs.length];
+    // Control points for an S-curve
+    const mx = (f.cx + t.cx) / 2 + (Math.random()-0.5)*80;
+    const my = (f.cy + t.cy) / 2 + (Math.random()-0.5)*80;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    const d = `M ${f.cx} ${f.cy} Q ${mx} ${my} ${t.cx} ${t.cy}`;
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', col1);
+    path.setAttribute('stroke-width', '9');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('opacity', '0.85');
+    svg.appendChild(path);
+    // Dashed stripe
+    const path2 = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path2.setAttribute('d', d);
+    path2.setAttribute('fill', 'none');
+    path2.setAttribute('stroke', col2);
+    path2.setAttribute('stroke-width', '4');
+    path2.setAttribute('stroke-dasharray', '8 8');
+    path2.setAttribute('stroke-linecap', 'round');
+    path2.setAttribute('opacity', '0.7');
+    svg.appendChild(path2);
+    // Head circle at 'from'
+    const head = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    head.setAttribute('cx', f.cx); head.setAttribute('cy', f.cy);
+    head.setAttribute('r', '10'); head.setAttribute('fill', col1);
+    svg.appendChild(head);
+    // Eyes
+    [-4,4].forEach(ex => {
+      const eye = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      eye.setAttribute('cx', f.cx + ex); eye.setAttribute('cy', f.cy - 2);
+      eye.setAttribute('r', '2'); eye.setAttribute('fill', 'white');
+      svg.appendChild(eye);
+    });
+    // Tail dot
+    const tail = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    tail.setAttribute('cx', t.cx); tail.setAttribute('cy', t.cy);
+    tail.setAttribute('r', '5'); tail.setAttribute('fill', col2); tail.setAttribute('opacity','0.7');
+    svg.appendChild(tail);
+  });
+
+  boardBuilt = true;
+}
+
+// ── TOKENS ──
+function getOrCreateToken(svg, id, color) {
+  let el = document.getElementById('tok-' + id);
+  if (!el) {
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.id = 'tok-' + id;
+    // Shadow
+    const shadow = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    shadow.setAttribute('r', '14'); shadow.setAttribute('fill', 'rgba(0,0,0,0.3)');
+    shadow.setAttribute('cx', '2'); shadow.setAttribute('cy', '4');
+    g.appendChild(shadow);
+    // Body
+    const circ = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circ.setAttribute('r', '13'); circ.setAttribute('fill', color);
+    circ.setAttribute('stroke', 'white'); circ.setAttribute('stroke-width', '3');
+    g.appendChild(circ);
+    // Gloss
+    const gloss = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+    gloss.setAttribute('rx','6'); gloss.setAttribute('ry','4');
+    gloss.setAttribute('cx','-2'); gloss.setAttribute('cy','-5');
+    gloss.setAttribute('fill','rgba(255,255,255,0.45)');
+    g.appendChild(gloss);
+    svg.appendChild(g);
+    el = g;
+  }
+  return el;
+}
+
+function placeToken(svg, id, n, offset) {
+  const el = getOrCreateToken(svg, id, '');
+  const { cx, cy } = cellCoord(n);
+  const ox = (offset % 2) * 16 - 8;
+  const oy = Math.floor(offset / 2) * 16 - 8;
+  el.setAttribute('transform', `translate(${cx + ox},${cy + oy})`);
+}
+
+// ── GAME ──
+function showGame(data) {
+  document.getElementById('lobby-screen').classList.remove('active');
+  document.getElementById('game-layout').style.display = 'flex';
+  if (!boardBuilt) buildBoard();
+  updateVisuals(data);
+}
+
+function updateVisuals(data) {
+  if (!data.order) return;
+  const activeId = data.order[data.turnIndex % data.order.length];
+  const isMyTurn = (activeId === myId);
+
+  // Scores
+  const scoreDiv = document.getElementById('score-list');
+  scoreDiv.innerHTML = '';
+  data.order.forEach(id => {
+    const p = data.players[id];
+    const row = document.createElement('div');
+    row.className = 'score-row' + (id === activeId ? ' my-turn' : '');
+    row.innerHTML = `<div class="color-dot" style="background:${p.color}"></div>
+      <span style="font-size:0.9rem;">${p.name}</span>
+      <span class="tile-num">🏠 ${p.pos}</span>`;
+    scoreDiv.appendChild(row);
+  });
+
+  // Turn text
+  const turnEl = document.getElementById('turn-text');
+  if (isMyTurn) {
+    turnEl.innerHTML = '<span style="color:var(--green-dark)">🎯 Your turn!</span>';
+    turnEl.className = 'turn-text my-turn';
+  } else {
+    const ap = data.players[activeId];
+    turnEl.innerHTML = `⏳ Waiting for<br><strong>${ap.name}</strong>`;
+    turnEl.className = 'turn-text';
+  }
+
+  const rollBtn = document.getElementById('roll-btn');
+  rollBtn.disabled = !isMyTurn || rolling;
+
+  // Tokens
+  const svg = document.getElementById('overlay-svg');
+  data.order.forEach((id, i) => {
+    const tok = getOrCreateToken(svg, id, data.players[id].color);
+    // update color
+    tok.querySelectorAll('circle')[1]?.setAttribute('fill', data.players[id].color);
+    const { cx, cy } = cellCoord(data.players[id].pos);
+    const ox = (i % 2) * 16 - 8;
+    const oy = Math.floor(i / 2) * 16 - 8;
+    tok.setAttribute('transform', `translate(${cx + ox},${cy + oy})`);
+  });
+
+  // Dice
+  rotateDice(data.lastRoll || 1);
+  document.getElementById('dice-num').innerText = data.lastRoll ? `Rolled: ${data.lastRoll}` : '–';
+}
+
+function rotateDice(val) {
+  const rots = {
+    1: 'rotateX(0deg) rotateY(0deg)',
+    2: 'rotateY(-90deg)',
+    3: 'rotateY(-180deg)',
+    4: 'rotateY(90deg)',
+    5: 'rotateX(-90deg)',
+    6: 'rotateX(90deg)'
+  };
+  document.getElementById('dice3d') ? null : null;
+  document.getElementById('dice').style.transform = rots[val] || rots[1];
+}
+
+async function handleRoll() {
+  if (rolling) return;
+  rolling = true;
+  document.getElementById('roll-btn').disabled = true;
+
+  const roll = Math.floor(Math.random() * 6) + 1;
+  const dice = document.getElementById('dice');
+
+  // Shake animation
+  dice.style.transition = '0.4s ease';
+  dice.style.transform = `rotateX(${Math.random()*720}deg) rotateY(${Math.random()*720}deg)`;
+
+  await wait(450);
+  dice.style.transition = '0.8s cubic-bezier(0.17,0.67,0.83,0.67)';
+
+  let nPos = localState.players[myId].pos + roll;
+  if (nPos > 100) nPos = localState.players[myId].pos; // can't go over 100, stay
+
+  const hitSnake = !!snakes[nPos];
+  const hitLadder = !!ladders[nPos];
+  if (hitSnake) nPos = snakes[nPos];
+  if (hitLadder) nPos = ladders[nPos];
+
+  const nextTurn = (localState.turnIndex + 1) % localState.order.length;
+  const up = {};
+  up[`players/${myId}/pos`] = nPos;
+  up[`turnIndex`] = nextTurn;
+  up[`lastRoll`] = roll;
+  if (nPos === 100) up[`winner`] = myId;
+
+  await db.ref('rooms/' + roomCode).update(up);
+
+  // Show toast after update
+  setTimeout(() => {
+    if (hitSnake) showToast('🐍 Snake! Slid down!', 'snake');
+    else if (hitLadder) showToast('🪜 Ladder! Climbed up!', 'ladder');
+  }, 400);
+
+  if (nPos === 100) {
+    setTimeout(() => showWin(localState.players[myId].name), 600);
+  }
+  rolling = false;
+}
+
+// Also listen for someone else winning
+db.ref && setInterval(() => {
+  if (localState && localState.winner && localState.winner !== myId) {
+    const wname = localState.players[localState.winner]?.name;
+    if (wname) showWin(wname, true);
+  }
+}, 1000);
+
+function showWin(name, isOther) {
+  const ov = document.getElementById('win-overlay');
+  if (ov.classList.contains('show')) return;
+  document.getElementById('win-name').innerText = isOther ? `${name} Wins!` : '🎉 You Win!';
+  document.getElementById('win-sub').innerText = isOther ? `Better luck next time!` : `Congratulations, ${name}!`;
+  ov.classList.add('show');
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.innerText = msg;
+  t.className = 'show ' + (type || '');
+  setTimeout(() => { t.className = type || ''; }, 2500);
+}
+
+function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
 </body>
 </html>
